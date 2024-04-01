@@ -1,0 +1,145 @@
+You can find data dictionary and GIS processes I run to create two shapefile. If you have questions, please contact me.
+
+20170509
+Hiroo Imaki (hiroo.imaki@noaa.gov or hiroo.imaki@pacificspatial.com)
+
+Both layers are in EPSG:26910 horizontal projection.
+
+merged_channel_2_vertices_pgr.shp
+id,unique node id
+cnt,automatically created by pgRouting
+chk,automatically created by pgRouting
+ein,automatically created by pgRouting
+eout,automatically created by pgRouting
+area_m2,channel areas
+habitat,habitat types
+path_median,median path distance within 3m radius from a node
+path_min,minimum path distance within 3m radius from a node
+path_max,maximum path distance within 3m radius from a node
+elev_m,elevation in meter
+edge,edge habitat=1, non-edge habitat=0
+
+merged_channel_2.shp
+ctype,channel type description
+sn,serial numbers
+source,original source node id from the node point data's id
+target,original target node id from the node point data's id
+path_med_src,path distance at the source point with its median value within 3m radius from the node point
+path_min_src,path distance at the source point with its minimum value within 3m radius from the node point
+path_max_src,path distance at the source point with its maximum value within 3m radius from the node point
+path_med_tgt,path distance at the target point with its median value within 3m radius from the node point
+path_min_tgt,path distance at the target point with its minimum value within 3m radius from the node point
+path_max_tgt,path distance at the target point with its maximum value within 3m radius from the node point
+elev_src,elevation at the source node
+elev_tgt,elevation at the target node
+hab_zone,habitat type description
+flowdir,flow direction
+source_mod,adjusted source node id for Abby's model
+target_mod,adjusted target node id for Abby's model
+elev_start,elevation at the start point using PostGIS st_startpoint(geom)
+dist_start,path distance at the start point using PostGIS st_startpoint(geom)
+
+For Abby's modeling, you need to use source_mod and target_mode node id's to let fish swim. I tried to do my best to direct all channel toward nearshore but sometime flow directions are inconsistent. I believe inconsistencies are wider in blind channel > nearshore > distributary. So, please look at data closely.
+
+Data processing.
+1) I segmented blind channel into 10m length.
+2) I created theissen polygons from the segmented blind channel lines.
+3) I identified blind channel polygon with the theissen polygon to get channel area for each channel segment.
+4) I merged the blind channel and distributary channel network lines
+5) I run pgRouting algorithm to get source-target nodes.
+6) I generated path distance raster which shows distance from the upper most point in the channel network.
+7) I appended path distance and elevation value from https://www.ngdc.noaa.gov/docucomp/page?xml=NOAA/NESDIS/NGDC/MGG/DEM/iso/xml/1786.xml&view=getDataView&header=none. Elevation values in the data are in NAVD88. Since node points were sometime not in channel areas, I generated 25m buffer from each node and calculated the minimum elevation value within the buffer to represent elevation values at the node.
+8) I updated distributary channel area values with the GIS layer I received.
+9) I run various spatial queries to adjust flow direction, source id, and target id (see below).
+
+
+
+-- SQL statements to check flow direction and modified source and target node numbers.
+-- check flow direction
+alter table merged_channel_2 drop if exists flowdir;
+alter table merged_channel_2 drop if exists source_mod;
+alter table merged_channel_2 drop if exists target_mod;
+alter table merged_channel_2 add flowdir int4;
+alter table merged_channel_2 add source_mod int4;
+alter table merged_channel_2 add target_mod int4;
+
+-- check start point pathdistance
+alter table merged_channel_2 drop if exists dist_start;
+alter table merged_channel_2 add dist_start float4;
+update merged_channel_2 t1 set dist_start = t2.path_max
+from merged_channel_2_vertices_pgr t2
+where st_dwithin(st_startpoint(t1.geom), t2.the_geom, 1);
+
+-- check start point elevation
+alter table merged_channel_2 drop if exists elev_start;
+alter table merged_channel_2 add elev_start float4;
+update merged_channel_2 t1 set elev_start = t2.elev_m
+from merged_channel_2_vertices_pgr t2
+where st_dwithin(st_startpoint(t1.geom), t2.the_geom, 1);
+
+-- distributary channels
+update merged_channel_2 set flowdir = 
+case
+	when dist_start  >=  greatest(path_max_src, path_max_tgt) THEN -1 ELSE 1
+END
+Where hab_zone = 'distributary';
+
+-- blind channels
+update merged_channel_2 set flowdir = 
+case
+	when dist_start  >= greatest(path_max_src, path_max_tgt) THEN 1 ELSE -1
+END
+Where hab_zone = 'blind channel';
+
+-- nearshore
+update merged_channel_2 set flowdir = 
+case
+	when elev_start  >= greatest(elev_src, elev_tgt) THEN 1 ELSE -1
+	--when dist_start  >=  greatest(path_max_src, path_max_tgt) THEN -1 ELSE 1
+END
+Where hab_zone = 'nearshore';
+
+-- others
+update merged_channel_2 set flowdir = 1 where flowdir is null;
+
+-- flip geometry if flow direction goes opposit
+update merged_channel_2 set geom = st_reverse(geom) where flowdir=-1;
+
+
+-- update start point values
+update merged_channel_2 t1 set dist_start = t2.path_max
+from merged_channel_2_vertices_pgr t2
+where st_dwithin(st_startpoint(t1.geom), t2.the_geom, 1);
+
+update merged_channel_2 t1 set elev_start = t2.elev_m
+from merged_channel_2_vertices_pgr t2
+where st_dwithin(st_startpoint(t1.geom), t2.the_geom, 1);
+
+-- update flow direction too
+-- distributary channels
+update merged_channel_2 set flowdir = 
+case
+	when dist_start  >=  greatest(path_max_src, path_max_tgt) THEN -1 ELSE 1
+END
+Where hab_zone = 'distributary';
+
+-- blind channels
+update merged_channel_2 set flowdir = 
+case
+	when dist_start  >= greatest(path_max_src, path_max_tgt) THEN 1 ELSE -1
+END
+Where hab_zone = 'blind channel';
+
+-- nearshore
+update merged_channel_2 set flowdir = 
+case
+	when elev_start  >= greatest(elev_src, elev_tgt) THEN 1 ELSE -1
+END
+Where hab_zone = 'nearshore';
+
+-- update new source and target sn
+update merged_channel_2 t1 set source_mod = t2.id from merged_channel_2_vertices_pgr t2
+where st_dwithin(st_startpoint(t1.geom), t2.the_geom, 0.5);
+
+update merged_channel_2 t1 set target_mod = t2.id from merged_channel_2_vertices_pgr t2
+where st_dwithin(st_endpoint(t1.geom), t2.the_geom, 0.5);

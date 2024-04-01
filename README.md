@@ -1,26 +1,86 @@
-# Instructions for including your repository in the noaa-nwfsc organization
 
-## Collaborators
+# Individual-based Model of Juvenile Chinook Salmon in the Skagit River Estuary
 
-If you have NMFS collaborators (i.e. have noaa.gov email) on your repository who are not members of the NMFS GitHub Enterprise Cloud account, have them complete a [user request](https://sites.google.com/noaa.gov/nmfs-st-github-governance-team/github-users). If they are not NOAA FTEs or Affiliates, contact an administrator to help you add them to your repository or to transfer in your repository with outside collaborators.  You will find the list of admins in the [noaa-nwfsc Google folder](https://drive.google.com/drive/folders/1k54HDpe6AcpfZ9LZzdIARFbH6wdi8pGl?usp=sharing).
+This repository is a C++ implementation of an individual-based model of the behavior of juvenile Chinook salmon in estuarine waters. The project currently focuses on the Skagit River estuary channel network, although the model itself can be used to simulate other environments.
 
-## For repositories migrated to noaa-nwfsc organization
+## Authors
 
-1) Update your `README.md` file to include the disclaimer and an open access license. See below for a description of licenses.
-2) Add a description and info on who created the content (otherwise the org managers will not know who to contact).
-3) Add tags (far right side on repo) to help users find repositories. See the other repositories for examples.
-4) Add an open LICENSE file. For government work, we are required to use an open LICENSE. If non-government FTEs were contributors and the repository does not yet have an open license on it, make sure all parties agree before applying an open source license. 
-5) Add the file `.github/workflows/secretSCAN.yml`. This will check for token and keys that are accidentally committed to a repository.
+This software is in development by [Abby Bratt](https://github.com/aebratt) and [Kaj Bostrom](https://github.com/alephic).
 
-## For new repositories in noaa-nwfsc organization
+## About the model
 
-1) Add a description and info on who created the content to this `README.md` file (otherwise the org managers will not know who to contact).
-2) Add tags (far right side on repo) to help users find repositories. See the other repositories for examples.
-3) Confirm that the License (see License tab) is appropriate for the content in your repository. Adding an open LICENSE file at the start of work clarifies that this work is open source (public domain) to any future contributors to the work. 
-4) Confirm that the file `.github/workflows/secretSCAN.yml` is in this repository. This will check for token and keys that are accidentally committed to a repository.
-5) Once you have completed the first four steps, delete the instructions from this `README.md`.
+Our model simulates the movement of individual fish through a network of habitat "nodes", each node representing a certain area of waterway accessible to fish.
 
-# Disclaimer
+<img src="map_example.png" width=400>
 
-This repository is a scientific product and is not official communication of the National Oceanic and Atmospheric Administration, or the United States Department of Commerce. All NOAA GitHub project content is provided on an "as is" basis and the user assumes responsibility for its use. Any claims against the Department of Commerce or Department of Commerce bureaus stemming from the use of this GitHub project will be governed by all applicable Federal law. Any reference to specific commercial products, processes, or services by service mark, trademark, manufacturer, or otherwise, does not constitute or imply their endorsement, recommendation or favoring by the Department of Commerce. The Department of Commerce seal and logo, or the seal and logo of a DOC bureau, shall not be used in any manner to imply endorsement of any commercial product or activity by DOC or the United States Government.
+Pictured is a portion of the map of the Skagit River delta that the model uses - this image was captured from the model GUI.
 
+In order to model cohort statistics such as mean residence time, growth, and habitat preference, we model the bioenergetics of individual fish as well as their mortality risk, and use these models to inform the behavioral model of fish movement. 
+
+Additionally, we use hydrological data to approximate water temperature and flow speed in the simulated environment.
+
+## Setup
+
+Compiling the model and its dependencies requires the following libraries and tools to be installed:
+
+- `automake`
+- `autoconf`
+- `libtool`
+- `zlib`
+- `curl`
+- `clang`
+
+These dependencies are installable on Mac via [Homebrew](https://brew.sh); once you have installed Homebrew, run `brew install curl automake autoconf libtool zlib` to get the required packages. A version of `clang` is available as part of the XCode developer tools, which can be installed using the command `xcode-select --install`.
+
+Compilation of the GUI also requires a recent (>=3.0) version of [wxWidgets](https://www.wxwidgets.org). On Mac, this can be obtained using Homebrew with `brew install wxmac`.
+
+1. Open a terminal. Clone this repository, then navigate to your local copy:
+
+        git clone git@github.com:aebratt/fish_cpp_hyak.git 
+        cd fish_cpp_hyak
+
+1. Fetch additional dependencies (netCDF, rapidJSON) and compile them:
+
+        ./setup.sh
+
+2. Compile the model executables:
+
+        make
+
+    and/or
+
+        make gui
+
+## Running the model
+
+- To run the model without a graphical interface:
+        
+        bin/headless *name of run listing file* *name of folder where output should be saved* *config file*
+        
+By default, the model will use the environmental configuration in the file [default_config_env_from_file.json](default_config_env_from_file.json),         which directs the model to load one of the three maps, plus the hydrodynamic and recruit data from files stored in the `data` directory. If you             wish to use another configuration, you can specify it as the third argument to the executable.
+        
+For example, to test the 2004 map I could run:
+  
+        bin/headless test_run_listings.csv test_output_2004 config_test_2004_map.json
+
+- To run the graphical model:
+
+        bin/gui *name of run listing file* *name of folder where output should be saved* *config file*
+
+### Output
+
+See [OUTPUT_README.md](OUTPUT_README.md) for documentation on the model's output formats.
+
+## Adapting the model
+
+In order to customize the behavior of the model for a given scenario, there are three main sets of parameters that you will likely
+need to modify:
+
+- Parameters that are built into the model and must be specified before compilation:
+    - The bioenergetic parameters, defined as constants at the top of [src/fish.cpp](src/fish.cpp)
+    - The hydrology model parameters, defined as constants at the top of [src/hydro.cpp](src/hydro.cpp)
+
+- Parameters that are specified via the JSON configuration file and are loaded at runtime:
+    - The environment data, including the map definition, recruitment data, and hydrology data
+    
+        For information on the format of these parameters see [CONFIG_README.md](CONFIG_README.md)

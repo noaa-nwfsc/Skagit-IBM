@@ -1,0 +1,20 @@
+{
+    "envDataType": "file",
+    "recStartTimestep": 432,
+    "hydroStartTimestep": 1116,
+    "recruitEntryNodes": [1304, 1305, 1306],
+    "recruitCountsFile": "data/recruits2006julianday18.csv",
+    "recruitSizesFile": "data/recruits_sizedist.csv",
+    "samplingSitesFile": "data/sampling_sites.csv",
+    "monitoringPointsFile": "data/site points for Diana.csv",
+    "mapNodesFile": "data/map_vertices.csv",
+    "mapEdgesFile": "data/map_edges.csv",
+    "mapGeometryFile": "data/map_geometry.csv",
+    "tideFile": "data/cresTide.csv",
+    "flowVolFile": "data/flowM3ps.csv",
+    "airTempFile": "data/airTempC.csv",
+    "flowSpeedFile": "data/flow_condensed.nc",
+    "distribWseTempFile": "data/wse.temp.full.nc",
+    "threadCount": 9,
+    "blindChannelSimplificationRadius": 15.0
+}

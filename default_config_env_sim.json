@@ -1,0 +1,15 @@
+{
+    "envDataType": "sim",
+    "threadCount": -1,
+    "mapParams": {
+        "m": 10,
+        "n": 22,
+        "a": 500,
+        "pBlind": 0.65,
+        "pDist": 0.8
+    },
+    "recruitSizeMean": 55,
+    "recruitSizeStd": 5,
+    "recruitRate": 6,
+    "simLength": 720
+}

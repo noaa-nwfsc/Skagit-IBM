@@ -1,0 +1,19 @@
+{
+    "envDataType": "file",
+    "recStartTimestep": 432,
+    "hydroStartTimestep": 1116,
+    "recruitEntryNodes": [29362, 29295, 29277],
+    "recruitCountsFile": "data/recruits2006julianday18.csv",
+    "recruitSizesFile": "data/recruits_sizedist.csv",
+    "samplingSitesFile": "data/sampling_sites.csv",
+    "mapNodesFile": "data/Current maps/Skagit2000_vertices.csv",
+    "mapEdgesFile": "data/Current maps/Skagit2000_edges.csv",
+    "mapGeometryFile": "data/Current maps/Skagit2000_geometry.csv",
+    "tideFile": "data/cresTide.csv",
+    "flowVolFile": "data/flowM3ps.csv",
+    "airTempFile": "data/airTempC.csv",
+    "flowSpeedFile": "data/flow_condensed.nc",
+    "distribWseTempFile": "data/wse.temp.full.nc",
+    "threadCount": -1,
+    "blindChannelSimplificationRadius": 15.0
+}
