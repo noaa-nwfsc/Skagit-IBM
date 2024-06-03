@@ -1,0 +1,11 @@
+.DS_Store
+hdf5/hdf5-1.12.0/*
+local/hdf5/*
+local/netcdf-c/*
+local/netcdf-c/lib/*
+local/netcdf-c/share/hdf5_examples/*
+reepicheep/test2/output_3.nc
+reepicheep/test2/summary_3.nc
+.vscode/tasks.json
+reepicheep/test2/output_3.csv
+reepicheep/test2/*
