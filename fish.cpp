@@ -382,7 +382,7 @@ bool Fish::move(Model &model) {
                     if (transitSpeed > 0.0f) {
                         // Calculate effective distance swum
                         float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                        if (isDistributary(edge.source->type) && point == this->location) {
+                        if ((isDistributary(edge.source->type) && point == this->location) || (this->forkLength >= 75)){
                             // Artificially discount the cost to make at least 1 distributary channel passable
                             // (since they are widely spaced)
                             edgeCost = std::min(edgeCost, swimRange - cost);
@@ -403,7 +403,8 @@ bool Fish::move(Model &model) {
                     float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                     if (transitSpeed > 0.0f) {
                         float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                        if (isDistributary(edge.target->type) && point == this->location) {
+                        // if (isDistributary(edge.target->type) && point == this->location) {
+                        if ((isDistributary(edge.source->type) && point == this->location) || (this->forkLength >= 75)){
                             edgeCost = std::min(edgeCost, swimRange - cost);
                         }
                         if (cost + edgeCost <= swimRange) {
@@ -449,10 +450,13 @@ bool Fish::move(Model &model) {
         this->exit(model);
         return false;
     }
+    /*
+    // simplistic approach to exiting fish when they reach 75mm length
     if (this->forkLength >= 75) {
         this->exit(model);
         return false;
     }
+    */
     if (model.hydroModel.getDepth(*this->location) <= 0.0f) {
         // Die from stranding if depth less than 0 (TODO re-evaluate this condition)
         this->dieStranding(model);
