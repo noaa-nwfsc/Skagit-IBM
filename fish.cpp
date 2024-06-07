@@ -449,6 +449,10 @@ bool Fish::move(Model &model) {
         this->exit(model);
         return false;
     }
+    if (this->forkLength >= 75) {
+        this->exit(model);
+        return false;
+    }
     if (model.hydroModel.getDepth(*this->location) <= 0.0f) {
         // Die from stranding if depth less than 0 (TODO re-evaluate this condition)
         this->dieStranding(model);
@@ -567,10 +571,22 @@ float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
 // Calculate mortality risk for a given node
 float Fish::getMortality(Model &model, MapNode &loc) {
     const float habTypeConst = habTypeMortalityConst(loc.type);
-    return (
-            (habTypeConst / AVG_LOCAL_ABUNDANCE)
-            / fmax(1.0f, loc.popDensity)
-        ) * model.mortConstC * pow(this->forkLength, model.mortConstA);
+    const float a = 1.849; // slope
+    const float b_m = -0.8; //slope at inflection
+    const float b_s = -2.395; // intercept
+    const float c = 0.0005; // min
+    const float d = 0.002; // max
+    const float e = 500; // inflection point on x
+    const float L = this->forkLength;
+    const float X = loc.popDensity * 1000; // convert m^2 to ha
+    const float S = 250; // scaling factor numerator
+    //return (
+    //        (habTypeConst / AVG_LOCAL_ABUNDANCE)
+    //        / fmax(1.0f, loc.popDensity)
+    //    ) * model.mortConstC * pow(this->forkLength, model.mortConstA);
+    // Instantaneous mortality=c+(d−c)exp{−exp[−b(log(X)−log(e))]}
+    // Scalar = S/{ exp(b + a(log(L)))}
+    return ((c + (d - c) * exp(-exp(-b_m * (log(X) - log(e)))))- (S / (exp(b_s + a * log(L))) )) ;
 }
 
 // Calculate growth amount and mortality risk at this fish's current location,
