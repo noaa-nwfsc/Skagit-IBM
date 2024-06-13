@@ -226,7 +226,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
                 if (transitSpeed > 0.0f) {
                     // Calculate effective distance swum
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.source->type) && point == this->location) {
+                    if ((isDistributary(edge.source->type) && point == this->location)    || (this->forkLength >= 75)){
                         // Artificially discount the cost to make distributary nodes easier to access
                         // (since they are widely spaced)
                         edgeCost = std::min(edgeCost, swimRange - cost);
@@ -246,7 +246,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                 if (transitSpeed > 0.0f) {
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.target->type) && point == this->location) {
+                    if ((isDistributary(edge.target->type) && point == this->location)   || (this->forkLength >= 75)){
                         edgeCost = std::min(edgeCost, swimRange - cost);
                     }
                     if (cost + edgeCost <= swimRange) {
@@ -294,9 +294,10 @@ void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float
                 if (transitSpeed > 0.0f) {
                     // Calculate effective distance swum
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.source->type) && point == this->location) {
+                    if ((isDistributary(edge.source->type) && point == this->location)  || (this->forkLength >= 75)) {
                         // Artificially discount the cost to make distributary nodes easier to access
                         // (since they are widely spaced)
+                        // change to include discount if fork length > 75mm for exiting
                         edgeCost = std::min(edgeCost, swimRange - cost);
                     }
                     // Check if connected node is reachable
@@ -315,7 +316,7 @@ void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float
                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                 if (transitSpeed > 0.0f) {
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.target->type) && point == this->location) {
+                    if ((isDistributary(edge.target->type) && point == this->location)  || (this->forkLength >= 75)){
                         edgeCost = std::min(edgeCost, swimRange - cost);
                     }
                     if (cost + edgeCost <= swimRange) {
@@ -450,13 +451,13 @@ bool Fish::move(Model &model) {
         this->exit(model);
         return false;
     }
-    /*
-    // simplistic approach to exiting fish when they reach 75mm length
-    if (this->forkLength >= 75) {
+    
+    // simplistic approach to exiting fish when they reach 75mm length or less than 30
+    if (this->forkLength >= 75 || this->forkLength < 30) {
         this->exit(model);
         return false;
     }
-    */
+    
     if (model.hydroModel.getDepth(*this->location) <= 0.0f) {
         // Die from stranding if depth less than 0 (TODO re-evaluate this condition)
         this->dieStranding(model);
@@ -539,7 +540,19 @@ void Fish::dieStarvation(Model &model) {
 // Cost is in meters
 float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
 
-    const float Pmax = pow(1 - consA/consV, (((float) this->massRank) + ((float) this->arrivalTimeRank))*0.5f);
+    // const float Pmax = pow(1 - consA/consV, (((float) this->massRank) + ((float) this->arrivalTimeRank))*0.5f);
+    const float D_sub_g = 15;
+    float Pmax = 0.8; // define at maximum value
+    // loc.popDensity is fish/m^2, we need fish/km so 1000 * 1m^2 approx 1km linear (l >> w)
+    if ((loc.popDensity * 1000) < D_sub_g) {
+        Pmax = 0.8 - ((loc.popDensity * 1000) / D_sub_g); 
+    }
+    else {
+        Pmax = 0.2;
+    }
+    if (isNearshore(loc.type)) {
+        Pmax = 1.0;
+    }
     const float temp = model.hydroModel.getTemp(loc);
     const float my_temp = fmin(CTM, temp);
     // TODO: Should fish die if temp > CTM? Otherwise have to cap temp

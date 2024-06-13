@@ -13,6 +13,15 @@ bool isDistributary(HabitatType t) {
     }
 }
 
+bool isNearshore(HabitatType t) {
+    switch(t){
+    case HabitatType::Nearshore:
+        return true;
+    default:
+        return false;
+    }
+}
+
 float habTypeMortalityConst(HabitatType t) {
     switch(t){
     case HabitatType::Distributary:
