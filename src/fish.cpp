@@ -226,7 +226,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
                 if (transitSpeed > 0.0f) {
                     // Calculate effective distance swum
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.source->type) && point == this->location) {
+                    if ((isDistributary(edge.source->type) && point == this->location)    || (this->forkLength >= 75)){
                         // Artificially discount the cost to make distributary nodes easier to access
                         // (since they are widely spaced)
                         edgeCost = std::min(edgeCost, swimRange - cost);
@@ -246,7 +246,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                 if (transitSpeed > 0.0f) {
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.target->type) && point == this->location) {
+                    if ((isDistributary(edge.target->type) && point == this->location)   || (this->forkLength >= 75)){
                         edgeCost = std::min(edgeCost, swimRange - cost);
                     }
                     if (cost + edgeCost <= swimRange) {
@@ -294,9 +294,10 @@ void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float
                 if (transitSpeed > 0.0f) {
                     // Calculate effective distance swum
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.source->type) && point == this->location) {
+                    if ((isDistributary(edge.source->type) && point == this->location)  || (this->forkLength >= 75)) {
                         // Artificially discount the cost to make distributary nodes easier to access
                         // (since they are widely spaced)
+                        // change to include discount if fork length > 75mm for exiting
                         edgeCost = std::min(edgeCost, swimRange - cost);
                     }
                     // Check if connected node is reachable
@@ -315,7 +316,7 @@ void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float
                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                 if (transitSpeed > 0.0f) {
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.target->type) && point == this->location) {
+                    if ((isDistributary(edge.target->type) && point == this->location)  || (this->forkLength >= 75)){
                         edgeCost = std::min(edgeCost, swimRange - cost);
                     }
                     if (cost + edgeCost <= swimRange) {
@@ -382,7 +383,7 @@ bool Fish::move(Model &model) {
                     if (transitSpeed > 0.0f) {
                         // Calculate effective distance swum
                         float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                        if (isDistributary(edge.source->type) && point == this->location) {
+                        if ((isDistributary(edge.source->type) && point == this->location) || (this->forkLength >= 75)){
                             // Artificially discount the cost to make at least 1 distributary channel passable
                             // (since they are widely spaced)
                             edgeCost = std::min(edgeCost, swimRange - cost);
@@ -403,7 +404,8 @@ bool Fish::move(Model &model) {
                     float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                     if (transitSpeed > 0.0f) {
                         float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                        if (isDistributary(edge.target->type) && point == this->location) {
+                        // if (isDistributary(edge.target->type) && point == this->location) {
+                        if ((isDistributary(edge.source->type) && point == this->location) || (this->forkLength >= 75)){
                             edgeCost = std::min(edgeCost, swimRange - cost);
                         }
                         if (cost + edgeCost <= swimRange) {
@@ -449,6 +451,13 @@ bool Fish::move(Model &model) {
         this->exit(model);
         return false;
     }
+    
+    // simplistic approach to exiting fish when they reach 75mm length or less than 30
+    if (this->forkLength >= 75 || this->forkLength < 30) {
+        this->exit(model);
+        return false;
+    }
+    
     if (model.hydroModel.getDepth(*this->location) <= 0.0f) {
         // Die from stranding if depth less than 0 (TODO re-evaluate this condition)
         this->dieStranding(model);
@@ -531,7 +540,19 @@ void Fish::dieStarvation(Model &model) {
 // Cost is in meters
 float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
 
-    const float Pmax = pow(1 - consA/consV, (((float) this->massRank) + ((float) this->arrivalTimeRank))*0.5f);
+    // const float Pmax = pow(1 - consA/consV, (((float) this->massRank) + ((float) this->arrivalTimeRank))*0.5f);
+    const float D_sub_g = 15;
+    float Pmax = 0.8; // define at maximum value
+    // loc.popDensity is fish/m^2, we need fish/km so 1000 * 1m^2 approx 1km linear (l >> w)
+    if ((loc.popDensity * 1000) < D_sub_g) {
+        Pmax = 0.8 - ((loc.popDensity * 1000) / D_sub_g); 
+    }
+    else {
+        Pmax = 0.2;
+    }
+    if (isNearshore(loc.type)) {
+        Pmax = 1.0;
+    }
     const float temp = model.hydroModel.getTemp(loc);
     const float my_temp = fmin(CTM, temp);
     // TODO: Should fish die if temp > CTM? Otherwise have to cap temp
@@ -559,18 +580,30 @@ float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
 
     // (g*g^-1*d^-1)
     const float Delta = Consumption - Respiration - SpecificDynamicAction - Egestion - Excretion;
-    //96 timesteps a day
-    const float Growth = (Delta / 24) * mass;
+    //96 timesteps a day -- 15min each
+    const float Growth = (Delta / 24) * mass ;
     return Growth;
 }
 
 // Calculate mortality risk for a given node
 float Fish::getMortality(Model &model, MapNode &loc) {
     const float habTypeConst = habTypeMortalityConst(loc.type);
-    return (
-            (habTypeConst / AVG_LOCAL_ABUNDANCE)
-            / fmax(1.0f, loc.popDensity)
-        ) * model.mortConstC * pow(this->forkLength, model.mortConstA);
+    const float a = 1.849; // slope
+    const float b_m = -0.8; //slope at inflection
+    const float b_s = -2.395; // intercept
+    const float c = 0.0005; // min
+    const float d = 0.002; // max
+    const float e = 500; // inflection point on x
+    const float L = this->forkLength;
+    const float X = loc.popDensity * 1000; // convert m^2 to ha
+    const float S = 250; // scaling factor numerator
+    //return (
+    //        (habTypeConst / AVG_LOCAL_ABUNDANCE)
+    //        / fmax(1.0f, loc.popDensity)
+    //    ) * model.mortConstC * pow(this->forkLength, model.mortConstA);
+    // Instantaneous mortality=c+(d−c)exp{−exp[−b(log(X)−log(e))]}
+    // Scalar = S/{ exp(b + a(log(L)))}
+    return ((c + (d - c) * exp(-exp(-b_m * (log(X) - log(e)))))- (S / (exp(b_s + a * log(L))) )) ;
 }
 
 // Calculate growth amount and mortality risk at this fish's current location,
