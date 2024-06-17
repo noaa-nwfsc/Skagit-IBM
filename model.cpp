@@ -393,7 +393,7 @@ void Model::planRecruitment() {
         this->recDayPlan[i] = 0;
     }
     // Get the day's daily recruit count
-    size_t count = this->recCounts[(this->time + this->recTimeIntercept)] / 24;
+    size_t count = this->recCounts[(this->time + this->recTimeIntercept)] / 24 ;
     // For each recruit in the day, place it in a random timestep's slot
     for (size_t i = 0; i < count; ++i) {
         ++this->recDayPlan[(int) (unit_rand() * 24.0f)];
