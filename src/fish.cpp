@@ -95,7 +95,7 @@ Fish::Fish(
         exitStatus(FishStatus::Alive),
         lastGrowth(0),
         lastMortality(0),
-        taggedTime(-1L),
+        taggedTime(spawnTime),
         locationHistory(nullptr),
         growthHistory(nullptr),
         mortalityHistory(nullptr),
@@ -543,13 +543,19 @@ void Fish::dieStarvation(Model &model) {
 float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
 
     // const float Pmax = pow(1 - consA/consV, (((float) this->massRank) + ((float) this->arrivalTimeRank))*0.5f);
-    const float D_sub_g = 15;
-    float Pmax = 0.8; // define at maximum value
+    // const float D_sub_g = 15;
+    // float Pmax = 0.8; // define at maximum value
     // loc.popDensity is fish/m^2, we need fish/km so 1000 * 1m^2 approx 1km linear (l >> w)
-    if ((loc.popDensity * 1000) < D_sub_g) {
+    /* if ((loc.popDensity * 1000) < D_sub_g) {
         Pmax = 0.8 - ((loc.popDensity * 1000) / D_sub_g); 
     }
     else {
+        Pmax = 0.2;
+    }
+    */
+    const float growth_factor = 0.0007;
+    float Pmax = 0.8 - ((loc.popDensity * 10000) * growth_factor); 
+    if (Pmax < 0.2) {
         Pmax = 0.2;
     }
     if (isNearshore(loc.type)) {
@@ -597,15 +603,16 @@ float Fish::getMortality(Model &model, MapNode &loc) {
     const float d = 0.002; // max
     const float e = 500; // inflection point on x
     const float L = this->forkLength;
-    const float X = loc.popDensity * 1000; // convert m^2 to ha
+    const float X = loc.popDensity; // * 1000; // convert m^2 to ha
     const float S = 250; // scaling factor numerator
+    const float euler = 2.71828;
     //return (
     //        (habTypeConst / AVG_LOCAL_ABUNDANCE)
     //        / fmax(1.0f, loc.popDensity)
     //    ) * model.mortConstC * pow(this->forkLength, model.mortConstA);
     // Instantaneous mortality=c+(d−c)exp{−exp[−b(log(X)−log(e))]}
     // Scalar = S/{ exp(b + a(log(L)))}
-    return ((c + (d - c) * exp(-exp(-b_m * (log(X) - log(e)))))- (S / (exp(b_s + a * log(L))) )) ;
+    return (((c + (d - c) * exp(-exp(-b_m * (log(X) - log(e))))) * (S / (exp(b_s + a * log(L))) ))) * habTypeConst;
 }
 
 // Calculate growth amount and mortality risk at this fish's current location,
@@ -616,18 +623,18 @@ bool Fish::growAndDie(Model &model) {
     this->lastGrowth = g;
     this->lastMortality = m;
     if (this->growthHistory != nullptr) {
-        // This fish is tagged - record its growth and mortality values
-        this->growthHistory->push_back(g);
-        this->mortalityHistory->push_back(m);
+      // This fish is tagged - record its growth and mortality values
+      this->growthHistory->push_back(g);
+      this->mortalityHistory->push_back(m);
     }
     this->mass = this->mass + g;
     // Sample from bernoulli(m) to check if fish should die from mortality risk,
     // and check to make sure fish hasn't reached a critically low mass
-    if (unit_rand() > m && this->mass > 0.0f) {
+    if (unit_rand() > m && this->mass > 0.250f) {
         this->forkLength = forkLengthFromMass(this->mass);
         return true;
     } else {
-        if (this->mass <= 0.0f) {
+        if (this->mass <= 0.250f) {
             this->dieStarvation(model);
         } else {
             this->dieMortality(model);

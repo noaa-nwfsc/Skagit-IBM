@@ -175,15 +175,25 @@ int main(int argc, char **argv) {
                 return 0;
             }
         }
+        if (m->time % 330 == 0) {
+            std::cout << std::endl << "Writing intermediary file at step: " << m->time << std::endl;
+            std::stringstream interruptfile;
+            interruptfile << outputPath << "/run_" << runID <<"_step_" << m->time << ".nc";
+            m->saveState(interruptfile.str());
+        }
     }
-    
+
     std::cout << std::endl << "Finished at step " << m->time << "; " << totalElapsed << "s elapsed since start" << std::endl;
-    
+
     std::stringstream ss2;
     ss2 << outputPath << "/summary_" << runID << ".nc";
 
     m->saveSummary(ss2.str());
     //std::cout << "Summary statistics saved to summary.nc" << std::endl;
     m->saveSampleData(ss.str());
+
+    // std::stringstream th;
+    // th << outputPath << "/taggedhist_" << runID << ".nc";
+    // m->saveTaggedHistories(th.str());
 
 }

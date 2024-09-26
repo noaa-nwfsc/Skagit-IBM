@@ -157,7 +157,9 @@ public:
     // Set the model's timestep and update fish to reflect the data
     // in the currently loaded life histories
     void setHistoryTimestep(long timestep);
-
+    
+    // add addhistory from fish???
+    // void addHistoryBuffers();
     ~Model();
 private:
 

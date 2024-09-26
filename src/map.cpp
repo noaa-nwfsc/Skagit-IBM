@@ -25,12 +25,12 @@ bool isNearshore(HabitatType t) {
 float habTypeMortalityConst(HabitatType t) {
     switch(t){
     case HabitatType::Distributary:
-    case HabitatType::Harbor:
+    // case HabitatType::Harbor:
     case HabitatType::Nearshore:
-    case HabitatType::Impoundment:
-        return 10.111867;
+    // case HabitatType::Impoundment:
+        return 2.0;
     default:
-        return 5.055933;
+        return 1.0;
     }
 }
 
