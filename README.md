@@ -39,7 +39,7 @@ Compilation of the GUI also requires a recent (>=3.0) version of [wxWidgets](htt
         git clone git@github.com:aebratt/fish_cpp_hyak.git 
         cd fish_cpp_hyak
 
-1. Fetch additional dependencies (netCDF, rapidJSON) and compile them:
+1. RapidJSON should be installed first. Then, fetch additional dependencies (hdf5, netcdf-c, netcdf-cxx) and compile them:
 
         ./setup.sh
 
