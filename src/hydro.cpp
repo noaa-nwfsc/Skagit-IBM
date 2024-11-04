@@ -130,7 +130,9 @@ float HydroModel::getTemp(MapNode &node) {
     if (isDistributary(node.type)) {
         return this->hydroNodes[node.nearestHydroNodeID].temps[currTimestep];
     }
-    return (float) fmax(MIN_WT, WT_predict(this->currFlowVol, this->currCresTide, node.elev, this->currAirTemp));
+    return fmax(MIN_WT,this->hydroNodes[node.nearestHydroNodeID].temps[currTimestep]);
+
+    // return (float) fmax(MIN_WT, WT_predict(this->currFlowVol, this->currCresTide, node.elev, this->currAirTemp));
 }
 
 // Get the current depth (m) at the given node
@@ -143,5 +145,7 @@ float HydroModel::getDepth(MapNode &node) {
     if (isDistributary(node.type)) {
         return this->hydroNodes[node.nearestHydroNodeID].wses[currTimestep] - node.elev;
     }
-    return WSE_predict(this->currFlowVol, this->currCresTide, node.elev) - node.elev;
+    return this->hydroNodes[node.nearestHydroNodeID].wses[currTimestep] - node.elev;
+
+    // return WSE_predict(this->currFlowVol, this->currCresTide, node.elev) - node.elev;
 }

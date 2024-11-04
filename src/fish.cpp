@@ -95,7 +95,7 @@ Fish::Fish(
         exitStatus(FishStatus::Alive),
         lastGrowth(0),
         lastMortality(0),
-        taggedTime(spawnTime),
+        taggedTime(-1L),
         locationHistory(nullptr),
         growthHistory(nullptr),
         mortalityHistory(nullptr),
@@ -665,7 +665,7 @@ void Fish::calculateMassHistory() {
 }
 
 void Fish::tag(Model &model) {
-    if (this->taggedTime != -1) {
+    if (this->taggedTime != -1 || (this->id % 10000) != 0) {
         return;
     }
     this->taggedTime = model.time;

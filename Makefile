@@ -68,5 +68,7 @@ build/env_sim.o: src/env_sim.cpp src/env_sim.h src/map.h build
 build/map_gen.o: src/map_gen.cpp src/map_gen.h src/map.h build
 	$(CC) -c src/map_gen.cpp -o build/map_gen.o
 
+all: headless
+
 clean:
 	rm -rdf bin/* build/*
