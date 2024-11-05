@@ -192,8 +192,8 @@ int main(int argc, char **argv) {
     //std::cout << "Summary statistics saved to summary.nc" << std::endl;
     m->saveSampleData(ss.str());
 
-    // std::stringstream th;
-    // th << outputPath << "/taggedhist_" << runID << ".nc";
-    // m->saveTaggedHistories(th.str());
+    std::stringstream th;
+    th << outputPath << "/taggedhist_" << runID << ".nc";
+    m->saveTaggedHistories(th.str());
 
 }

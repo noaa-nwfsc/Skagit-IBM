@@ -373,9 +373,10 @@ void Model::recruitSingle() {
         this->recPoints[std::min(this->recPoints.size()-1, (std::size_t) (unit_rand()*(float) this->recPoints.size()))]
     );
     // this->addHistoryBuffers();
-    this->tagIndividual(nextFishID);
+    const size_t last_id = this->individuals.back().id;
+    this->tagIndividual(last_id);
     // Place the new fish's ID in the living fish list
-    this->livingIndividuals.push_back(this->individuals.size()-1);
+    this->livingIndividuals.push_back(last_id);
 }
 
 // Recruit all recruits for the current timestep
@@ -805,7 +806,7 @@ void Model::saveSampleData(std::string savePath) {
 void Model::setRecruitTagRate(float rate) {this->recruitTagRate = rate;}
 
 // Tag an individual so that its full life history is recorded
-void Model::tagIndividual(long id) {this->individuals[id].tag(*this);}
+void Model::tagIndividual(const size_t id) {this->individuals[id].tag(*this);}
 
 
 // Write the full life histories for tagged individuals to the provided filename
@@ -839,9 +840,9 @@ void Model::saveTaggedHistories(std::string savePath) {
 
     for (size_t n = 0; n < N; ++n) {
         Fish &f = this->individuals[taggedFish[n]];
-        std::cout << std::endl << "loaded Fish: " << n << std::endl;
+        // std::cout << std::endl << "loaded Fish: " << n << std::endl;
         recruitTimeOut[n] = f.spawnTime;
-        std::cout << std::endl << "set spawnTime: " << recruitTimeOut[n] << std::endl;
+        // std::cout << std::endl << "set spawnTime: " << recruitTimeOut[n] << std::endl;
         taggedTimeOut[n] = f.taggedTime;
         exitTimeOut[n] = f.exitTime;
         entryForkLengthOut[n] = f.entryForkLength;
@@ -849,33 +850,33 @@ void Model::saveTaggedHistories(std::string savePath) {
         finalForkLengthOut[n] = f.forkLength;
         finalMassOut[n] = f.mass;
         finalStatusOut[n] = (int) f.status;
-        std::cout << std::endl << "finished loading Fish: " << n << std::endl;
+        // std::cout << std::endl << "finished loading Fish: " << n << std::endl;
         for (long t = 0; t < T; ++t) {
-            std::cout << std::endl << "Starting Time Steps with t = " << t << std::endl;
-            std::cout << std::endl << "Calculated [n*T+t] as: " << n*T+t << std::endl;
-            std::cout << std::endl << "f.taggedTime: " << f.taggedTime << std::endl;
-            std::cout << std::endl << "f.locationHistory->size(): " << f.locationHistory->size() << std::endl;
-            std::cout << std::endl << "f.growthHistory->size(): " << f.growthHistory->size() << std::endl;
-            std::cout << std::endl << "f.mortalityHistory->size(): " << f.mortalityHistory->size() << std::endl;
+            // std::cout << std::endl << "Starting Time Steps with t = " << t << std::endl;
+            // std::cout << std::endl << "Calculated [n*T+t] as: " << n*T+t << std::endl;
+            // std::cout << std::endl << "f.taggedTime: " << f.taggedTime << std::endl;
+            // std::cout << std::endl << "f.locationHistory->size(): " << f.locationHistory->size() << std::endl;
+            // std::cout << std::endl << "f.growthHistory->size(): " << f.growthHistory->size() << std::endl;
+            // std::cout << std::endl << "f.mortalityHistory->size(): " << f.mortalityHistory->size() << std::endl;
             if (t < f.taggedTime || t >= f.taggedTime + (long) f.locationHistory->size()) {
-                std::cout << std::endl << "Condition 1.1" << std::endl;
+                // std::cout << std::endl << "Condition 1.1" << std::endl;
                 locationHistoryOut[n*T+t] = -1;
             } else {
-                std::cout << std::endl << "Condition 1.2" << std::endl;
+                // std::cout << std::endl << "Condition 1.2" << std::endl;
                 locationHistoryOut[n*T+t] = (*f.locationHistory)[t - f.taggedTime];
             }
-            std::cout << std::endl << "finished 1" << std::endl;
+            // std::cout << std::endl << "finished 1" << std::endl;
             if (t < f.taggedTime || t >= f.taggedTime + (long) f.growthHistory->size()) {
-                std::cout << std::endl << "Condition 2.1" << std::endl;
+                // std::cout << std::endl << "Condition 2.1" << std::endl;
                 growthHistoryOut[n*T+t] = 0.0f;
                 mortalityHistoryOut[n*T+t] = 0.0f;
             } else {
-                std::cout << std::endl << "Condition 2.2" << std::endl;
+                // std::cout << std::endl << "Condition 2.2" << std::endl;
                 growthHistoryOut[n*T+t] = (*f.growthHistory)[t - f.taggedTime];
                 mortalityHistoryOut[n*T+t] = (*f.mortalityHistory)[t - f.taggedTime];
             }
         }
-        std::cout << std::endl << "finished loading all T data: " << T << std::endl;
+        // std::cout << std::endl << "finished loading all T data: " << T << std::endl;
     }
     std::cout << std::endl << "Finished loading all tracks" << std::endl;
     netCDF::NcDim nDim = targetFile.addDim("n", N);

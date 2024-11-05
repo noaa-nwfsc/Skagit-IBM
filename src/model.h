@@ -148,7 +148,7 @@ public:
     // Set the proportion of recruits that should be tagged for full life history recording
     void setRecruitTagRate(float rate);
     // Tag an individual so that its full life history is recorded
-    void tagIndividual(long id);
+    void tagIndividual(size_t id);
     // Write the full life histories for tagged individuals to the provided filename
     void saveTaggedHistories(std::string savePath);
     // Read individuals' life histories saved by saveTaggedHistories into the "individuals" list
