@@ -39,6 +39,9 @@ enum class HabitatType {
 // Returns true if t == Distributary or t == DistributaryEdge
 bool isDistributary(HabitatType t);
 
+// Returns true if t == Harbor
+bool isDistributaryOrHarbor(HabitatType t);
+
 // Returns true if t == Distributary or t == isNearshore
 bool isNearshore(HabitatType t);
 
