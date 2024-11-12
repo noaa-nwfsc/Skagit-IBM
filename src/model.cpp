@@ -239,6 +239,9 @@ void Model::moveAll() {
             *targetIt = *sourceIt;
             ++targetIt;
         }
+        else if (f.status == FishStatus::Exited) {
+            ++this->exitedCount;
+        }
     }
     // Erase remaining (dead) fish
     if (targetIt != this->livingIndividuals.end()) {
@@ -499,6 +502,7 @@ void Model::saveState(std::string savePath) {
     int *locationOut = new int[N];
     float *travelOut = new float[N];
     float *lastGrowthOut = new float[N];
+    float *lastPmaxOut = new float[N];
     float *lastMortalityOut = new float[N];
     for (size_t n = 0; n < N; ++n) {
         Fish &f = this->individuals[n];
@@ -512,6 +516,7 @@ void Model::saveState(std::string savePath) {
         locationOut[n] = f.location->id;
         travelOut[n] = f.travel;
         lastGrowthOut[n] = f.lastGrowth;
+        lastPmaxOut[n] = f.lastPmax;
         lastMortalityOut[n] = f.lastMortality;
     }
     netCDF::NcVar recruitTime = targetFile.addVar("recruitTime", netCDF::ncInt, fishDims);
@@ -534,6 +539,8 @@ void Model::saveState(std::string savePath) {
     travel.putVar(travelOut);
     netCDF::NcVar lastGrowth = targetFile.addVar("lastGrowth", netCDF::ncFloat, fishDims);
     lastGrowth.putVar(lastGrowthOut);
+    netCDF::NcVar lastPmax = targetFile.addVar("lastPmax", netCDF::ncFloat, fishDims);
+    lastPmax.putVar(lastPmaxOut);
     netCDF::NcVar lastMortality = targetFile.addVar("lastMortality", netCDF::ncFloat, fishDims);
     lastMortality.putVar(lastMortalityOut);
 
@@ -611,6 +618,7 @@ void Model::loadState(std::string loadPath) {
     netCDF::NcVar location = sourceFile.getVar("location");
     netCDF::NcVar travel = sourceFile.getVar("travel");
     netCDF::NcVar lastGrowth = sourceFile.getVar("lastGrowth");
+    netCDF::NcVar lastPmax = sourceFile.getVar("lastPmax");
     netCDF::NcVar lastMortality = sourceFile.getVar("lastMortality");
     this->individuals.clear();
     std::vector<size_t> idxVec {0U};
@@ -629,6 +637,7 @@ void Model::loadState(std::string loadPath) {
         f.status = (FishStatus) statusDummy;
         travel.getVar(idxVec, &f.travel);
         lastGrowth.getVar(idxVec, &f.lastGrowth);
+        lastPmax.getVar(idxVec, &f.lastPmax);
         lastMortality.getVar(idxVec, &f.lastMortality);
     }
 
@@ -835,6 +844,7 @@ void Model::saveTaggedHistories(std::string savePath) {
     int *finalStatusOut = new int[N];
     int *locationHistoryOut = new int[N*T];
     float *growthHistoryOut = new float[N*T];
+    float *pmaxHistoryOut = new float[N*T];
     float *mortalityHistoryOut = new float[N*T];
     std::cout << std::endl << "N: " << N << ",   T: " << T << std::endl;
 
@@ -869,10 +879,12 @@ void Model::saveTaggedHistories(std::string savePath) {
             if (t < f.taggedTime || t >= f.taggedTime + (long) f.growthHistory->size()) {
                 // std::cout << std::endl << "Condition 2.1" << std::endl;
                 growthHistoryOut[n*T+t] = 0.0f;
+                pmaxHistoryOut[n*T+t] = 0.0f;
                 mortalityHistoryOut[n*T+t] = 0.0f;
             } else {
                 // std::cout << std::endl << "Condition 2.2" << std::endl;
                 growthHistoryOut[n*T+t] = (*f.growthHistory)[t - f.taggedTime];
+                pmaxHistoryOut[n*T+t] = (*f.pmaxHistory)[t - f.taggedTime];
                 mortalityHistoryOut[n*T+t] = (*f.mortalityHistory)[t - f.taggedTime];
             }
         }
@@ -907,6 +919,8 @@ void Model::saveTaggedHistories(std::string savePath) {
     locationHistory.putVar(locationHistoryOut);
     netCDF::NcVar growthHistory = targetFile.addVar("growthHistory", netCDF::ncFloat, dimsNT);
     growthHistory.putVar(growthHistoryOut);
+    netCDF::NcVar pmaxHistory = targetFile.addVar("pmaxHistory", netCDF::ncFloat, dimsNT);
+    pmaxHistory.putVar(pmaxHistoryOut);
     netCDF::NcVar mortalityHistory = targetFile.addVar("mortalityHistory", netCDF::ncFloat, dimsNT);
     mortalityHistory.putVar(mortalityHistoryOut);
 }
@@ -921,6 +935,7 @@ void Model::loadTaggedHistories(std::string loadPath) {
     long locationDummy;
     int statusDummy;
     float growthDummy;
+    float pmaxDummy;
     float mortalityDummy;
     netCDF::NcVar recruitTime = sourceFile.getVar("recruitTime");
     netCDF::NcVar taggedTime = sourceFile.getVar("taggedTime");
@@ -932,6 +947,7 @@ void Model::loadTaggedHistories(std::string loadPath) {
     netCDF::NcVar finalStatus = sourceFile.getVar("finalStatus");
     netCDF::NcVar locationHistory = sourceFile.getVar("locationHistory");
     netCDF::NcVar growthHistory = sourceFile.getVar("growthHistory");
+    netCDF::NcVar pmaxHistory = sourceFile.getVar("pmaxHistory");
     netCDF::NcVar mortalityHistory = sourceFile.getVar("mortalityHistory");
     this->individuals.clear();
     std::vector<size_t> idxVecN{0U};
@@ -960,9 +976,11 @@ void Model::loadTaggedHistories(std::string loadPath) {
                 break;
             }
             growthHistory.getVar(idxVecNT, &growthDummy);
+            pmaxHistory.getVar(idxVecNT, &pmaxDummy);
             mortalityHistory.getVar(idxVecNT, &mortalityDummy);
             f.locationHistory->push_back(locationDummy);
             f.growthHistory->push_back(growthDummy);
+            f.pmaxHistory->push_back(pmaxDummy);
             f.mortalityHistory->push_back(mortalityDummy);
         }
         f.calculateMassHistory();
@@ -977,6 +995,7 @@ void Model::setHistoryTimestep(long timestep) {
         if (timestep >= f.taggedTime && timestep < f.taggedTime + (long) f.locationHistory->size()) {
             f.location = this->map[(*f.locationHistory)[timestep - f.taggedTime]];
             f.lastGrowth = (*f.growthHistory)[timestep - f.taggedTime];
+            f.lastPmax = (*f.pmaxHistory)[timestep - f.taggedTime];
             f.lastMortality = (*f.mortalityHistory)[timestep - f.taggedTime];
             f.status = FishStatus::Alive;
             f.mass = (*f.massHistory)[timestep - f.taggedTime];

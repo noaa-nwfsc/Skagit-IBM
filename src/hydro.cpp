@@ -22,7 +22,12 @@
 #define WT_flow_x_cres_tide 0.0001238108
 #define WT_air_temp_c 0.781514
 
-#define MIN_WT 0.01f
+#define MIN_WATER_TEMP 0.01f
+#define MIN_WATER_TEMP_DISTRIBUTARY 4.0f
+#define MAX_WATER_TEMP 30.0f
+
+#define MIN_DEPTH 0.0f
+#define MIN_DEPTH_DISTRIBUTARY 0.2f
 
 // Calculate water temperature from flow (m^3/s), tide (m), node elevation (m), and air temperature (degrees C)
 inline float WT_predict(float flow, float cres_tide, float elev_m, float air_temp_c) {
@@ -122,17 +127,32 @@ float HydroModel::getFlowSpeedAt(MapNode &node) {
     return sqrt(currU*currU + currV*currV);
 }
 
+float limitWaterTemp(float waterTemp, HabitatType nodeType) {
+    float waterTemperature = waterTemp;
+    if (waterTemperature > MAX_WATER_TEMP) {
+        waterTemperature = MAX_WATER_TEMP;
+    }
+    const float minimum_water_temperature = isDistributaryOrHarbor(nodeType) ? MIN_WATER_TEMP_DISTRIBUTARY : MIN_WATER_TEMP;
+    if (waterTemperature < minimum_water_temperature) {
+        waterTemperature = minimum_water_temperature;
+    }
+
+    return waterTemperature;
+}
+
 // Get the current temperature (C) at the given node
 float HydroModel::getTemp(MapNode &node) {
     if (this->useSimData) {
         return this->simTemps[&node][this->currTimestep];
     }
-    if (isDistributary(node.type)) {
-        return this->hydroNodes[node.nearestHydroNodeID].temps[currTimestep];
-    }
-    return fmax(MIN_WT,this->hydroNodes[node.nearestHydroNodeID].temps[currTimestep]);
 
-    // return (float) fmax(MIN_WT, WT_predict(this->currFlowVol, this->currCresTide, node.elev, this->currAirTemp));
+    const float hydroTemp = this->hydroNodes[node.nearestHydroNodeID].temps[currTimestep];
+    return limitWaterTemp(hydroTemp, node.type);
+}
+
+float limitDepth(const float depth, const HabitatType nodeType) {
+    const float min_depth = isDistributaryOrHarbor(nodeType) ? MIN_DEPTH_DISTRIBUTARY : MIN_DEPTH;
+    return (depth < min_depth) ? min_depth : depth;
 }
 
 // Get the current depth (m) at the given node
@@ -142,10 +162,7 @@ float HydroModel::getDepth(MapNode &node) {
     if (this->useSimData) {
         return this->simDepths[&node][this->currTimestep];
     }
-    if (isDistributary(node.type)) {
-        return this->hydroNodes[node.nearestHydroNodeID].wses[currTimestep] - node.elev;
-    }
-    return this->hydroNodes[node.nearestHydroNodeID].wses[currTimestep] - node.elev;
 
-    // return WSE_predict(this->currFlowVol, this->currCresTide, node.elev) - node.elev;
+    const float depth = this->hydroNodes[node.nearestHydroNodeID].wses[currTimestep] - node.elev;
+    return limitDepth(depth, node.type);
 }

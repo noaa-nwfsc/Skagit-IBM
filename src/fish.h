@@ -47,8 +47,9 @@ public:
     FishStatus status;
     // status on model exit; only used for keeping track of fish replays
     FishStatus exitStatus;
-    // last timestep's growth (g)
+    // last timestep's growth (g) and Pmax
     float lastGrowth;
+    float lastPmax;
     // last timestep's mortality (probability value)
     float lastMortality;
     // the mass rank of this fish among fish at its location
@@ -59,6 +60,8 @@ public:
     long taggedTime;
     // location history (only present if tagged)
     std::vector<int> *locationHistory;
+    // Pmax history (only present if tagged)
+    std::vector<float> *pmaxHistory;
     // growth history (only present if tagged)
     std::vector<float> *growthHistory;
     // mortality history (only present if tagged)
@@ -101,8 +104,12 @@ public:
     void dieStranding(Model &model);
     // Register this fish as dead due to starvation
     void dieStarvation(Model &model);
-    // Compute the growth (g) for a given location and movement cost (meters swum)
+    float getPmax(const MapNode &loc);
+    // Compute the growth (g) for a given location and movement cost (meters swum) and pmax
+    float getGrowth(Model &model, MapNode &loc, float cost, float pmax);
+    // compute growth, pmax calculated internally
     float getGrowth(Model &model, MapNode &loc, float cost);
+
     // Compute the expected mortality risk for a given location
     float getMortality(Model &model, MapNode &loc);
     // Compute the ratio of growth to mortality for a given location and movement cost
