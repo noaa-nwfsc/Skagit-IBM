@@ -239,6 +239,9 @@ void Model::moveAll() {
             *targetIt = *sourceIt;
             ++targetIt;
         }
+        else if (f.status == FishStatus::Exited) {
+            ++this->exitedCount;
+        }
     }
     // Erase remaining (dead) fish
     if (targetIt != this->livingIndividuals.end()) {

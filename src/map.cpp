@@ -13,6 +13,16 @@ bool isDistributary(HabitatType t) {
     }
 }
 
+bool isDistributaryOrHarbor(const HabitatType t) {
+    switch(t) {
+    case HabitatType::Distributary:
+    case HabitatType::DistributaryEdge:
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool isNearshore(HabitatType t) {
     switch(t){
     case HabitatType::Nearshore:
