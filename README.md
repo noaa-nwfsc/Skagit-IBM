@@ -84,3 +84,8 @@ need to modify:
     - The environment data, including the map definition, recruitment data, and hydrology data
     
         For information on the format of these parameters see [CONFIG_README.md](CONFIG_README.md)
+
+## Release Notes
+
+See [RELEASE_NOTES.md](RELEASE_NOTES.md) for documentation about major changes or additions to the model's feature set. 
+

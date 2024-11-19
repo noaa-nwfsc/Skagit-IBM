@@ -54,6 +54,7 @@ All model outputs are saved as [netCDF 4](https://www.unidata.ucar.edu/software/
     - `location[n]`: ints, current/final map node ID where each fish is located
     - `travel[n]`: floats, most recent timestep's swim distance for each fish (m)
     - `lastGrowth[n]`: floats, most recent timestep's growth for each fish (g)
+    - `lastPmax[n]`: floats, most recent timestep's Pmax for each fish (p)
     - `lastMortality[n]`: floats, most recent timestep's mortality risk for each fish (probability value)
     - `populationHistory[populationHistoryLength]`: ints, per-timestep counts of living individuals in the model
     - `sampleSiteID[sampleHistoryLength]`: ints, each sample's site ID
@@ -104,7 +105,8 @@ All model outputs are saved as [netCDF 4](https://www.unidata.ucar.edu/software/
     - `finalForkLength[n]`: floats, current/final fork length of each fish (mm)
     - `finalMass[n]`: floats, current/final mass of each fish (g)
     - `finalStatus[n]`: ints, current/final status of each fish
-    - `locationHistoryOut[n, t]`: ints, the map node ID where each fish was on each timestep (or -1 if a fish wasn't in the model on the timestep in question)
-    - `growthHistoryOut[n, t]`: floats, the growth (g) on each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
-    - `mortalityHistoryOut[n, t]`: floats, the mortality risk (probability) on each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
+    - `locationHistory[n, t]`: ints, the map node ID where each fish was on each timestep (or -1 if a fish wasn't in the model on the timestep in question)
+    - `growthHistory[n, t]`: floats, the growth (g) on each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
+    - `pmaxHistory[n, t]`: floats, the pmax (p) on each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
+    - `mortalityHistory[n, t]`: floats, the mortality risk (probability) on each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
 
