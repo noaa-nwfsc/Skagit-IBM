@@ -190,6 +190,7 @@ std::vector<std::string> getFishInfo(Model &model, Fish &fish) {
     os << "Spawn time: " << formatTimestep(model, fish.spawnTime); result.push_back(os.str()); os.str("");
     os << "Fork length: " << fish.forkLength << "mm"; result.push_back(os.str()); os.str("");
     os << "Mass: " << fish.mass << "g"; result.push_back(os.str()); os.str("");
+    os << "Pmax: " << fish.lastPmax << "p"; result.push_back(os.str()); os.str("");
     os << "Growth: " << fish.lastGrowth << "g"; result.push_back(os.str()); os.str("");
     os << "Mortality: " << fish.lastMortality; result.push_back(os.str()); os.str("");
     if (fish.taggedTime != -1) {
