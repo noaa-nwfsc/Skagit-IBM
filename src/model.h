@@ -1,6 +1,7 @@
 #ifndef __FISH_MODEL_H
 #define __FISH_MODEL_H
 
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -58,6 +59,8 @@ public:
     std::vector<SamplingSite *> samplingSites;
     // List of locations for which to track population/environmental values per timestep
     std::vector<MapNode *> monitoringPoints;
+    std::unordered_map<unsigned int, unsigned int> externalCsvIdToInternalId;
+
     // Timesteps between midnight on Jan 1 and the start of the recruitment data
     int recTimeIntercept;
     // Timesteps between midnight on Jan 1 and the timestep considered by the model to be timestep 0
@@ -156,11 +159,13 @@ public:
     void loadTaggedHistories(std::string loadPath);
     // Set the model's timestep and update fish to reflect the data
     // in the currently loaded life histories
+    void saveNodeIdMapping(const std::string &nodeIdMappingPath);
     void setHistoryTimestep(long timestep);
-    
+
     // add addhistory from fish???
     // void addHistoryBuffers();
     ~Model();
+
 private:
 
     unsigned long nextFishID;

@@ -130,6 +130,9 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
+    std::stringstream idMapFile;
+    idMapFile << outputPath << "/id_mapping_" << runID << ".nc";
+    m->saveNodeIdMapping(idMapFile.str());
 
     std::stringstream ss;
     ss << outputPath << "/output_" << runID << ".nc";
