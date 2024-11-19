@@ -94,9 +94,11 @@ Fish::Fish(
         status(FishStatus::Alive),
         exitStatus(FishStatus::Alive),
         lastGrowth(0),
+        lastPmax(0),
         lastMortality(0),
         taggedTime(-1L),
         locationHistory(nullptr),
+        pmaxHistory(nullptr),
         growthHistory(nullptr),
         mortalityHistory(nullptr),
         massHistory(nullptr),
@@ -538,29 +540,26 @@ void Fish::dieStarvation(Model &model) {
     this->exitTime = model.time;
 }
 
-// Calculate growth amount (in g) for a given location and distance swum
-// Cost is in meters
-float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
-
-    // const float Pmax = pow(1 - consA/consV, (((float) this->massRank) + ((float) this->arrivalTimeRank))*0.5f);
-    // const float D_sub_g = 15;
-    // float Pmax = 0.8; // define at maximum value
-    // loc.popDensity is fish/m^2, we need fish/km so 1000 * 1m^2 approx 1km linear (l >> w)
-    /* if ((loc.popDensity * 1000) < D_sub_g) {
-        Pmax = 0.8 - ((loc.popDensity * 1000) / D_sub_g); 
-    }
-    else {
-        Pmax = 0.2;
-    }
-    */
+float Fish::getPmax(const MapNode &loc) {
     const float growth_factor = 0.0007;
-    float Pmax = 0.8 - ((loc.popDensity * 10000) * growth_factor); 
+    float Pmax = 0.8 - ((loc.popDensity * 10000) * growth_factor);
     if (Pmax < 0.2) {
         Pmax = 0.2;
     }
     if (isNearshore(loc.type)) {
         Pmax = 1.0;
     }
+    return Pmax;
+}
+
+// Calculate growth amount (in g) for a given location and distance swum
+// Cost is in meters
+float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
+    float pmax = this->getPmax(loc);
+    return this->getGrowth(model, loc, cost, pmax);
+}
+
+float Fish::getGrowth(Model &model, MapNode &loc, float cost, float Pmax) {
     const float temp = model.hydroModel.getTemp(loc);
     const float my_temp = fmin(CTM, temp);
     // TODO: Should fish die if temp > CTM? Otherwise have to cap temp
@@ -618,14 +617,17 @@ float Fish::getMortality(Model &model, MapNode &loc) {
 // Calculate growth amount and mortality risk at this fish's current location,
 // then apply growth and check mortality risk (and die if that's the way it goes)
 bool Fish::growAndDie(Model &model) {
-    const float g = this->getGrowth(model, *(this->location), this->travel);
+    const float p = this->getPmax(*(this->location));
+    const float g = this->getGrowth(model, *(this->location), this->travel, p);
     const float m = this->getMortality(model, *(this->location));
     this->lastGrowth = g;
+    this->lastPmax = p;
     this->lastMortality = m;
     if (this->growthHistory != nullptr) {
-      // This fish is tagged - record its growth and mortality values
-      this->growthHistory->push_back(g);
-      this->mortalityHistory->push_back(m);
+        // This fish is tagged - record its growth and mortality values
+        this->growthHistory->push_back(g);
+        this->pmaxHistory->push_back(p);
+        this->mortalityHistory->push_back(m);
     }
     this->mass = this->mass + g;
     // Sample from bernoulli(m) to check if fish should die from mortality risk,
@@ -646,6 +648,7 @@ bool Fish::growAndDie(Model &model) {
 void Fish::addHistoryBuffers() {
     this->locationHistory = new std::vector<int>();
     this->growthHistory = new std::vector<float>();
+    this->pmaxHistory = new std::vector<float>();
     this->mortalityHistory = new std::vector<float>();
 }
 
@@ -672,5 +675,6 @@ void Fish::tag(Model &model) {
     this->addHistoryBuffers();
     this->locationHistory->push_back(this->location->id);
     this->growthHistory->push_back(this->lastGrowth);
+    this->pmaxHistory->push_back(this->lastPmax);
     this->mortalityHistory->push_back(this->lastMortality);
 }
