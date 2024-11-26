@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
+
 #include "map.h"
 
 // Utility function to split a string into chunks delimited by a given character
@@ -38,6 +40,7 @@ void loadMap(
     std::string locationFilePath,
     std::string edgeFilePath,
     std::string geometryFilePath,
+    std::unordered_map<unsigned int, unsigned int> &csvToInternalID,
     std::vector<DistribHydroNode> &hydroNodes,
     std::vector<unsigned> &recPointIds,
     std::vector<MapNode *> &recPoints,

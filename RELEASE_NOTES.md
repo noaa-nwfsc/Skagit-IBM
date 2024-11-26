@@ -4,6 +4,12 @@ This file records major feature changes. It goes back in time as far as 11.19.20
 when the completed feature was merged to the main branch. Functional parts of a feature may have been merged earlier.
 Minor updates are not recorded.
 
+## 11.26.2024
+
+- `pmaxHistory` is included in the tagged history output files.
+- `id_mapping_{n}.nc` is a new output file. It contains two parallel arrays, `externalNodeIds` and `internalNodeIds`
+  that represent the mappings between external file-based node ids (driven by "vertices.csv") and internal node ids.
+
 ## 11.19.2024
 
 ### Updated temperature and elevation models

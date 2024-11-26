@@ -697,6 +697,7 @@ void loadMap(
     std::string locationFilePath,
     std::string edgeFilePath,
     std::string geometryFilePath,
+    std::unordered_map<unsigned int, unsigned int> &csvToInternalID,
     std::vector<DistribHydroNode> &hydroNodes,
     std::vector<unsigned> &recPointIds,
     std::vector<MapNode *> &recPoints,
@@ -715,7 +716,7 @@ void loadMap(
     std::unordered_map<std::string, SamplingSite *> samplingSitesByName;
     std::unordered_map<unsigned int, std::string> samplingSiteNamesByNodeID;
     std::unordered_map<MapNode *, SamplingSite *> samplingSitesByNode;
-    std::unordered_map<unsigned int, unsigned int> csvToInternalID;
+    csvToInternalID.clear();
     dest.clear();
     // Load node data rom the vertex file
     while (std::getline(locationFile, line)) {

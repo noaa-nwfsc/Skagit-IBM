@@ -65,7 +65,8 @@ For example, to test the 2004 map I could run:
 
 - To run the graphical model:
 
-        bin/gui *name of run listing file* *name of folder where output should be saved* *config file*
+        bin/gui *config file* *name of run listing file* *name of folder where output should be saved*
+    Note: the order fo the parameters for the GUI version is different from that of headless.
 
 ### Output
 

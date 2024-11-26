@@ -85,6 +85,7 @@ Model::Model(
         mapLocationFilename,
         mapEdgeFilename,
         mapGeometryFilename,
+        externalCsvIdToInternalId,
         hydroModel.hydroNodes,
         recPointIds,
         this->recPoints,
@@ -809,6 +810,35 @@ void Model::saveSampleData(std::string savePath) {
     sampleMeanLength.putVar(sampleMeanLengthOut);
     netCDF::NcVar sampleMeanSpawnTime = targetFile.addVar("sampleMeanSpawnTime", netCDF::ncFloat, sampleHistoryDims);
     sampleMeanSpawnTime.putVar(sampleMeanSpawnTimeOut);
+}
+
+void Model::saveNodeIdMapping(const std::string &nodeIdMappingPath) {
+    try {
+        netCDF::NcFile targetFile(nodeIdMappingPath, netCDF::NcFile::FileMode::replace);
+
+        std::vector<unsigned int> keys;
+        std::vector<unsigned int> values;
+
+        keys.reserve(externalCsvIdToInternalId.size());
+        values.reserve(externalCsvIdToInternalId.size());
+
+        for (const auto &pair: externalCsvIdToInternalId) {
+            keys.push_back(pair.first);
+            values.push_back(pair.second);
+        }
+
+        netCDF::NcDim mapSizeDim = targetFile.addDim("map_size", keys.size());
+
+        netCDF::NcVar externalIds = targetFile.addVar("externalNodeIds", netCDF::ncUint, mapSizeDim);
+        netCDF::NcVar internalIds = targetFile.addVar("internalNodeIds", netCDF::ncUint, mapSizeDim);
+
+        externalIds.putVar(keys.data());
+        internalIds.putVar(values.data());
+
+    } catch (netCDF::exceptions::NcException &e) {
+        std::cerr << "NetCDF error: " << e.what() << std::endl;
+        throw;
+    }
 }
 
 // Set the proportion of recruits that should be tagged for full life history recording
