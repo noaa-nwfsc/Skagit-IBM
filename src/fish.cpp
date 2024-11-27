@@ -632,11 +632,11 @@ bool Fish::growAndDie(Model &model) {
     this->mass = this->mass + g;
     // Sample from bernoulli(m) to check if fish should die from mortality risk,
     // and check to make sure fish hasn't reached a critically low mass
-    if (unit_rand() > m && this->mass > 0.250f) {
+    if (unit_rand() > m && this->mass > 0.381f) {
         this->forkLength = forkLengthFromMass(this->mass);
         return true;
     } else {
-        if (this->mass <= 0.250f) {
+        if (this->mass <= 0.381f) {
             this->dieStarvation(model);
         } else {
             this->dieMortality(model);
