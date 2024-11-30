@@ -542,7 +542,7 @@ void Fish::dieStarvation(Model &model) {
 
 float Fish::getPmax(const MapNode &loc) {
     const float growth_factor = 0.0007;
-    float Pmax = 0.8 - ((loc.popDensity * 10000) * growth_factor);
+    float Pmax = 0.8 - ((loc.popDensity * 2500) * growth_factor);
     if (Pmax < 0.2) {
         Pmax = 0.2;
     }
