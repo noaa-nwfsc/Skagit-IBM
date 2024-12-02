@@ -130,17 +130,17 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
+    struct stat sb;
+    if (stat(outputPath.c_str(), &sb) != 0 || !S_ISDIR(sb.st_mode)) {
+        mkdir(outputPath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+    }
+
     std::stringstream idMapFile;
     idMapFile << outputPath << "/id_mapping_" << runID << ".nc";
     m->saveNodeIdMapping(idMapFile.str());
 
     std::stringstream ss;
     ss << outputPath << "/output_" << runID << ".nc";
-
-    struct stat sb;
-    if (stat(outputPath.c_str(), &sb) != 0 || !S_ISDIR(sb.st_mode)) {
-        mkdir(outputPath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-    }
     std::cout << "Sample data will be saved to " << ss.str() << std::endl;
 
     void (*prevHandler)(int);
