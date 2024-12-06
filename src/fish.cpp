@@ -541,13 +541,18 @@ void Fish::dieStarvation(Model &model) {
 }
 
 float Fish::getPmax(const MapNode &loc) {
-    const float growth_factor = 0.0007;
-    float Pmax = 0.8 - ((loc.popDensity * 2500) * growth_factor);
-    if (Pmax < 0.2) {
-        Pmax = 0.2;
+    constexpr float SQ_METER_TO_HECTARE_CONVERSION = 10000.0;
+
+    constexpr float growth_factor = 0.0007;
+    constexpr float PMAX_MIN = 0.2;
+    constexpr float PMAX_MAX = 1.0;
+
+    float Pmax = 0.8f - ((loc.popDensity * SQ_METER_TO_HECTARE_CONVERSION) * growth_factor);
+    if (Pmax < PMAX_MIN) {
+        Pmax = PMAX_MIN;
     }
     if (isNearshore(loc.type)) {
-        Pmax = 1.0;
+        Pmax = PMAX_MAX;
     }
     return Pmax;
 }
@@ -555,7 +560,7 @@ float Fish::getPmax(const MapNode &loc) {
 // Calculate growth amount (in g) for a given location and distance swum
 // Cost is in meters
 float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
-    float pmax = this->getPmax(loc);
+    const float pmax = this->getPmax(loc);
     return this->getGrowth(model, loc, cost, pmax);
 }
 
@@ -668,7 +673,8 @@ void Fish::calculateMassHistory() {
 }
 
 void Fish::tag(Model &model) {
-    if (this->taggedTime != -1 || (this->id % 10000) != 0) {
+    constexpr int TAG_FREQUENCY = 2500;
+    if (this->taggedTime != -1 || (this->id % TAG_FREQUENCY) != 0) {
         return;
     }
     this->taggedTime = model.time;
