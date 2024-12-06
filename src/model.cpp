@@ -16,8 +16,8 @@
 #include <iostream>
 
 // default mortality constants
-const float MORT_CONST_C = 0.03096;
-const float MORT_CONST_A = -0.42;
+constexpr float MORT_CONST_C = 0.03096;
+constexpr float MORT_CONST_A = -0.42;
 
 /*
  * Constructs a model instance from parameters and data filenames.
@@ -72,11 +72,11 @@ Model::Model(
     time(0UL),
     deadCount(0),
     exitedCount(0),
+    mortConstA(MORT_CONST_A),
+    mortConstC(MORT_CONST_C),
     nextFishID(0UL),
     maxThreads(maxThreads),
-    recruitTagRate(0.5f),
-    mortConstA(MORT_CONST_A),
-    mortConstC(MORT_CONST_C)
+    recruitTagRate(0.5f)
 {
     // Load the map
     loadMap(
@@ -116,7 +116,8 @@ Model::Model(
     float distFlow
 ) : map(map),
     hydroModel(map, depths, temps, distFlow),
-    recCounts(recCounts), recSizeDists(recSizeDists),
+    recCounts(recCounts),
+    recSizeDists(recSizeDists),
     recPoints(recPoints),
     recTimeIntercept(0),
     globalTimeIntercept(0),
@@ -124,11 +125,11 @@ Model::Model(
     time(0UL),
     deadCount(0),
     exitedCount(0),
+    mortConstA(MORT_CONST_A),
+    mortConstC(MORT_CONST_C),
     nextFishID(0UL),
     maxThreads(maxThreads),
-    recruitTagRate(0.5f),
-    mortConstA(MORT_CONST_A),
-    mortConstC(MORT_CONST_C)
+    recruitTagRate(0.5f)
 {
     // Make room in the recruit plan vector (per-timestep recruit counts for the current day)
     this->recDayPlan.resize(24, 0UL);
