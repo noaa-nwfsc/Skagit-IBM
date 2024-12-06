@@ -45,10 +45,6 @@ const float CONS_Y = log(CQ) * (CTM - CTO + 2.0);
 const float CONS_X = (pow(CONS_Z, 2.0) * pow(1.0 + sqrt(1.0 + 40/CONS_Y), 2.0))/400.0;
 
 const float AVG_LOCAL_ABUNDANCE = 7.5839;
-//const float MORT_CONST_C = 0.01939742; // old constant
-// reparameterized:
-const float MORT_CONST_C = 0.03096;
-const float MORT_CONST_A = -0.42;
 
 #define DEPTH_CUTOFF 0.2f
 
@@ -540,19 +536,20 @@ void Fish::dieStarvation(Model &model) {
     this->exitTime = model.time;
 }
 
-float Fish::getPmax(const MapNode &loc) {
+// ReSharper disable once CppMemberFunctionMayBeStatic
+float Fish::getPmax(const MapNode &loc) { // NOLINT(*-convert-member-functions-to-static)
     constexpr float SQ_METER_TO_HECTARE_CONVERSION = 10000.0;
+    constexpr float GROWTH_FACTOR = 0.0007;
 
-    constexpr float growth_factor = 0.0007;
+    float Pmax = 0.8f - ((loc.popDensity * SQ_METER_TO_HECTARE_CONVERSION) * GROWTH_FACTOR);
+
     constexpr float PMAX_MIN = 0.2;
-    constexpr float PMAX_MAX = 1.0;
-
-    float Pmax = 0.8f - ((loc.popDensity * SQ_METER_TO_HECTARE_CONVERSION) * growth_factor);
     if (Pmax < PMAX_MIN) {
         Pmax = PMAX_MIN;
     }
     if (isNearshore(loc.type)) {
-        Pmax = PMAX_MAX;
+        constexpr float PMAX_NEARSHORE = 1.0;
+        Pmax = PMAX_NEARSHORE;
     }
     return Pmax;
 }
@@ -635,19 +632,21 @@ bool Fish::growAndDie(Model &model) {
         this->mortalityHistory->push_back(m);
     }
     this->mass = this->mass + g;
+
     // Sample from bernoulli(m) to check if fish should die from mortality risk,
     // and check to make sure fish hasn't reached a critically low mass
-    if (unit_rand() > m && this->mass > 0.381f) {
+    constexpr float MASS_MIN = 0.381;
+    if (unit_rand() > m && this->mass > MASS_MIN) {
         this->forkLength = forkLengthFromMass(this->mass);
         return true;
-    } else {
-        if (this->mass <= 0.381f) {
-            this->dieStarvation(model);
-        } else {
-            this->dieMortality(model);
-        }
-        return false;
     }
+
+    if (this->mass <= MASS_MIN) {
+        this->dieStarvation(model);
+    } else {
+        this->dieMortality(model);
+    }
+    return false;
 }
 
 void Fish::addHistoryBuffers() {
