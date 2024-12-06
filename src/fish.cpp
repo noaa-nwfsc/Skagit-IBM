@@ -633,20 +633,22 @@ bool Fish::growAndDie(Model &model) {
     }
     this->mass = this->mass + g;
 
-    // Sample from bernoulli(m) to check if fish should die from mortality risk,
-    // and check to make sure fish hasn't reached a critically low mass
+    // check to make sure fish hasn't reached a critically low mass
     constexpr float MASS_MIN = 0.381;
-    if (unit_rand() > m && this->mass > MASS_MIN) {
-        this->forkLength = forkLengthFromMass(this->mass);
-        return true;
-    }
-
     if (this->mass <= MASS_MIN) {
         this->dieStarvation(model);
-    } else {
-        this->dieMortality(model);
+        return false;
     }
-    return false;
+
+    // Sample from bernoulli(m) to check if fish should die from mortality risk,
+    const float mortalityProbability = m;
+    if (unit_rand() <= mortalityProbability) {
+        this->dieMortality(model);
+        return false;
+    }
+
+    this->forkLength = forkLengthFromMass(this->mass);
+    return true;
 }
 
 void Fish::addHistoryBuffers() {
