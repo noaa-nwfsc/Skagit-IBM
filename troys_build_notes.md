@@ -1,4 +1,4 @@
-### build
+### Mac build notes
 
 repo: [https://github.com/noaa-nwfsc/Skagit-IBM](https://github.com/noaa-nwfsc/Skagit-IBM)
 - follow README instructions (on home page)
