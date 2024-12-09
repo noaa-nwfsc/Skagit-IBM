@@ -36,16 +36,17 @@ If you have any difficulty installing Homebrew, see [Troy's build notes](troys_b
 
 Compilation of the GUI also requires a recent (>=3.0) version of [wxWidgets](https://www.wxwidgets.org). On Mac, this can be obtained using Homebrew with `brew install wxmac`.
 
-1. Open a terminal. Clone this repository, then navigate to your local copy:
+1. Open a terminal. Clone this repository (as shown below, or with GitHub desktop, or using your other favorite method), then navigate to your local copy:
 
-        git clone git@github.com:aebratt/fish_cpp_hyak.git 
-        cd fish_cpp_hyak
+        git clone git@github.com:noaa-nwfsc/Skagit-IBM.git 
+        cd Skagit-IBM
 
-1. RapidJSON should be installed first. Then, fetch additional dependencies (hdf5, netcdf-c, netcdf-cxx) and compile them:
+1. RapidJSON should be installed first. See [Troy's build notes](troys_build_notes.md) for how to do this properly.
+1. Then, fetch and install additional dependencies (hdf5, netcdf-c, netcdf-cxx) and compile them. Again, see [Troy's build notes](troys_build_notes.md) if you have difficulty.
 
         ./setup.sh
 
-2. Compile the model executables:
+1. Compile the model executables:
 
         make
 
@@ -69,6 +70,8 @@ For example, to test the 2004 map I could run:
 
         bin/gui *config file* *name of run listing file* *name of folder where output should be saved*
     Note: the order fo the parameters for the GUI version is different from that of headless.
+
+Again see [Troy's build notes](troys_build_notes.md) for more examples of modern run commands.
 
 ### Output
 
