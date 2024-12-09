@@ -32,6 +32,8 @@ Compiling the model and its dependencies requires the following libraries and to
 
 These dependencies are installable on Mac via [Homebrew](https://brew.sh); once you have installed Homebrew, run `brew install curl automake autoconf libtool zlib` to get the required packages. A version of `clang` is available as part of the XCode developer tools, which can be installed using the command `xcode-select --install`.
 
+If you have any difficulty installing Homebrew, see [Troy's build notes](troys_build_notes.md).
+
 Compilation of the GUI also requires a recent (>=3.0) version of [wxWidgets](https://www.wxwidgets.org). On Mac, this can be obtained using Homebrew with `brew install wxmac`.
 
 1. Open a terminal. Clone this repository, then navigate to your local copy:
