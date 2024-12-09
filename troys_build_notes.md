@@ -34,7 +34,7 @@ For compilers to find zlib you may need to set:
   export CPPFLAGS="-I/Users/troy.frever/homebrew/opt/zlib/include"
 ```
 
-	I have not made any of the above modifications.
+I have not made any of the above modifications, and Homebrew is working correctly for me.
 
 The `setup.sh` file wasn't quite right for a mac. Firstly, [RapidJSON](https://rapidjson.org/) needs to be installed. From the root of the local Skagit-IBM repository:
 ```
@@ -48,7 +48,7 @@ I was unable to compile the Rapidjson tests, probably because the current Clang 
 If necessary, add execute permissions on the setup script: 
 `chmod +x ./setup.sh` 
 
-The netcdf portion of the setup script now works. However, one should typically run `make check` manually in `Skagit-IBM/netcdf-c/netcdf-c-4.9.2`. At the moment this results in 3 test failures. Hopefully not a big problem.
+I updated the netcdf portion of the setup script, which now does a full download and install. However, one should typically run `make check` manually in `Skagit-IBM/netcdf-c/netcdf-c-4.9.2`. At the moment this results in 3 test failures. Hopefully not a big problem. Note also that the setup script for netcdf includes a Mac bugfix (check the comments).
 
 ```
 /Applications/Xcode.app/Contents/Developer/usr/bin/make  check-TESTS
@@ -95,7 +95,8 @@ make[1]: *** [check] Error 2
 make: *** [check-recursive] Error 1
 ```
 
-The netcdf-cxx4 portion of the setup script now works. Note that it includes a Mac bugfix (check the comments).
+Thus far I have not found it necessary to correct the above errors.
+
 ### run
 The run section of the Readme is not up to date. Here is what is working for me:
 Make a run9 directory to hold the output (you only need to do this once).
