@@ -167,9 +167,7 @@ int main(int argc, char **argv) {
         }
         int sec = floor(remaining);
         remainingStr += std::to_string(sec)+"s";
-        std::cout << "\rStep " << m->time << ": " << elapsed << "s elapsed; " << remainingStr << " remaining; " << m->livingIndividuals.size() << " living fish; " << m->exitedCount << " exited; " << m->deadCount << " dead";
 
-        std::cout.flush();
         if (halt) {
             halt = 0;
             std::cout << std::endl << "Interrupted at step " << m->time << "; " << totalElapsed << "s elapsed since start" << std::endl;
@@ -179,6 +177,8 @@ int main(int argc, char **argv) {
             }
         }
         if (m->time % 330 == 0) {
+            std::cout << "\rStep " << m->time << ": " << elapsed << "s elapsed; " << remainingStr << " remaining; " << m->livingIndividuals.size() << " living fish; " << m->exitedCount << " exited; " << m->deadCount << " dead";
+            std::cout.flush();
             std::cout << std::endl << "Writing intermediary file at step: " << m->time << std::endl;
             std::stringstream interruptfile;
             interruptfile << outputPath << "/run_" << runID <<"_step_" << m->time << ".nc";
