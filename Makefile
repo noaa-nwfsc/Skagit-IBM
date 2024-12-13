@@ -1,6 +1,19 @@
+
+BUILD_TYPE ?= release
+
 #CCEXE = /usr/local/opt/llvm/clang++
 CCEXE = g++
-CFLAGS = -Wall -g -std=c++11
+
+#CFLAGS = -Wall -g -std=c++11
+CFLAGS = -Wall -Wextra -std=c++11
+
+ifeq ($(BUILD_TYPE),debug)
+    CFLAGS += -g -O0 -fno-inline -fstack-protector-all
+else ifeq ($(BUILD_TYPE),release)
+    CFLAGS += -O2 -ffast-math -DNDEBUG -march=native
+else
+    $(error Invalid BUILD_TYPE. Use 'debug' or 'release')
+endif
 
 CC = $(CCEXE) $(CFLAGS)
 
