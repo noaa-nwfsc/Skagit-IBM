@@ -440,7 +440,6 @@ bool Fish::move(Model &model) {
             break;
         }
     }
-    MapNode *oldLocation = this->location;
     this->location = point;
     this->travel = cost;
 
@@ -449,20 +448,12 @@ bool Fish::move(Model &model) {
         this->locationHistory->push_back(this->location->id);
     }
 
-    // if (oldLocation->type == HabitatType::Nearshore && this->location->type == HabitatType::Nearshore) {
-    //     // Exit if at nearshore (TODO verify this behavior)
-    //     this->exit(model);
-    //     return false;
-    // }
-    if (oldLocation->type == HabitatType::Nearshore && this->location->type == HabitatType::Nearshore) {
-        int x = 0;
-    }
     if (this->location->type == HabitatType::Nearshore) {
         this->incrementExitHabitatHoursByOneTimestep();
     } else {
         this->numExitHabitatHours = 0;
     }
-    if (this->numExitHabitatHours >= 2) {
+    if (this->numExitHabitatHours >= model.habitatTypeExitConditionHours) {
         this->exit(model);
         return false;
     }
