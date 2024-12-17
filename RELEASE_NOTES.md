@@ -4,6 +4,12 @@ This file records major feature changes. It goes back in time as far as 11.19.20
 when the completed feature was merged to the main branch. Functional parts of a feature may have been merged earlier.
 Minor updates are not recorded.
 
+## 12.17.2024
+- added configuration to .json input file to control the length of nearshore residences before exiting. Specifically:
+  - `habitatTypeExitConditionHours`: float; optional, default 2.0; the number of consecutive hours a fish must reside 
+    in a Nearshore habitat (at the end of each hour) after which it will "exit" the simulation. 
+    See [default_config_env_from_file.json](default_config_env_from_file.json) for an example usage.
+
 ## 11.26.2024
 
 - `pmaxHistory` is included in the tagged history output files.

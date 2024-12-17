@@ -73,6 +73,7 @@ Parameters:
             Distributary nodes retrieve flow speed, depth, and temperature from their nearest hydro node, so these nodes should be relatively dense spatially in distributary regions.
 
         - `blindChannelSimplificationRadius`: float; the maximum distance between blind channel nodes that will result in them being merged when the map data is loaded (to speed up model prediction)
+        - `habitatTypeExitConditionHours`: float; optional, default 2.0; the number of consecutive hours a fish must reside in a Nearshore habitat (at the end of each hour) after which it will "exit" the simulation.  
     - if `envDataType` is "sim", the following entries are expected:
         - `mapParams`: A subgroup of parameters containing the following keys:
             - `m`: int, the number of distributary nodes per grid row/column

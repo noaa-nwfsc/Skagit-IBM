@@ -15,5 +15,6 @@
     "flowSpeedFile": "data/flow_condensed.nc",
     "distribWseTempFile": "data/wse.temp.full.nc",
     "threadCount": -1,
-    "blindChannelSimplificationRadius": 15.0
+    "blindChannelSimplificationRadius": 15.0,
+    "habitatTypeExitConditionHours": 2.0
 }
