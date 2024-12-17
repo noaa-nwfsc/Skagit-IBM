@@ -47,6 +47,8 @@ public:
     FishStatus status;
     // status on model exit; only used for keeping track of fish replays
     FishStatus exitStatus;
+    //number of hours currently spent in an exit habitat (Nearshore)
+    float numExitHabitatHours;
     // last timestep's growth (g) and Pmax
     float lastGrowth;
     float lastPmax;
@@ -88,6 +90,9 @@ public:
     * probability of arriving at the location
     */
     void getDestinationProbs(Model &model, std::unordered_map<MapNode *, float> &out);
+    // increment the number of hours in an exit habitat
+    void incrementExitHabitatHoursByOneTimestep();
+
     /*
     * Run this fish's movement update:
     *   Get all reachable nodes and their costs,

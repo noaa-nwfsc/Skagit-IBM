@@ -64,7 +64,8 @@ inline float forkLengthFromMass(float mass) {
 // This is a sustained swim speed
 const float SWIM_SPEED_BODY_LENGTHS_PER_SEC = 2.0f;
 
-const float SECONDS_PER_TIMESTEP = 60.0f*60.0f;
+constexpr  float HOURS_PER_TIMESTEP = 1.0f;
+constexpr  float SECONDS_PER_TIMESTEP = HOURS_PER_TIMESTEP * 60.0f*60.0f;
 
 // Calculate a sustained-movement swim range (in m) from a fork length (in mm)
 inline float swimSpeedFromForkLength(float forkLength) {
@@ -89,6 +90,7 @@ Fish::Fish(
         travel(0),
         status(FishStatus::Alive),
         exitStatus(FishStatus::Alive),
+        numExitHabitatHours(0),
         lastGrowth(0),
         lastPmax(0),
         lastMortality(0),
@@ -351,6 +353,9 @@ float Fish::getFitness(Model &model, MapNode &loc, float cost) {
     return this->getGrowth(model, loc, cost) / this->getMortality(model, loc);
 }
 
+void Fish::incrementExitHabitatHoursByOneTimestep() {
+    this->numExitHabitatHours += HOURS_PER_TIMESTEP;
+}
 
 /*
  * Perform the movement simulation for this fish
@@ -444,12 +449,24 @@ bool Fish::move(Model &model) {
         this->locationHistory->push_back(this->location->id);
     }
 
+    // if (oldLocation->type == HabitatType::Nearshore && this->location->type == HabitatType::Nearshore) {
+    //     // Exit if at nearshore (TODO verify this behavior)
+    //     this->exit(model);
+    //     return false;
+    // }
     if (oldLocation->type == HabitatType::Nearshore && this->location->type == HabitatType::Nearshore) {
-        // Exit if at nearshore (TODO verify this behavior)
+        int x = 0;
+    }
+    if (this->location->type == HabitatType::Nearshore) {
+        this->incrementExitHabitatHoursByOneTimestep();
+    } else {
+        this->numExitHabitatHours = 0;
+    }
+    if (this->numExitHabitatHours >= 2) {
         this->exit(model);
         return false;
     }
-    
+
     /* 
     // simplistic approach to exiting fish when they reach 75mm length or less than 30
     if (this->forkLength >= 75 || this->forkLength < 30) {
