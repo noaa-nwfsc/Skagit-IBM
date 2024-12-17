@@ -88,6 +88,10 @@ public:
     // Mortality constants overridden by ABC
     float mortConstA;
     float mortConstC;
+
+    // number of consecutive Nearshore hours to satisfy exit condition
+    float habitatTypeExitConditionHours;
+
     Model(
         int globalTimeIntercept,
         int hydroTimeIntercept,
@@ -96,6 +100,7 @@ public:
         std::string recCountFilename,
         std::string recSizeDistsFilename,
         std::vector<unsigned> recPointIds,
+        float habitatTypeExitConditionHours,
         std::string mapLocationFilename,
         std::string mapEdgeFilename,
         std::string mapGeometryFilename,
@@ -171,7 +176,6 @@ private:
     unsigned long nextFishID;
     size_t maxThreads;
     float recruitTagRate;
-
 };
 #define __FISH_MODEL_CLS
 

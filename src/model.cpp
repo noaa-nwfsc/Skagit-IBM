@@ -18,6 +18,7 @@
 // default mortality constants
 constexpr float MORT_CONST_C = 0.03096;
 constexpr float MORT_CONST_A = -0.42;
+constexpr float DEFAULT_EXIT_CONDITION_HOURS = 2.0;
 
 /*
  * Constructs a model instance from parameters and data filenames.
@@ -46,6 +47,7 @@ Model::Model(
     std::string recSizeDistsFilename,
     // List of map node IDs where new recruits enter the model
     std::vector<unsigned> recPointIds,
+    float habitatTypeExitConditionHours,
     // Path of the file containing map node descriptions (area, habitat type, elevation, among other columns)
     std::string mapLocationFilename,
     // Path of the file containing map edge descriptions (source and target nodes, path lengths, among other columns)
@@ -74,6 +76,7 @@ Model::Model(
     exitedCount(0),
     mortConstA(MORT_CONST_A),
     mortConstC(MORT_CONST_C),
+    habitatTypeExitConditionHours(habitatTypeExitConditionHours),
     nextFishID(0UL),
     maxThreads(maxThreads),
     recruitTagRate(0.5f)
@@ -127,6 +130,7 @@ Model::Model(
     exitedCount(0),
     mortConstA(MORT_CONST_A),
     mortConstC(MORT_CONST_C),
+    habitatTypeExitConditionHours(DEFAULT_EXIT_CONDITION_HOURS),
     nextFishID(0UL),
     maxThreads(maxThreads),
     recruitTagRate(0.5f)
@@ -1083,6 +1087,9 @@ Model *modelFromConfig(std::string configPath) {
             std::string(d["recruitCountsFile"].GetString()),
             std::string(d["recruitSizesFile"].GetString()),
             recPoints,
+            d.HasMember("habitatTypeExitConditionHours")
+                ? d["habitatTypeExitConditionHours"].GetFloat()
+                : DEFAULT_EXIT_CONDITION_HOURS,
             std::string(d["mapNodesFile"].GetString()),
             std::string(d["mapEdgesFile"].GetString()),
             std::string(d["mapGeometryFile"].GetString()),
