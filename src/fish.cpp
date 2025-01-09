@@ -443,11 +443,6 @@ bool Fish::move(Model &model) {
     this->location = point;
     this->travel = cost;
 
-    if (this->locationHistory != nullptr) {
-        // This fish is tagged - record its new location
-        this->locationHistory->push_back(this->location->id);
-    }
-
     if (this->location->type == HabitatType::Nearshore) {
         this->incrementExitHabitatHoursByOneTimestep();
     } else {
@@ -627,19 +622,15 @@ float Fish::getMortality(Model &model, MapNode &loc) {
 // Calculate growth amount and mortality risk at this fish's current location,
 // then apply growth and check mortality risk (and die if that's the way it goes)
 bool Fish::growAndDie(Model &model) {
-    const float p = this->getPmax(*(this->location));
-    const float g = this->getGrowth(model, *(this->location), this->travel, p);
-    const float m = this->getMortality(model, *(this->location));
-    this->lastGrowth = g;
-    this->lastPmax = p;
-    this->lastMortality = m;
-    if (this->growthHistory != nullptr) {
-        // This fish is tagged - record its growth and mortality values
-        this->growthHistory->push_back(g);
-        this->pmaxHistory->push_back(p);
-        this->mortalityHistory->push_back(m);
-    }
-    this->mass = this->mass + g;
+    const float pMax = this->getPmax(*(this->location));
+    const float growth = this->getGrowth(model, *(this->location), this->travel, pMax);
+    const float mortality = this->getMortality(model, *(this->location));
+    this->lastGrowth = growth;
+    this->lastPmax = pMax;
+    this->lastMortality = mortality;
+    this->trackHistory();
+
+    this->mass = this->mass + growth;
 
     // check to make sure fish hasn't reached a critically low mass
     constexpr float MASS_MIN = 0.381;
@@ -649,7 +640,7 @@ bool Fish::growAndDie(Model &model) {
     }
 
     // Sample from bernoulli(m) to check if fish should die from mortality risk,
-    const float mortalityProbability = m;
+    const float mortalityProbability = mortality;
     if (unit_rand() <= mortalityProbability) {
         this->dieMortality(model);
         return false;
@@ -681,15 +672,26 @@ void Fish::calculateMassHistory() {
     this->forkLength = (*this->forkLengthHistory)[0];
 }
 
+bool Fish::isNotTagged() const {
+    return this->locationHistory == nullptr;
+}
+
+void Fish::trackHistory() const {
+    if (isNotTagged()) {
+        return;
+    }
+    this->locationHistory->push_back(this->location->id);
+    this->growthHistory->push_back(this->lastGrowth);
+    this->pmaxHistory->push_back(this->lastPmax);
+    this->mortalityHistory->push_back(this->lastMortality);
+}
+
 void Fish::tag(Model &model) {
     constexpr int TAG_FREQUENCY = 2500;
     if (this->taggedTime != -1 || (this->id % TAG_FREQUENCY) != 0) {
         return;
     }
-    this->taggedTime = model.time;
     this->addHistoryBuffers();
-    this->locationHistory->push_back(this->location->id);
-    this->growthHistory->push_back(this->lastGrowth);
-    this->pmaxHistory->push_back(this->lastPmax);
-    this->mortalityHistory->push_back(this->lastMortality);
+    this->taggedTime = model.time;
+    this->trackHistory();
 }

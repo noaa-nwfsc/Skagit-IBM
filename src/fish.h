@@ -132,6 +132,11 @@ public:
     void addHistoryBuffers();
     // Back-calculate mass and fork length histories from growth and final mass
     void calculateMassHistory();
+
+    bool isNotTagged() const;
+
+    void trackHistory() const;
+
     // Mark this fish as "tagged" (so that its full life history will be recorded)
     void tag(Model &model);
 };
