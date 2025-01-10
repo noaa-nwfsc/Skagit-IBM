@@ -52,8 +52,12 @@ public:
     // last timestep's growth (g) and Pmax
     float lastGrowth;
     float lastPmax;
-    // last timestep's mortality (probability value)
+    // last timestep's mortality (probability value), and various geographic factors
     float lastMortality;
+    float lastTemp;
+    float lastDepth;
+    float lastFlowSpeed;
+
     // the mass rank of this fish among fish at its location
     int massRank;
     // the arrival time rank of this fish among fish at its location
@@ -68,6 +72,9 @@ public:
     std::vector<float> *growthHistory;
     // mortality history (only present if tagged)
     std::vector<float> *mortalityHistory;
+    std::vector<float> *tempHistory;
+    std::vector<float> *depthHistory;
+    std::vector<float> *flowSpeedHistory;
     // mass history (only present if in replay mode)
     std::vector<float> *massHistory;
     // fork length history (only present if in replay mode)
@@ -112,12 +119,12 @@ public:
 
     float getPmax(const MapNode &loc);
     // Compute the growth (g) for a given location and movement cost (meters swum) and pmax
-    float getGrowth(Model &model, MapNode &loc, float cost, float pmax);
+    float getGrowth(Model &model, MapNode &loc, float cost, float pmax) const;
     // compute growth, pmax calculated internally
     float getGrowth(Model &model, MapNode &loc, float cost);
 
     // Compute the expected mortality risk for a given location
-    float getMortality(Model &model, MapNode &loc);
+    float getMortality(Model &model, MapNode &loc) const;
     // Compute the ratio of growth to mortality for a given location and movement cost
     float getFitness(Model &model, MapNode &loc, float cost);
     /*
@@ -132,8 +139,15 @@ public:
     void addHistoryBuffers();
     // Back-calculate mass and fork length histories from growth and final mass
     void calculateMassHistory();
+
+
     // Mark this fish as "tagged" (so that its full life history will be recorded)
     void tag(Model &model);
+
+private:
+    float getBoundedTempForGrowth(Model &model, MapNode &loc) const;
+    bool isNotTagged() const;
+    void trackHistory() const;
 };
 #define __FISH_FISH_CLS
 
