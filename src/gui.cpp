@@ -193,6 +193,9 @@ std::vector<std::string> getFishInfo(Model &model, Fish &fish) {
     os << "Pmax: " << fish.lastPmax << "p"; result.push_back(os.str()); os.str("");
     os << "Growth: " << fish.lastGrowth << "g"; result.push_back(os.str()); os.str("");
     os << "Mortality: " << fish.lastMortality; result.push_back(os.str()); os.str("");
+    os << "Temp: " << fish.lastTemp; result.push_back(os.str()); os.str("");
+    os << "Depth: " << fish.lastDepth; result.push_back(os.str()); os.str("");
+    os << "Flow speed: " << fish.lastFlowSpeed; result.push_back(os.str()); os.str("");
     if (fish.taggedTime != -1) {
         os << "Tagged at timestep " << fish.taggedTime; result.push_back(os.str()); os.str("");
     }

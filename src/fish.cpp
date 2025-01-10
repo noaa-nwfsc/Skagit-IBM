@@ -94,11 +94,17 @@ Fish::Fish(
         lastGrowth(0),
         lastPmax(0),
         lastMortality(0),
+        lastTemp(0),
+        lastDepth(0),
+        lastFlowSpeed(0),
         taggedTime(-1L),
         locationHistory(nullptr),
         pmaxHistory(nullptr),
         growthHistory(nullptr),
         mortalityHistory(nullptr),
+        tempHistory(nullptr),
+        depthHistory(nullptr),
+        flowSpeedHistory(nullptr),
         massHistory(nullptr),
         forkLengthHistory(nullptr)
     {this->entryMass = this->mass;}
@@ -443,6 +449,10 @@ bool Fish::move(Model &model) {
     this->location = point;
     this->travel = cost;
 
+    this->lastTemp = this->getBoundedTempForGrowth(model, *point);
+    this->lastDepth = model.hydroModel.getDepth(*point);
+    this->lastFlowSpeed = model.hydroModel.getFlowSpeedAt(*point);
+
     if (this->location->type == HabitatType::Nearshore) {
         this->incrementExitHabitatHoursByOneTimestep();
     } else {
@@ -557,6 +567,10 @@ float Fish::getPmax(const MapNode &loc) { // NOLINT(*-convert-member-functions-t
     return Pmax;
 }
 
+float Fish::getBoundedTempForGrowth(Model &model, MapNode &loc) const {
+    return fmin(CTM, model.hydroModel.getTemp(loc));
+}
+
 // Calculate growth amount (in g) for a given location and distance swum
 // Cost is in meters
 float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
@@ -564,9 +578,9 @@ float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
     return this->getGrowth(model, loc, cost, pmax);
 }
 
-float Fish::getGrowth(Model &model, MapNode &loc, float cost, float Pmax) {
-    const float temp = model.hydroModel.getTemp(loc);
-    const float my_temp = fmin(CTM, temp);
+float Fish::getGrowth(Model &model, MapNode &loc, float cost, float Pmax) const {
+    const float my_temp = this->getBoundedTempForGrowth(model, loc);
+
     // TODO: Should fish die if temp > CTM? Otherwise have to cap temp
     const float V = (CTM - my_temp)/(CTM - CTO);
     const float fTcons = pow(V, CONS_X) * exp(CONS_X * (1 - V));
@@ -598,7 +612,7 @@ float Fish::getGrowth(Model &model, MapNode &loc, float cost, float Pmax) {
 }
 
 // Calculate mortality risk for a given node
-float Fish::getMortality(Model &model, MapNode &loc) {
+float Fish::getMortality(Model &model, MapNode &loc) const {
     const float habTypeConst = habTypeMortalityConst(loc.type);
     const float a = 1.849; // slope
     const float b_m = -0.8; //slope at inflection
@@ -628,6 +642,7 @@ bool Fish::growAndDie(Model &model) {
     this->lastGrowth = growth;
     this->lastPmax = pMax;
     this->lastMortality = mortality;
+
     this->trackHistory();
 
     this->mass = this->mass + growth;
@@ -655,6 +670,9 @@ void Fish::addHistoryBuffers() {
     this->growthHistory = new std::vector<float>();
     this->pmaxHistory = new std::vector<float>();
     this->mortalityHistory = new std::vector<float>();
+    this->tempHistory = new std::vector<float>();
+    this->depthHistory = new std::vector<float>();
+    this->flowSpeedHistory = new std::vector<float>();
 }
 
 void Fish::calculateMassHistory() {
@@ -684,6 +702,9 @@ void Fish::trackHistory() const {
     this->growthHistory->push_back(this->lastGrowth);
     this->pmaxHistory->push_back(this->lastPmax);
     this->mortalityHistory->push_back(this->lastMortality);
+    this->tempHistory->push_back(this->lastTemp);
+    this->depthHistory->push_back(this->lastDepth);
+    this->flowSpeedHistory->push_back(this->lastFlowSpeed);
 }
 
 void Fish::tag(Model &model) {

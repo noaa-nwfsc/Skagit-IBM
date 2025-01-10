@@ -510,6 +510,9 @@ void Model::saveState(std::string savePath) {
     float *lastGrowthOut = new float[N];
     float *lastPmaxOut = new float[N];
     float *lastMortalityOut = new float[N];
+    float *lastTempOut = new float[N];
+    float *lastDepthOut = new float[N];
+    float *lastFlowSpeedOut = new float[N];
     for (size_t n = 0; n < N; ++n) {
         Fish &f = this->individuals[n];
         recruitTimeOut[n] = f.spawnTime;
@@ -524,6 +527,9 @@ void Model::saveState(std::string savePath) {
         lastGrowthOut[n] = f.lastGrowth;
         lastPmaxOut[n] = f.lastPmax;
         lastMortalityOut[n] = f.lastMortality;
+        lastTempOut[n] = f.lastTemp;
+        lastDepthOut[n] = f.lastDepth;
+        lastFlowSpeedOut[n] = f.lastFlowSpeed;
     }
     netCDF::NcVar recruitTime = targetFile.addVar("recruitTime", netCDF::ncInt, fishDims);
     recruitTime.putVar(recruitTimeOut);
@@ -549,6 +555,12 @@ void Model::saveState(std::string savePath) {
     lastPmax.putVar(lastPmaxOut);
     netCDF::NcVar lastMortality = targetFile.addVar("lastMortality", netCDF::ncFloat, fishDims);
     lastMortality.putVar(lastMortalityOut);
+    netCDF::NcVar lastTemp = targetFile.addVar("lastTemp", netCDF::ncFloat, fishDims);
+    lastMortality.putVar(lastTempOut);
+    netCDF::NcVar lastDepth = targetFile.addVar("lastDepth", netCDF::ncFloat, fishDims);
+    lastMortality.putVar(lastDepthOut);
+    netCDF::NcVar lastFlowSpeed = targetFile.addVar("lastFlowSpeed", netCDF::ncFloat, fishDims);
+    lastMortality.putVar(lastFlowSpeedOut);
 
     // Write population history
     netCDF::NcVar populationHistoryVar = targetFile.addVar("populationHistory", netCDF::ncInt, populationHistoryDims);
@@ -626,6 +638,9 @@ void Model::loadState(std::string loadPath) {
     netCDF::NcVar lastGrowth = sourceFile.getVar("lastGrowth");
     netCDF::NcVar lastPmax = sourceFile.getVar("lastPmax");
     netCDF::NcVar lastMortality = sourceFile.getVar("lastMortality");
+    netCDF::NcVar lastTemp = sourceFile.getVar("lastTemp");
+    netCDF::NcVar lastDepth = sourceFile.getVar("lastDepth");
+    netCDF::NcVar lastFlowSpeed = sourceFile.getVar("lastFlowSpeed");
     this->individuals.clear();
     std::vector<size_t> idxVec {0U};
     for (size_t id = 0; id < N; ++id) {
@@ -645,6 +660,9 @@ void Model::loadState(std::string loadPath) {
         lastGrowth.getVar(idxVec, &f.lastGrowth);
         lastPmax.getVar(idxVec, &f.lastPmax);
         lastMortality.getVar(idxVec, &f.lastMortality);
+        lastTemp.getVar(idxVec, &f.lastTemp);
+        lastDepth.getVar(idxVec, &f.lastDepth);
+        lastFlowSpeed.getVar(idxVec, &f.lastFlowSpeed);
     }
 
     this->populationHistory.clear();
@@ -881,6 +899,9 @@ void Model::saveTaggedHistories(std::string savePath) {
     float *growthHistoryOut = new float[N*T];
     float *pmaxHistoryOut = new float[N*T];
     float *mortalityHistoryOut = new float[N*T];
+    float *tempHistoryOut = new float[N*T];
+    float *depthHistoryOut = new float[N*T];
+    float *flowSpeedHistoryOut = new float[N*T];
     std::cout << std::endl << "N: " << N << ",   T: " << T << std::endl;
 
     for (size_t n = 0; n < N; ++n) {
@@ -910,18 +931,15 @@ void Model::saveTaggedHistories(std::string savePath) {
                 // std::cout << std::endl << "Condition 1.2" << std::endl;
                 locationHistoryOut[n*T+t] = (*f.locationHistory)[t - f.taggedTime];
             }
-            // std::cout << std::endl << "finished 1" << std::endl;
-            if (t < f.taggedTime || t >= f.taggedTime + (long) f.growthHistory->size()) {
-                // std::cout << std::endl << "Condition 2.1" << std::endl;
-                growthHistoryOut[n*T+t] = 0.0f;
-                pmaxHistoryOut[n*T+t] = 0.0f;
-                mortalityHistoryOut[n*T+t] = 0.0f;
-            } else {
-                // std::cout << std::endl << "Condition 2.2" << std::endl;
-                growthHistoryOut[n*T+t] = (*f.growthHistory)[t - f.taggedTime];
-                pmaxHistoryOut[n*T+t] = (*f.pmaxHistory)[t - f.taggedTime];
-                mortalityHistoryOut[n*T+t] = (*f.mortalityHistory)[t - f.taggedTime];
-            }
+
+            // std::cout << std::endl << "Condition 2.2" << std::endl;
+            bool outsideTaggedRange = t < f.taggedTime || t >= f.taggedTime + (long) f.growthHistory->size();
+            growthHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.growthHistory)[t - f.taggedTime];
+            pmaxHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.pmaxHistory)[t - f.taggedTime];
+            mortalityHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.mortalityHistory)[t - f.taggedTime];
+            tempHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.tempHistory)[t - f.taggedTime];
+            depthHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.depthHistory)[t - f.taggedTime];
+            flowSpeedHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.flowSpeedHistory)[t - f.taggedTime];
         }
         // std::cout << std::endl << "finished loading all T data: " << T << std::endl;
     }
@@ -958,6 +976,12 @@ void Model::saveTaggedHistories(std::string savePath) {
     pmaxHistory.putVar(pmaxHistoryOut);
     netCDF::NcVar mortalityHistory = targetFile.addVar("mortalityHistory", netCDF::ncFloat, dimsNT);
     mortalityHistory.putVar(mortalityHistoryOut);
+    netCDF::NcVar tempHistory = targetFile.addVar("tempHistory", netCDF::ncFloat, dimsNT);
+    tempHistory.putVar(tempHistoryOut);
+    netCDF::NcVar depthHistory = targetFile.addVar("depthHistory", netCDF::ncFloat, dimsNT);
+    depthHistory.putVar(depthHistoryOut);
+    netCDF::NcVar flowSpeedHistory = targetFile.addVar("flowSpeedHistory", netCDF::ncFloat, dimsNT);
+    flowSpeedHistory.putVar(flowSpeedHistoryOut);
 }
 
 void Model::loadTaggedHistories(std::string loadPath) {
@@ -972,6 +996,9 @@ void Model::loadTaggedHistories(std::string loadPath) {
     float growthDummy;
     float pmaxDummy;
     float mortalityDummy;
+    float tempDummy;
+    float depthDummy;
+    float flowSpeedDummy;
     netCDF::NcVar recruitTime = sourceFile.getVar("recruitTime");
     netCDF::NcVar taggedTime = sourceFile.getVar("taggedTime");
     netCDF::NcVar exitTime = sourceFile.getVar("exitTime");
@@ -984,6 +1011,9 @@ void Model::loadTaggedHistories(std::string loadPath) {
     netCDF::NcVar growthHistory = sourceFile.getVar("growthHistory");
     netCDF::NcVar pmaxHistory = sourceFile.getVar("pmaxHistory");
     netCDF::NcVar mortalityHistory = sourceFile.getVar("mortalityHistory");
+    netCDF::NcVar tempHistory = sourceFile.getVar("tempHistory");
+    netCDF::NcVar depthHistory = sourceFile.getVar("depthHistory");
+    netCDF::NcVar flowSpeedHistory = sourceFile.getVar("flowSpeedHistory");
     this->individuals.clear();
     std::vector<size_t> idxVecN{0U};
     std::vector<size_t> idxVecNT{0U, 0U};
@@ -1013,10 +1043,16 @@ void Model::loadTaggedHistories(std::string loadPath) {
             growthHistory.getVar(idxVecNT, &growthDummy);
             pmaxHistory.getVar(idxVecNT, &pmaxDummy);
             mortalityHistory.getVar(idxVecNT, &mortalityDummy);
+            tempHistory.getVar(idxVecNT, &tempDummy);
+            depthHistory.getVar(idxVecNT, &depthDummy);
+            flowSpeedHistory.getVar(idxVecNT, &flowSpeedDummy);
             f.locationHistory->push_back(locationDummy);
             f.growthHistory->push_back(growthDummy);
             f.pmaxHistory->push_back(pmaxDummy);
             f.mortalityHistory->push_back(mortalityDummy);
+            f.tempHistory->push_back(tempDummy);
+            f.depthHistory->push_back(depthDummy);
+            f.flowSpeedHistory->push_back(flowSpeedDummy);
         }
         f.calculateMassHistory();
     }
@@ -1032,6 +1068,9 @@ void Model::setHistoryTimestep(long timestep) {
             f.lastGrowth = (*f.growthHistory)[timestep - f.taggedTime];
             f.lastPmax = (*f.pmaxHistory)[timestep - f.taggedTime];
             f.lastMortality = (*f.mortalityHistory)[timestep - f.taggedTime];
+            f.lastTemp = (*f.tempHistory)[timestep - f.taggedTime];
+            f.lastDepth = (*f.depthHistory)[timestep - f.taggedTime];
+            f.lastFlowSpeed = (*f.flowSpeedHistory)[timestep - f.taggedTime];
             f.status = FishStatus::Alive;
             f.mass = (*f.massHistory)[timestep - f.taggedTime];
             f.forkLength = (*f.forkLengthHistory)[timestep - f.taggedTime];
