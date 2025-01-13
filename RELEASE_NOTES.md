@@ -4,6 +4,12 @@ This file records major feature changes. It goes back in time as far as 11.19.20
 when the completed feature was merged to the main branch. Functional parts of a feature may have been merged earlier.
 Minor updates are not recorded.
 
+## 01.13.2024
+
+- `tempHistoryOut` is included in the tagged history output files.
+- `depthHistoryOut` is included in the tagged history output files.
+- `flowSpeedHistoryOut` is included in the tagged history output files.
+
 ## 12.17.2024
 - added configuration to .json input file to control the length of nearshore residences before exiting. Specifically:
   - `habitatTypeExitConditionHours`: float; optional, default 2.0; the number of consecutive hours a fish must reside 
@@ -15,6 +21,8 @@ Minor updates are not recorded.
 - `pmaxHistory` is included in the tagged history output files.
 - `id_mapping_{n}.nc` is a new output file. It contains two parallel arrays, `externalNodeIds` and `internalNodeIds`
   that represent the mappings between external file-based node ids (driven by "vertices.csv") and internal node ids.
+  This file is useful in external post-processing, for converting back from internal node ids in the model output
+  files to external ids for comparison with the content of original input data files.
 
 ## 11.19.2024
 
