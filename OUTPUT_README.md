@@ -109,4 +109,7 @@ All model outputs are saved as [netCDF 4](https://www.unidata.ucar.edu/software/
     - `growthHistory[n, t]`: floats, the growth (g) on each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
     - `pmaxHistory[n, t]`: floats, the pmax (p) on each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
     - `mortalityHistory[n, t]`: floats, the mortality risk (probability) on each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
-
+    - `tempHistory[n, t]`: floats, the temperature in the current location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
+    - `depthHistory[n, t]`: floats, the water depth in the location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
+    - `flowSpeedHistory[n, t]`: floats, the flow speed in the location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
+  
