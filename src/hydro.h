@@ -34,6 +34,8 @@ public:
     float getFlowSpeedAlong(Edge &edge);
     // Return the flow speed in m/s at a given location
     float getFlowSpeedAt(MapNode &node);
+    float getFlowSpeedAtHydroNode(DistribHydroNode &hydroNode);
+    float scaledFlowSpeed(float velocity, const MapNode &node);
     // Return the temperature in degrees C at a given location
     float getTemp(MapNode &node);
     // Return the water depth in meters at a given location
