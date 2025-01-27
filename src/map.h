@@ -45,6 +45,10 @@ bool isDistributaryOrHarbor(HabitatType t);
 // Returns true if t == Distributary or t == isNearshore
 bool isNearshore(HabitatType t);
 
+bool isBlindChannel(HabitatType t);
+
+bool isImpoundment(HabitatType t);
+
 // Returns the mortality constant for a given habitat type
 float habTypeMortalityConst(HabitatType t);
 

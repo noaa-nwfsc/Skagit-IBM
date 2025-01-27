@@ -32,6 +32,15 @@ bool isNearshore(HabitatType t) {
     }
 }
 
+bool isBlindChannel(HabitatType t) {
+    return t == HabitatType::BlindChannel;
+}
+
+bool isImpoundment(HabitatType t) {
+    return t == HabitatType::Impoundment;
+}
+
+
 float habTypeMortalityConst(HabitatType t) {
     switch(t){
     case HabitatType::Distributary:

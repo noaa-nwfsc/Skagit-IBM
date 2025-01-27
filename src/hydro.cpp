@@ -104,7 +104,7 @@ float HydroModel::getFlowSpeedAlong(Edge &edge) {
     // Calculate how colinear the flow vector and the given edge are
     float d = sqrt(dx * dx + dy * dy);
     float scalar_proj = u*(dx/d) + v*(dy/d);
-    return scalar_proj;
+    return scaledFlowSpeed(scalar_proj, *(edge.source));
 }
 
 // Get the current horizontal (E/W) flow velocity in m/s at the given node
@@ -118,13 +118,40 @@ float HydroModel::getCurrentV(DistribHydroNode &hydroNode) {
 }
 
 // Get the total flow velocity in m/s at the given node
+float HydroModel::getFlowSpeedAtHydroNode(DistribHydroNode &hydroNode) {
+    float currU = this->getCurrentU(hydroNode);
+    float currV = this->getCurrentV(hydroNode);
+    return sqrt(currU*currU + currV*currV);
+}
+
+float HydroModel::scaledFlowSpeed(const float velocity, const MapNode &node) {
+    if (!isBlindChannel(node.type) && !isImpoundment(node.type)) {
+        return velocity;
+    }
+    constexpr double M_TO_CM_CONV = 100.0;
+    const double hydroVelocity = this->getFlowSpeedAtHydroNode(this->hydroNodes[node.nearestHydroNodeID]);
+    const double hydroWidth = 0.00332119 * pow(hydroVelocity * M_TO_CM_CONV, 125.0 / 48.0);
+    const double blindChannelWidth = sqrt(node.area);
+    double scalar = blindChannelWidth / hydroWidth;
+
+    if (scalar > 1.0) {
+        scalar = 1.0;
+    }
+    if (isImpoundment(node.type)) {
+        constexpr double IMPOUNDMENT_MIN_FLOW_ADDL_SCALAR = 0.1;
+        scalar = IMPOUNDMENT_MIN_FLOW_ADDL_SCALAR * scalar;
+    }
+
+    const double scaledFlowSpeed = scalar * velocity;
+    return static_cast<float>(scaledFlowSpeed);
+}
+
 float HydroModel::getFlowSpeedAt(MapNode &node) {
     if (this->useSimData) {
         return isDistributary(node.type) ? this->simDistFlow / (this->getDepth(node) * sqrt(node.area)) : 0.0f;
     }
-    float currU = this->getCurrentU(this->hydroNodes[node.nearestHydroNodeID]);
-    float currV = this->getCurrentV(this->hydroNodes[node.nearestHydroNodeID]);
-    return sqrt(currU*currU + currV*currV);
+    const float velocity = this->getFlowSpeedAtHydroNode(this->hydroNodes[node.nearestHydroNodeID]);
+    return scaledFlowSpeed(velocity, node);
 }
 
 float limitWaterTemp(float waterTemp, HabitatType nodeType) {
