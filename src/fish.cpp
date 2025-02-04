@@ -232,7 +232,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
                 if (transitSpeed > 0.0f) {
                     // Calculate effective distance swum
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if ((isDistributary(edge.source->type) && point == this->location)  ){ //  || (this->forkLength >= 75)){
+                    if (isDistributary(edge.source->type) && point == this->location){ //  || (this->forkLength >= 75)){
                         // Artificially discount the cost to make distributary nodes easier to access
                         // (since they are widely spaced)
                         edgeCost = std::min(edgeCost, swimRange - cost);
@@ -252,7 +252,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                 if (transitSpeed > 0.0f) {
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if ((isDistributary(edge.target->type) && point == this->location)  ){ // || (this->forkLength >= 75)){
+                    if (isDistributary(point->type) && point == this->location){ // || (this->forkLength >= 75)){
                         edgeCost = std::min(edgeCost, swimRange - cost);
                     }
                     if (cost + edgeCost <= swimRange) {
@@ -300,7 +300,7 @@ void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float
                 if (transitSpeed > 0.0f) {
                     // Calculate effective distance swum
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if ((isDistributary(edge.source->type) && point == this->location) ){ // }  || (this->forkLength >= 75)) {
+                    if (isDistributary(edge.source->type) && point == this->location){ // }  || (this->forkLength >= 75)) {
                         // Artificially discount the cost to make distributary nodes easier to access
                         // (since they are widely spaced)
                         // change to include discount if fork length > 75mm for exiting
@@ -322,7 +322,7 @@ void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float
                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                 if (transitSpeed > 0.0f) {
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if ((isDistributary(edge.target->type) && point == this->location) ){ // || (this->forkLength >= 75)){
+                    if (isDistributary(point->type) && point == this->location){ // || (this->forkLength >= 75)){
                         edgeCost = std::min(edgeCost, swimRange - cost);
                     }
                     if (cost + edgeCost <= swimRange) {
@@ -392,7 +392,7 @@ bool Fish::move(Model &model) {
                     if (transitSpeed > 0.0f) {
                         // Calculate effective distance swum
                         float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                        if ((isDistributary(edge.source->type) && point == this->location)){ // || (this->forkLength >= 75)){
+                        if (isDistributary(edge.source->type) && point == this->location){ // || (this->forkLength >= 75)){
                             // Artificially discount the cost to make at least 1 distributary channel passable
                             // (since they are widely spaced)
                             edgeCost = std::min(edgeCost, swimRange - cost);
@@ -414,7 +414,7 @@ bool Fish::move(Model &model) {
                     if (transitSpeed > 0.0f) {
                         float edgeCost = (edge.length/transitSpeed)*swimSpeed;
                         // if (isDistributary(edge.target->type) && point == this->location) {
-                        if ((isDistributary(edge.source->type) && point == this->location) ){ //|| (this->forkLength >= 75)){
+                        if (isDistributary(point->type) && point == this->location){ //|| (this->forkLength >= 75)){
                             edgeCost = std::min(edgeCost, swimRange - cost);
                         }
                         if (cost + edgeCost <= swimRange) {
