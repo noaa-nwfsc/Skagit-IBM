@@ -39,49 +39,49 @@ LINKFLAGS = -v -Llocal/netcdf-cxx4/lib -Llocal/netcdf-c/lib -lnetcdf_c++4 -lnetc
 
 OBJ = $(addprefix build/, model.o hydro.o load.o fish.o map.o util.o env_sim.o map_gen.o)
 
-headless: $(OBJ) build/headless.o bin
+bin/headless: $(OBJ) build/headless.o | bin
 	$(CC) $(OBJ) build/headless.o -o bin/headless $(LINKFLAGS)
 
-gui: $(OBJ) build/gui.o bin
+gui: $(OBJ) build/gui.o | bin
 	$(CC) $(WXLIBS) $(OBJ) build/gui.o -o bin/gui $(LINKFLAGS)
 
-build/gui.o: src/gui.cpp src/model.h src/fish.h build
+build/gui.o: src/gui.cpp src/model.h src/fish.h | build
 	$(CC) $(WXFLAGS) -c src/gui.cpp -o build/gui.o
 
 bin:
-	mkdir bin
+	mkdir -p bin
 
 build:
-	mkdir build
+	mkdir -p build
 
-build/headless.o: src/headless.cpp src/model.h build
+build/headless.o: src/headless.cpp src/model.h | build
 	$(CC) -c src/headless.cpp -o build/headless.o
 
-build/model.o: src/model.cpp src/model.h src/load.h src/fish.h src/map.h build
+build/model.o: src/model.cpp src/model.h src/load.h src/fish.h src/map.h | build
 	$(CC) $(RAPIDJSON) $(NETCDF) -c src/model.cpp -o build/model.o
 
-build/hydro.o: src/hydro.cpp src/hydro.h src/map.h build
+build/hydro.o: src/hydro.cpp src/hydro.h src/map.h | build
 	$(CC) -c src/hydro.cpp -o build/hydro.o
 
-build/load.o: src/load.cpp src/load.h src/map.h build
+build/load.o: src/load.cpp src/load.h src/map.h | build
 	$(CC) $(NETCDF) -c src/load.cpp -o build/load.o
 
-build/fish.o: src/fish.cpp src/fish.h src/model.h src/map.h src/util.h build
+build/fish.o: src/fish.cpp src/fish.h src/model.h src/map.h src/util.h | build
 	$(CC) -c src/fish.cpp -o build/fish.o
 
-build/map.o: src/map.cpp src/map.h build
+build/map.o: src/map.cpp src/map.h | build
 	$(CC) -c src/map.cpp -o build/map.o
 
-build/util.o: src/util.cpp src/util.h build
+build/util.o: src/util.cpp src/util.h | build
 	$(CC) -c src/util.cpp -o build/util.o
 
-build/env_sim.o: src/env_sim.cpp src/env_sim.h src/map.h build
+build/env_sim.o: src/env_sim.cpp src/env_sim.h src/map.h | build
 	$(CC) -c src/env_sim.cpp -o build/env_sim.o
 
-build/map_gen.o: src/map_gen.cpp src/map_gen.h src/map.h build
+build/map_gen.o: src/map_gen.cpp src/map_gen.h src/map.h | build
 	$(CC) -c src/map_gen.cpp -o build/map_gen.o
 
-all: headless
+all: bin/headless
 
 clean:
 	rm -rdf bin/* build/*
