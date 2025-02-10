@@ -750,8 +750,8 @@ void loadMap(
         if (std::stoi(chunks[12]) == 1) {
             monitoringPoints.push_back(n);
         }
-        std::string siteName = chunks[15];
-        if (siteName[siteName.length()-1] == '\r') {
+        std::string siteName = chunks[16];
+        if (siteName.length() > 0 && siteName[siteName.length()-1] == '\r') {
             siteName = siteName.substr(0, siteName.length() - 1);
         }
 
