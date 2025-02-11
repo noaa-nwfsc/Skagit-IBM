@@ -690,6 +690,18 @@ void fixDisjointDistributaries(std::vector<MapNode *> &map, std::vector<MapNode 
     std::cout << "Made " << corrected << " disconnected 'distributary' nodes into blind channels" << std::endl;
 }
 
+void cleanupRemovedNodes(std::unordered_map<unsigned int, unsigned int> &csvToInternalId, const std::vector<MapNode *> &dest) {
+    for (auto csv_it =  csvToInternalId.begin(); csv_it != csvToInternalId.end(); ) {
+        int internalId = static_cast<int>(csv_it->second);
+        auto found_internal = std::find_if(dest.begin(), dest.end(),[internalId](const MapNode *node) -> bool { return (node->id == internalId); });
+        if (found_internal == dest.end()) {
+            csv_it = csvToInternalId.erase(csv_it);
+        } else {
+            ++csv_it;
+        }
+    }
+}
+
 // Load a map from vertex, edge, and geometry files
 // (additionally runs cleanup on the resulting map graph)
 void loadMap(
@@ -838,4 +850,5 @@ void loadMap(
     fixDisjointDistributaries(dest, recPoints);
     assignNearestHydroNodes(dest, hydroNodes);
     fixElevations(dest, hydroNodes);
+    cleanupRemovedNodes(csvToInternalID, dest);
 }
