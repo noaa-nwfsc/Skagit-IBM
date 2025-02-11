@@ -4,7 +4,13 @@ This file records major feature changes. It goes back in time as far as 11.19.20
 when the completed feature was merged to the main branch. Functional parts of a feature may have been merged earlier.
 Minor updates are not recorded.
 
-## 01.13.2024
+## 02.11.2025
+- added configuration to .json input file for habitat-based mortality multiplier:
+  - `habitatMortalityMultiplier`: float; default 2.0; additional mortality multiplier applied in distributaries and 
+    nearshore habitats.
+    See [default_config_env_from_file.json](default_config_env_from_file.json) for an example usage.
+
+## 01.13.2025
 
 - `tempHistoryOut` is included in the tagged history output files.
 - `depthHistoryOut` is included in the tagged history output files.

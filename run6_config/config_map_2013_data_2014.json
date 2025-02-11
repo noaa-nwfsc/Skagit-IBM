@@ -16,5 +16,6 @@
     "distribWseTempFile": "data/wse.temp.full.nc",
     "threadCount": 96,
     "blindChannelSimplificationRadius": 15.0,
-    "habitatTypeExitConditionHours": 2.0
+    "habitatTypeExitConditionHours": 2.0,
+    "habitatMortalityMultiplier": 2.0
 }

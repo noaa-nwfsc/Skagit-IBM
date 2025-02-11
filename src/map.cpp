@@ -41,13 +41,13 @@ bool isImpoundment(HabitatType t) {
 }
 
 
-float habTypeMortalityConst(HabitatType t) {
+float habTypeMortalityConst(const HabitatType t, const float habitatMortalityMultiplier) {
     switch(t){
     case HabitatType::Distributary:
     // case HabitatType::Harbor:
     case HabitatType::Nearshore:
     // case HabitatType::Impoundment:
-        return 2.0;
+        return habitatMortalityMultiplier;
     default:
         return 1.0;
     }

@@ -91,6 +91,7 @@ public:
 
     // number of consecutive Nearshore hours to satisfy exit condition
     float habitatTypeExitConditionHours;
+    float habitatMortalityMultiplier;
 
     Model(
         int globalTimeIntercept,
@@ -101,6 +102,7 @@ public:
         std::string recSizeDistsFilename,
         std::vector<unsigned> recPointIds,
         float habitatTypeExitConditionHours,
+        float habitatMortalityMultiplier,
         std::string mapLocationFilename,
         std::string mapEdgeFilename,
         std::string mapGeometryFilename,
