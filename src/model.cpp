@@ -560,11 +560,11 @@ void Model::saveState(std::string savePath) {
     netCDF::NcVar lastMortality = targetFile.addVar("lastMortality", netCDF::ncFloat, fishDims);
     lastMortality.putVar(lastMortalityOut);
     netCDF::NcVar lastTemp = targetFile.addVar("lastTemp", netCDF::ncFloat, fishDims);
-    lastMortality.putVar(lastTempOut);
+    lastTemp.putVar(lastTempOut);
     netCDF::NcVar lastDepth = targetFile.addVar("lastDepth", netCDF::ncFloat, fishDims);
-    lastMortality.putVar(lastDepthOut);
+    lastDepth.putVar(lastDepthOut);
     netCDF::NcVar lastFlowSpeed = targetFile.addVar("lastFlowSpeed", netCDF::ncFloat, fishDims);
-    lastMortality.putVar(lastFlowSpeedOut);
+    lastFlowSpeed.putVar(lastFlowSpeedOut);
 
     // Write population history
     netCDF::NcVar populationHistoryVar = targetFile.addVar("populationHistory", netCDF::ncInt, populationHistoryDims);
