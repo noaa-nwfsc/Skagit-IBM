@@ -290,7 +290,7 @@ void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float
         std::vector<std::tuple<MapNode *, float, float>> neighbors;
         float elapsedTime = cost / swimSpeed;
         float remainingTime = SECONDS_PER_TIMESTEP - elapsedTime;
-        float stayCost = remainingTime * model.hydroModel.getFlowSpeedAt(*point);
+        float stayCost = remainingTime * model.hydroModel.getUnsignedFlowSpeedAt(*point);
         neighbors.emplace_back(point, cost+stayCost, fitness);
         for (Edge &edge : point->edgesIn) {
             if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) > DEPTH_CUTOFF) {
@@ -374,20 +374,23 @@ bool Fish::move(Model &model) {
     float swimRange = swimSpeed*SECONDS_PER_TIMESTEP;
     float currFitness = this->getFitness(model, *this->location, 0.0f);
     MapNode *point = this->location;
-    std::vector<std::tuple<MapNode *, float, float>> neighbors;
+    float lastFlowSpeed = model.hydroModel.getUnsignedFlowSpeedAt(*point);;
+    std::vector<std::tuple<MapNode *, float, float, float>> neighbors;
     std::vector<float> weights;
     while (true) {
         neighbors.clear();
         float elapsedTime = cost / swimSpeed;
         float remainingTime = SECONDS_PER_TIMESTEP - elapsedTime;
-        float stayCost = remainingTime * model.hydroModel.getFlowSpeedAt(*point);
+        float pointFlowSpeed = model.hydroModel.getUnsignedFlowSpeedAt(*point);
+        float stayCost = remainingTime * pointFlowSpeed;
         if (remainingTime > 0.0f) {
-            neighbors.emplace_back(point, cost+stayCost, currFitness);
+            neighbors.emplace_back(point, cost+stayCost, currFitness, lastFlowSpeed);
             // Check all channels flowing into this node
             for (Edge &edge : point->edgesIn) {
                 if (model.hydroModel.getDepth(*edge.source) > DEPTH_CUTOFF) {
+                    float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
                     // Effective movement speed along channel (swim speed adjusted by flow speed)
-                    float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
+                    float transitSpeed = swimSpeed - edgeFlowSpeed;
                     // Check to make sure the fish can even make progress
                     if (transitSpeed > 0.0f) {
                         // Calculate effective distance swum
@@ -401,7 +404,7 @@ bool Fish::move(Model &model) {
                         if (cost + edgeCost <= swimRange) {
                             // Add it to the neighbor list with its fitness value
                             float fitness = this->getFitness(model, *edge.source, cost + edgeCost);
-                            neighbors.emplace_back(edge.source, cost+edgeCost, fitness);
+                            neighbors.emplace_back(edge.source, cost+edgeCost, fitness, edgeFlowSpeed);
                         }
                     }
                 }
@@ -410,7 +413,8 @@ bool Fish::move(Model &model) {
             // Same as above (except flow directions are reversed)
             for (Edge &edge : point->edgesOut) {
                 if (model.hydroModel.getDepth(*edge.target) > DEPTH_CUTOFF) {
-                    float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
+                    float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
+                    float transitSpeed = swimSpeed + edgeFlowSpeed;
                     if (transitSpeed > 0.0f) {
                         float edgeCost = (edge.length/transitSpeed)*swimSpeed;
                         // if (isDistributary(edge.target->type) && point == this->location) {
@@ -419,7 +423,7 @@ bool Fish::move(Model &model) {
                         }
                         if (cost + edgeCost <= swimRange) {
                             float fitness = this->getFitness(model, *edge.target, cost + edgeCost);
-                            neighbors.emplace_back(edge.target, cost+edgeCost, fitness);
+                            neighbors.emplace_back(edge.target, cost+edgeCost, fitness, edgeFlowSpeed);
                         }
                     }
                 }
@@ -439,6 +443,7 @@ bool Fish::move(Model &model) {
             point = std::get<0>(neighbors[idx]);
             cost = std::get<1>(neighbors[idx]);
             currFitness = std::get<2>(neighbors[idx]);
+            lastFlowSpeed = std::get<3>(neighbors[idx]);
             if (point == lastPoint) {
                 break;
             }
@@ -451,7 +456,7 @@ bool Fish::move(Model &model) {
 
     this->lastTemp = this->getBoundedTempForGrowth(model, *point);
     this->lastDepth = model.hydroModel.getDepth(*point);
-    this->lastFlowSpeed = model.hydroModel.getFlowSpeedAt(*point);
+    this->lastFlowSpeed = lastFlowSpeed;
 
     if (this->location->type == HabitatType::Nearshore) {
         this->incrementExitHabitatHoursByOneTimestep();
