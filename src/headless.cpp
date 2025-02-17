@@ -58,7 +58,7 @@ void readRunListings(std::string& runListingPath, std::string& header, std::vect
     std::ifstream is(runListingPath);
     std::string line;
     bool first = true;
-    while (std::getline(is, line)) {
+    while (std::getline(is, line) && !line.empty()) {
         if (first) {
             first = false;
             header = line;
