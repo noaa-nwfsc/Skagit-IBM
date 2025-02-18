@@ -927,5 +927,5 @@ void loadMap(
     fixDisjointDistributaries(dest, recPoints);
     assignNearestHydroNodes(dest, hydroNodes);
     fixElevations(dest, hydroNodes);
-    cleanupRemovedNodes(csvToInternalID, dest);
+//    cleanupRemovedNodes(csvToInternalID, dest);
 }
