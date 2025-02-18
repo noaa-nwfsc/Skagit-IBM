@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <limits>
 
 bool isDistributary(HabitatType t) {
     switch(t){

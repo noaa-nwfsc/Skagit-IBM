@@ -8,6 +8,7 @@
 #include <utility>
 #include <cmath>
 #include <cstdlib>
+#include <limits>
 #include <algorithm>
 #include <netcdf>
 
