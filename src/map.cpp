@@ -59,7 +59,7 @@ Edge::Edge(MapNode *source, MapNode *target, float length)
 
 MapNode::MapNode(HabitatType type, float area, float elev, float pathDist)
         : id(-1), type(type), area(area), elev(elev), pathDist(pathDist),
-        crossChannelA(nullptr), crossChannelB(nullptr), popDensity(0.0f) {}
+        crossChannelA(nullptr), crossChannelB(nullptr), popDensity(0.0f), nearestHydroNodeID(-1), hydroNodeDistance(std::numeric_limits<float>::max()) {}
 
 SamplingSite::SamplingSite(std::string siteName, size_t id) : siteName(siteName), id(id), points() {}
 

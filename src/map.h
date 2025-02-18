@@ -85,6 +85,7 @@ public:
     Edge *crossChannelB;
     // DistribHydroNode::id of the nearest DistribHydroNode
     unsigned nearestHydroNodeID;
+    float hydroNodeDistance;
     // List of Fish::id of living fish such that Fish::location == this -- updated in Model::countAll
     std::vector<long> residentIds;
     // Population density of living fish at this location, in individuals/m^2 -- updated in Model::countAll
