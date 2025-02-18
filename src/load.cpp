@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <limits>
+#include <queue>
 #include <algorithm>
 #include <netcdf>
 
