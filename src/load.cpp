@@ -458,7 +458,7 @@ void condenseMissingNodes(std::vector<MapNode *> &map) {
 }
 
 // Merge nodes that are within a certain radius of each other
-void simplifyBlindChannels(std::vector<MapNode *> &map, float radius, std::unordered_map<MapNode *, SamplingSite *> samplingSitesByNode) {
+void simplifyBlindChannels(std::vector<MapNode *> &map, float radius, const std::set<MapNode *> &protectedNodes) {
     std::unordered_set<MapNode *> toRemove;
     std::unordered_set<MapNode *> toAdd;
     for (MapNode *node : map) {
@@ -467,14 +467,14 @@ void simplifyBlindChannels(std::vector<MapNode *> &map, float radius, std::unord
         // Don't touch sampling sites
         if (toRemove.count(node)
             || node->type != HabitatType::BlindChannel
-            || samplingSitesByNode.count(node)) {
+            || protectedNodes.count(node)) {
             continue;
         }
         // Check outbound edges
         bool merged = false;
         for (Edge e : node->edgesOut) {
             // Don't merge nodes that are already involved in merges or protected nodes
-            if (toAdd.count(e.target) || samplingSitesByNode.count(e.target)) {
+            if (toAdd.count(e.target) || protectedNodes.count(e.target)) {
                 continue;
             }
             if (e.target->type == HabitatType::BlindChannel && e.length <= radius) {
@@ -494,7 +494,7 @@ void simplifyBlindChannels(std::vector<MapNode *> &map, float radius, std::unord
         // Check inbound edges
         for (Edge e : node->edgesIn) {
             // Don't merge nodes that are already involved in merges or protected nodes
-            if (toAdd.count(e.source) || samplingSitesByNode.count(e.source)) {
+            if (toAdd.count(e.source) || protectedNodes.count(e.source)) {
                 continue;
             }
             if (e.source->type == HabitatType::BlindChannel && e.length <= radius) {
@@ -782,6 +782,18 @@ void cleanupRemovedNodes(std::unordered_map<unsigned int, unsigned int> &csvToIn
     }
 }
 
+void populateProtectedNodes(const std::vector<MapNode *> &monitoringPoints, const std::unordered_map<MapNode *, SamplingSite *> &samplingSitesByNode, const std::vector<MapNode *> &recPoints, std::set<MapNode *> &protectedNodes) {
+    for (MapNode *node : monitoringPoints) {
+        protectedNodes.insert(node);
+    }
+    for (auto nodePair : samplingSitesByNode) {
+        protectedNodes.insert(nodePair.first);
+    }
+    for (MapNode *node : recPoints) {
+        protectedNodes.insert(node);
+    }
+}
+
 // Load a map from vertex, edge, and geometry files
 // (additionally runs cleanup on the resulting map graph)
 void loadMap(
@@ -836,11 +848,11 @@ void loadMap(
         dest.push_back(new MapNode(
             habType, area, elev, sourceDistance
         ));
-        MapNode *n = dest.back();
-        n->id = internalId;
+        MapNode *node = dest.back();
+        node->id = internalId;
 
         if (std::stoi(chunks[12]) == 1) {
-            monitoringPoints.push_back(n);
+            monitoringPoints.push_back(node);
         }
         std::string siteName = chunks[16];
         if (siteName.length() > 0 && siteName[siteName.length()-1] == '\r') {
@@ -856,8 +868,8 @@ void loadMap(
                 site = samplingSites.back();
                 samplingSitesByName[siteName] = site;
             }
-            site->points.push_back(n);
-            samplingSitesByNode[n] = site;
+            site->points.push_back(node);
+            samplingSitesByNode[node] = site;
         }
     }
     unsigned int maxRealID = dest.size() - 1;
@@ -921,14 +933,16 @@ void loadMap(
         }
         recPoints.push_back(dest[csvToInternalID[id]]);
     }
-    //condenseMissingNodes(dest);
+    //condenseMissingNodes(dest); TODO: maybe put this back in at the end?
     // Clean up clean up everybody do your share
-    simplifyBlindChannels(dest, blindChannelSimplificationRadius, samplingSitesByNode);
+    std::set<MapNode *> protectedNodes;
+    populateProtectedNodes(monitoringPoints, samplingSitesByNode, recPoints, protectedNodes);
+    simplifyBlindChannels(dest, blindChannelSimplificationRadius, protectedNodes);
     //fixBrokenEdges(dest);
     expandNearshoreLinks(dest, maxRealID);
     //assignCrossChannelEdges(dest); // OBSOLETE
     fixDisjointDistributaries(dest, recPoints);
     assignNearestHydroNodes(dest, hydroNodes);
     fixElevations(dest, hydroNodes);
-//    cleanupRemovedNodes(csvToInternalID, dest);
+//    cleanupRemovedNodes(csvToInternalID, dest); TODO: add this back in
 }

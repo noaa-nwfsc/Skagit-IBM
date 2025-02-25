@@ -165,6 +165,21 @@ void Model::masterUpdate() {
     this->hydroModel.updateTime(this->time);
 }
 
+// TODO: GROT
+bool Model::checkMonitoringNodes() {
+    int missingCount = 0;
+    for (auto n : this->monitoringPoints) {
+        auto it = std::find(this->map.begin(), this->map.end(), n);
+        if (it == this->map.end()) {
+            missingCount += 1;
+        }
+    }
+    if (missingCount == 0) {
+        std::cout << "!! bad monitors: " << missingCount << std::endl;
+    }
+    return missingCount == 0;
+}
+
 void Model::update1h() {
     // Introduce new recruits
     this->recruit();
@@ -180,6 +195,7 @@ void Model::update1h() {
     // Add an entry to the population history
     this->populationHistory.push_back(this->livingIndividuals.size());
     // Record monitoring sites
+//    this->checkMonitoringNodes(); // TODO: GROT
     for (size_t i = 0; i < this->monitoringPoints.size(); ++i) {
         MapNode *n = this->monitoringPoints[i];
         this->monitoringHistory[i].emplace_back(n->residentIds.size(), hydroModel.getDepth(*n), hydroModel.getTemp(*n));

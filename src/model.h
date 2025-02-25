@@ -127,6 +127,10 @@ public:
 
     // Call to advance the model state by one timestep
     void masterUpdate();
+
+    // TODO: GROT
+    bool checkMonitoringNodes();
+
     // Wraps update procedures that happen every timestep
     void update1h();
     // Wraps update procedures that happen daily
