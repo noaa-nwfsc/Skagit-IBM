@@ -98,7 +98,7 @@ void initializeEachHydroNodeToNearestMapNode(const std::vector<MapNode *> & map,
         float closestDistance = std::numeric_limits<float>::max();
         for (MapNode *node : map) {
             const float nodeDistance = distance(hydroNodes[hydroNodeIndex].x, hydroNodes[hydroNodeIndex].y, node->x, node->y);
-            if (nodeDistance < closestDistance) { // TODO: and node not already assigned to another hydro?
+            if (isDistributary(node->type) && nodeDistance < closestDistance) {
                 closestDistance = nodeDistance;
                 closestNode = node;
             }
@@ -437,26 +437,6 @@ MapNode *mergeNodes(MapNode *a, MapNode *b) {
     return newNode;
 }
 
-void condenseMissingNodes(std::vector<MapNode *> &map) {
-    // Condense map list to remove null nodes
-    // targetIt tracks where in the list to write non-null nodes to
-    auto targetIt = map.begin();
-    // sourceIt tracks where in the list we're examining
-    for (auto sourceIt = map.begin(); sourceIt != map.end(); ++sourceIt) {
-        // Check if the node we're looking at in the list exists
-        if (*sourceIt != nullptr) {
-            // It should be kept
-            // Shift it over into the target position and update the target position
-            *targetIt = *sourceIt;
-            ++targetIt;
-        }
-    }
-    // Chop off the unused space at the end of the list
-    if (targetIt != map.end()) {
-        map.erase(targetIt, map.end());
-    }
-}
-
 // Merge nodes that are within a certain radius of each other
 void simplifyBlindChannels(std::vector<MapNode *> &map, float radius, const std::unordered_set<MapNode *> &protectedNodes) {
     std::unordered_set<MapNode *> toRemove;
@@ -770,11 +750,12 @@ void fixDisjointDistributaries(std::vector<MapNode *> &map, std::vector<MapNode 
     std::cout << "Made " << corrected << " disconnected 'distributary' nodes into blind channels" << std::endl;
 }
 
-void cleanupRemovedNodes(std::unordered_map<unsigned int, unsigned int> &csvToInternalId, const std::vector<MapNode *> &dest) {
+void cleanupRemovedNodeIdMappings(std::unordered_map<unsigned int, unsigned int> &csvToInternalId, const std::vector<MapNode *> &dest) {
     for (auto csv_it =  csvToInternalId.begin(); csv_it != csvToInternalId.end(); ) {
         int internalId = static_cast<int>(csv_it->second);
         auto found_internal = std::find_if(dest.begin(), dest.end(),[internalId](const MapNode *node) -> bool { return (node->id == internalId); });
-        if (found_internal == dest.end()) {
+        bool unused_mapping = (found_internal == dest.end());
+        if (unused_mapping) {
             csv_it = csvToInternalId.erase(csv_it);
         } else {
             ++csv_it;
@@ -932,7 +913,6 @@ void loadMap(
         }
         recPoints.push_back(dest[csvToInternalID[id]]);
     }
-    //condenseMissingNodes(dest); TODO: maybe put this back in at the end?
     // Clean up clean up everybody do your share
     std::unordered_set<MapNode *> protectedNodes;
     populateProtectedNodes(monitoringPoints, samplingSitesByNode, recPoints, protectedNodes);
@@ -943,5 +923,5 @@ void loadMap(
     fixDisjointDistributaries(dest, recPoints);
     assignNearestHydroNodes(dest, hydroNodes);
     fixElevations(dest, hydroNodes);
-//    cleanupRemovedNodes(csvToInternalID, dest); TODO: add this back in
+    cleanupRemovedNodeIdMappings(csvToInternalID, dest);
 }
