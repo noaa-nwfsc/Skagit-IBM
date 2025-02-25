@@ -195,7 +195,7 @@ void Model::update1h() {
     // Add an entry to the population history
     this->populationHistory.push_back(this->livingIndividuals.size());
     // Record monitoring sites
-//    this->checkMonitoringNodes(); // TODO: GROT
+    this->checkMonitoringNodes(); // TODO: GROT
     for (size_t i = 0; i < this->monitoringPoints.size(); ++i) {
         MapNode *n = this->monitoringPoints[i];
         this->monitoringHistory[i].emplace_back(n->residentIds.size(), hydroModel.getDepth(*n), hydroModel.getTemp(*n));

@@ -458,7 +458,7 @@ void condenseMissingNodes(std::vector<MapNode *> &map) {
 }
 
 // Merge nodes that are within a certain radius of each other
-void simplifyBlindChannels(std::vector<MapNode *> &map, float radius, const std::set<MapNode *> &protectedNodes) {
+void simplifyBlindChannels(std::vector<MapNode *> &map, float radius, const std::unordered_set<MapNode *> &protectedNodes) {
     std::unordered_set<MapNode *> toRemove;
     std::unordered_set<MapNode *> toAdd;
     for (MapNode *node : map) {
@@ -782,7 +782,7 @@ void cleanupRemovedNodes(std::unordered_map<unsigned int, unsigned int> &csvToIn
     }
 }
 
-void populateProtectedNodes(const std::vector<MapNode *> &monitoringPoints, const std::unordered_map<MapNode *, SamplingSite *> &samplingSitesByNode, const std::vector<MapNode *> &recPoints, std::set<MapNode *> &protectedNodes) {
+void populateProtectedNodes(const std::vector<MapNode *> &monitoringPoints, const std::unordered_map<MapNode *, SamplingSite *> &samplingSitesByNode, const std::vector<MapNode *> &recPoints, std::unordered_set<MapNode *> &protectedNodes) {
     for (MapNode *node : monitoringPoints) {
         protectedNodes.insert(node);
     }
@@ -818,7 +818,6 @@ void loadMap(
     std::string line;
     bool first = true;
     std::unordered_map<std::string, SamplingSite *> samplingSitesByName;
-    std::unordered_map<unsigned int, std::string> samplingSiteNamesByNodeID;
     std::unordered_map<MapNode *, SamplingSite *> samplingSitesByNode;
     csvToInternalID.clear();
     dest.clear();
@@ -935,7 +934,7 @@ void loadMap(
     }
     //condenseMissingNodes(dest); TODO: maybe put this back in at the end?
     // Clean up clean up everybody do your share
-    std::set<MapNode *> protectedNodes;
+    std::unordered_set<MapNode *> protectedNodes;
     populateProtectedNodes(monitoringPoints, samplingSitesByNode, recPoints, protectedNodes);
     simplifyBlindChannels(dest, blindChannelSimplificationRadius, protectedNodes);
     //fixBrokenEdges(dest);
