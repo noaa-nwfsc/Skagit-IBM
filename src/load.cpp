@@ -72,7 +72,7 @@ void assignHydroNodeToMapNodeWithDistance(const unsigned hydroNodeIndex, MapNode
     mapNode->hydroNodeDistance = distance;
 }
 
-void initializeEachHydroNodeToNearestMapNode(const std::vector<MapNode *> & map, const std::vector<DistribHydroNode> & hydroNodes, std::vector<MapNode*>& assignedNodes) {
+void initializeEachHydroNodeToNearestMapNode(const std::vector<MapNode *> & map, const std::vector<DistribHydroNode> & hydroNodes, std::unordered_set<MapNode*>& assignedNodes) {
     for (unsigned hydroNodeIndex = 0; hydroNodeIndex < hydroNodes.size(); ++hydroNodeIndex) {
         MapNode* closestNode = nullptr;
         float closestDistance = std::numeric_limits<float>::max();
@@ -86,8 +86,13 @@ void initializeEachHydroNodeToNearestMapNode(const std::vector<MapNode *> & map,
                 closestNode = node;
             }
         }
-        assignHydroNodeToMapNodeWithDistance(hydroNodeIndex, closestNode, 0);
-        assignedNodes.emplace_back(closestNode);
+        if (closestDistance < closestNode->hydroNodeDistance) {
+            assignHydroNodeToMapNodeWithDistance(hydroNodeIndex, closestNode, closestNode->hydroNodeDistance);
+            assignedNodes.emplace(closestNode);
+        }
+    }
+    for (auto assignedNode : assignedNodes) {
+        assignedNode->hydroNodeDistance = 0;
     }
 }
 
@@ -106,7 +111,7 @@ using DijkstraMinQueue = std::priority_queue<
     MinPriorityTupleComparator
 >;
 
-void initializeDijkstraQueue(DijkstraMinQueue & dijkstra_queue, const std::vector<MapNode *> & initialNodes) {
+void initializeDijkstraQueue(DijkstraMinQueue & dijkstra_queue, const std::unordered_set<MapNode *> & initialNodes) {
     for (MapNode *node : initialNodes) {
         dijkstra_queue.emplace(0, node);
     }
@@ -150,7 +155,7 @@ void assignRemainingMapNodesToHydroNodes(DijkstraMinQueue & dijkstraMinQueue) {
 // assigned nodes, and copy its hydro node association
 
 void assignNearestHydroNodesByEdgeDistance(std::vector<MapNode *> &map, const std::vector<DistribHydroNode> &hydroNodes) {
-    std::vector<MapNode*> initialNodes = std::vector<MapNode*>();
+    auto initialNodes = std::unordered_set<MapNode*>();
     initializeEachHydroNodeToNearestMapNode(map, hydroNodes, initialNodes);
     DijkstraMinQueue dijkstraMinQueue{MinPriorityTupleComparator()};
     initializeDijkstraQueue(dijkstraMinQueue, initialNodes);

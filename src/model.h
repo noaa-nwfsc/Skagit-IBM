@@ -170,12 +170,16 @@ public:
     void loadTaggedHistories(std::string loadPath);
     // Set the model's timestep and update fish to reflect the data
     // in the currently loaded life histories
-    void saveNodeIdMapping(const std::string &nodeIdMappingPath);
     void setHistoryTimestep(long timestep);
+
+    void saveNodeIdMapping(const std::string &nodeIdMappingPath);
+    void saveHydroMapping(const std::string & hydroMappingCsvPath) const;
+
 
     // add addhistory from fish???
     // void addHistoryBuffers();
     ~Model();
+
 
 private:
 

@@ -7,6 +7,7 @@
 #include "map_gen.h"
 #include "env_sim.h"
 #include <cstdio>
+#include <fstream>
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/filereadstream.h>
@@ -880,6 +881,24 @@ void Model::saveNodeIdMapping(const std::string &nodeIdMappingPath) {
         std::cerr << "NetCDF error: " << e.what() << std::endl;
         throw;
     }
+}
+
+void Model::saveHydroMapping(const std::string & hydroMappingCsvPath) const {
+    std::ofstream hydroMapOutFile(hydroMappingCsvPath);
+    if (!hydroMapOutFile) {
+        std::cerr << "Error opening file for writing: " << hydroMappingCsvPath << std::endl;
+    }
+    std::ostringstream headerLine;
+    headerLine << "internal node ID" << ", " << "hydro node ID" << ", " << "distance";
+    hydroMapOutFile << headerLine.str() << std::endl;
+
+    for (const MapNode *node : map) {
+        std::ostringstream lineStream;
+        lineStream << node->id << ", " << node->nearestHydroNodeID << ", " << node->hydroNodeDistance;
+        hydroMapOutFile << lineStream.str() << std::endl;
+    }
+
+    hydroMapOutFile.close();
 }
 
 // Set the proportion of recruits that should be tagged for full life history recording

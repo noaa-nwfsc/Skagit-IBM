@@ -113,3 +113,11 @@ All model outputs are saved as [netCDF 4](https://www.unidata.ucar.edu/software/
     - `depthHistory[n, t]`: floats, the water depth in the location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
     - `flowSpeedHistory[n, t]`: floats, the flow speed in the location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
   
+### Metadata
+
+- `id_mapping_{#}.nc` : contains two parallel arrays, `externalNodeIds` and `internalNodeIds`
+  that represent the mappings between external file-based node ids (driven by "vertices.csv") and internal node ids.
+  This file is useful in external post-processing, for converting back from internal node ids in the model output
+  files to external ids for comparison with the content of original input data files.
+- `hydro_mapping_{#}.csv` : csv file describing the mapping of map nodes to hydro nodes. It contains three columns: internal node ID, hydro node ID, distance. 
+  "Distance" is the distance along edges to the nearest hydro node.

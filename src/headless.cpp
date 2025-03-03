@@ -139,6 +139,10 @@ int main(int argc, char **argv) {
     idMapFile << outputPath << "/id_mapping_" << runID << ".nc";
     m->saveNodeIdMapping(idMapFile.str());
 
+    std::stringstream hydroMappingFile;
+    hydroMappingFile << outputPath << "/hydro_mapping_" << runID << ".csv";
+    m->saveHydroMapping(hydroMappingFile.str());
+
     std::stringstream ss;
     ss << outputPath << "/output_" << runID << ".nc";
     std::cout << "Sample data will be saved to " << ss.str() << std::endl;

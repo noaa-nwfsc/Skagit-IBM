@@ -4,6 +4,13 @@ This file records major feature changes. It goes back in time as far as 11.19.20
 when the completed feature was merged to the main branch. Functional parts of a feature may have been merged earlier.
 Minor updates are not recorded.
 
+## 03.03.2025
+
+- nearest hydro node is now calculated using distance along edges rather than as the crow flies.
+- new output file `hydro_mapping_{#}.csv` : csv file describing the mapping of map nodes to hydro nodes. It contains three columns: internal node ID, hydro node ID, distance.
+  "Distance" is the distance along edges to the nearest hydro node.
+- blind channel consolidation now works properly
+
 ## 02.11.2025
 - added configuration to .json input file for habitat-based mortality multiplier:
   - `habitatMortalityMultiplier`: float; default 2.0; additional mortality multiplier applied in distributaries and 
