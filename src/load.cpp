@@ -67,29 +67,9 @@ void loadDistribHydro(std::string &flowPath, std::string &wseTempPath, std::vect
     std::cout << std::endl;
 }
 
-// Set the nearestHydroNodeID field for each node in "map" by finding its nearest
-// HydroNode in "hydroNodes"
-void assignNearestHydroNodesByEdgeDistance(std::vector<MapNode *> &map, const std::vector<DistribHydroNode> &hydroNodes);
-void assignNearestHydroNodes(std::vector<MapNode *> &map, std::vector<DistribHydroNode> &hydroNodes) {
-    // assignNearestHydroNodesByEdgeDistance(map, hydroNodes);
-    // return;
-
-    for (MapNode *node : map) {
-        node->nearestHydroNodeID = 0;
-        float bestDist = distance(hydroNodes[0].x, hydroNodes[0].y, node->x, node->y);
-        for (unsigned id = 1; id < hydroNodes.size(); ++id) {
-            float dist = distance(hydroNodes[id].x, hydroNodes[id].y, node->x, node->y);
-            if (dist < bestDist) {
-                bestDist = dist;
-                node->nearestHydroNodeID = id;
-            }
-        }
-    }
-}
-
-void assignHydroNodeToMapNodeWithDistance(const unsigned hydroNodeIndex, MapNode *closestNode, const float distance) {
-    closestNode->nearestHydroNodeID = hydroNodeIndex;
-    closestNode->hydroNodeDistance = distance;
+void assignHydroNodeToMapNodeWithDistance(const unsigned hydroNodeIndex, MapNode *mapNode, const float distance) {
+    mapNode->nearestHydroNodeID = hydroNodeIndex;
+    mapNode->hydroNodeDistance = distance;
 }
 
 void initializeEachHydroNodeToNearestMapNode(const std::vector<MapNode *> & map, const std::vector<DistribHydroNode> & hydroNodes, std::vector<MapNode*>& assignedNodes) {
@@ -97,8 +77,11 @@ void initializeEachHydroNodeToNearestMapNode(const std::vector<MapNode *> & map,
         MapNode* closestNode = nullptr;
         float closestDistance = std::numeric_limits<float>::max();
         for (MapNode *node : map) {
+            if (!isDistributary(node->type)) {
+                continue;;
+            }
             const float nodeDistance = distance(hydroNodes[hydroNodeIndex].x, hydroNodes[hydroNodeIndex].y, node->x, node->y);
-            if (isDistributary(node->type) && nodeDistance < closestDistance) {
+            if (nodeDistance < closestDistance) {
                 closestDistance = nodeDistance;
                 closestNode = node;
             }
@@ -108,17 +91,31 @@ void initializeEachHydroNodeToNearestMapNode(const std::vector<MapNode *> & map,
     }
 }
 
+class MinPriorityTupleComparator {
+public:
+    bool operator()(const std::tuple<float, MapNode*>& lhs,
+                const std::tuple<float, MapNode*>& rhs) const {
+        return std::get<0>(lhs) > std::get<0>(rhs);
+    }
+};
 
-void initializeDijkstraQueue(std::priority_queue<std::tuple<float, MapNode *>> & dijkstra_queue, const std::vector<MapNode *> & initialNodes) {
+
+using DijkstraMinQueue = std::priority_queue<
+    std::tuple<float, MapNode*>,
+    std::vector<std::tuple<float, MapNode*>>,
+    MinPriorityTupleComparator
+>;
+
+void initializeDijkstraQueue(DijkstraMinQueue & dijkstra_queue, const std::vector<MapNode *> & initialNodes) {
     for (MapNode *node : initialNodes) {
-        dijkstra_queue.emplace(node->hydroNodeDistance, node);
+        dijkstra_queue.emplace(0, node);
     }
 }
 
-void assignRemainingMapNodesToHydroNodes(const std::vector<MapNode *> & map, std::priority_queue<std::tuple<float, MapNode *>> & dijkstraQueue) {
-    while (! dijkstraQueue.empty()) {
-        auto queueTuple = dijkstraQueue.top();
-        dijkstraQueue.pop();
+void assignRemainingMapNodesToHydroNodes(DijkstraMinQueue & dijkstraMinQueue) {
+    while (! dijkstraMinQueue.empty()) {
+        auto queueTuple = dijkstraMinQueue.top();
+        dijkstraMinQueue.pop();
         const float distance = std::get<0>(queueTuple);
         MapNode *node = std::get<1>(queueTuple);
 
@@ -142,19 +139,41 @@ void assignRemainingMapNodesToHydroNodes(const std::vector<MapNode *> & map, std
             if (neighborDistance < neighborNode->hydroNodeDistance) {
                 neighborNode->hydroNodeDistance = neighborDistance;
                 neighborNode->nearestHydroNodeID = node->nearestHydroNodeID;
-                dijkstraQueue.emplace(neighborDistance, neighborNode);
+                dijkstraMinQueue.emplace(neighborDistance, neighborNode);
             }
         }
     }
 }
 
+// Identify single closest map node for each hydro node, and assign the hydro node to that map node. For each remaining
+// map nodes, use the Dijkstra algorithm to calculate the shortest total edge distance to one of the initially
+// assigned nodes, and copy its hydro node association
+
 void assignNearestHydroNodesByEdgeDistance(std::vector<MapNode *> &map, const std::vector<DistribHydroNode> &hydroNodes) {
     std::vector<MapNode*> initialNodes = std::vector<MapNode*>();
     initializeEachHydroNodeToNearestMapNode(map, hydroNodes, initialNodes);
-    std::priority_queue<std::tuple<float, MapNode *>> dijkstraQueue = std::priority_queue<std::tuple<float, MapNode *>>();
-    // TODO: still need to set the comparison fn
-    initializeDijkstraQueue(dijkstraQueue, initialNodes);
-    assignRemainingMapNodesToHydroNodes(map, dijkstraQueue);
+    DijkstraMinQueue dijkstraMinQueue{MinPriorityTupleComparator()};
+    initializeDijkstraQueue(dijkstraMinQueue, initialNodes);
+    assignRemainingMapNodesToHydroNodes(dijkstraMinQueue);
+}
+
+void assignNearestHydroNodes(std::vector<MapNode *> &map, std::vector<DistribHydroNode> &hydroNodes) {
+    assignNearestHydroNodesByEdgeDistance(map, hydroNodes);
+    return;
+
+    // Set the nearestHydroNodeID field for each node in "map" by finding its nearest
+    // HydroNode in "hydroNodes"
+    for (MapNode *node : map) {
+        node->nearestHydroNodeID = 0;
+        float bestDist = distance(hydroNodes[0].x, hydroNodes[0].y, node->x, node->y);
+        for (unsigned id = 1; id < hydroNodes.size(); ++id) {
+            float dist = distance(hydroNodes[id].x, hydroNodes[id].y, node->x, node->y);
+            if (dist < bestDist) {
+                bestDist = dist;
+                node->nearestHydroNodeID = id;
+            }
+        }
+    }
 }
 
 // Adjust the map's elevation values to make the minimum depth in distributary channels
