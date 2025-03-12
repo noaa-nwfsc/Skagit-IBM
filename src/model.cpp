@@ -167,17 +167,17 @@ void Model::masterUpdate() {
 }
 
 // TODO: GROT
-bool Model::checkMonitoringNodes() {
-    int missingCount = 0;
-    for (auto n : this->monitoringPoints) {
-        auto it = std::find(this->map.begin(), this->map.end(), n);
-        if (it == this->map.end()) {
-            missingCount += 1;
-        }
-    }
-    std::cout << "bad monitors: " << missingCount << std::endl;
-    return missingCount == 0;
-}
+// bool Model::checkMonitoringNodes() {
+//     int missingCount = 0;
+//     for (auto n : this->monitoringPoints) {
+//         auto it = std::find(this->map.begin(), this->map.end(), n);
+//         if (it == this->map.end()) {
+//             missingCount += 1;
+//         }
+//     }
+//     std::cout << "bad monitors: " << missingCount << std::endl;
+//     return missingCount == 0;
+// }
 
 void Model::update1h() {
     // Introduce new recruits
@@ -194,7 +194,7 @@ void Model::update1h() {
     // Add an entry to the population history
     this->populationHistory.push_back(this->livingIndividuals.size());
     // Record monitoring sites
-//    this->checkMonitoringNodes(); // TODO: GROT
+    //this->checkMonitoringNodes(); // TODO: GROT
     for (size_t i = 0; i < this->monitoringPoints.size(); ++i) {
         MapNode *n = this->monitoringPoints[i];
         this->monitoringHistory[i].emplace_back(n->residentIds.size(), hydroModel.getDepth(*n), hydroModel.getTemp(*n));
@@ -889,7 +889,7 @@ void Model::saveHydroMapping(const std::string & hydroMappingCsvPath) const {
         std::cerr << "Error opening file for writing: " << hydroMappingCsvPath << std::endl;
     }
     std::ostringstream headerLine;
-    headerLine << "internal node ID" << ", " << "hydro node ID" << ", " << "distance";
+    headerLine << "internal_node_ID" << "," << "hydro_node_ID" << "," << "distance";
     hydroMapOutFile << headerLine.str() << std::endl;
 
     for (const MapNode *node : map) {

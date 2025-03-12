@@ -77,7 +77,7 @@ void initializeEachHydroNodeToNearestMapNode(const std::vector<MapNode *> & map,
         MapNode* closestNode = nullptr;
         float closestDistance = std::numeric_limits<float>::max();
         for (MapNode *node : map) {
-            if (!isDistributary(node->type)) {
+            if (!isDistributaryOrNearshore(node->type)) {
                 continue;;
             }
             const float nodeDistance = distance(hydroNodes[hydroNodeIndex].x, hydroNodes[hydroNodeIndex].y, node->x, node->y);
@@ -745,12 +745,15 @@ void fixBrokenEdges(std::vector<MapNode *> &map) {
 
 // Mark "distributaries" that aren't connected to the actual distributary network
 // as blind channels
-void fixDisjointDistributaries(std::vector<MapNode *> &map, std::vector<MapNode *> &recPoints) {
+// TODO: GROT
+void fixDisjointDistributaries(std::vector<MapNode *> &map, std::vector<MapNode *> &recPoints, std::unordered_set<MapNode *> &protectedNodes) {
     std::unordered_set<MapNode *> connected;
     std::vector<MapNode *> fringe;
     // Do a graph traversal to find which nodes are connected to the distributary network
     // Start from the recruit point
-    fringe.push_back(recPoints[0]);
+    for (MapNode *node : recPoints) {
+        fringe.push_back(node);
+    }
     while (fringe.size() != 0) {
         MapNode *curr = fringe.back();
         fringe.pop_back();
@@ -765,13 +768,29 @@ void fixDisjointDistributaries(std::vector<MapNode *> &map, std::vector<MapNode 
         }
     }
     unsigned corrected = 0;
+    unsigned edgeless = 0;
+    unsigned orphaned_protected = 0;
+    unsigned disconnected_count = 0;
     for (MapNode *node : map) {
-        if (isDistributary(node->type) && !connected.count(node)) {
+        bool disconnected = !connected.count(node);
+        if (disconnected) {
+            ++disconnected_count;
+        }
+        if (disconnected && node->edgesIn.empty() && node->edgesOut.empty()) {
+            ++edgeless;
+            if (protectedNodes.count(node)) {
+                ++orphaned_protected;
+            }
+        }
+        if (isDistributary(node->type) && disconnected) {
             node->type = HabitatType::BlindChannel;
             ++corrected;
         }
     }
-    std::cout << "Made " << corrected << " disconnected 'distributary' nodes into blind channels" << std::endl;
+    std::cout << "Made  " << corrected << " disconnected 'distributary' nodes into blind channels" << std::endl;
+    std::cout << "Found " << disconnected_count << " disconnected nodes" << std::endl;
+    std::cout << "Found " << edgeless << " orphaned nodes" << std::endl;
+    std::cout << "Found " << orphaned_protected << " orphaned protected nodes" << std::endl;
 }
 
 void cleanupRemovedNodeIdMappings(std::unordered_map<unsigned int, unsigned int> &csvToInternalId, const std::vector<MapNode *> &dest) {
@@ -787,7 +806,7 @@ void cleanupRemovedNodeIdMappings(std::unordered_map<unsigned int, unsigned int>
     }
 }
 
-void populateProtectedNodes(const std::vector<MapNode *> &monitoringPoints, const std::unordered_map<MapNode *, SamplingSite *> &samplingSitesByNode, const std::vector<MapNode *> &recPoints, std::unordered_set<MapNode *> &protectedNodes) {
+void identifyProtectedNodes(const std::vector<MapNode *> &monitoringPoints, const std::unordered_map<MapNode *, SamplingSite *> &samplingSitesByNode, const std::vector<MapNode *> &recPoints, std::unordered_set<MapNode *> &protectedNodes) {
     for (MapNode *node : monitoringPoints) {
         protectedNodes.insert(node);
     }
@@ -796,6 +815,83 @@ void populateProtectedNodes(const std::vector<MapNode *> &monitoringPoints, cons
     }
     for (MapNode *node : recPoints) {
         protectedNodes.insert(node);
+    }
+}
+
+std::unordered_set<MapNode *> identifyDisconnectedNodes(const std::vector<MapNode *> & map, const std::vector<MapNode *> &recruitPoints) {
+    std::unordered_set<MapNode *> connectedNodes;
+    std::vector<MapNode *> walker;
+    // Do a graph traversal to find which nodes are connected to the distributary network
+    // Start from the recruit point
+    for (MapNode *node : recruitPoints) {
+        walker.push_back(node);
+    }
+    while (!walker.empty()) {
+        MapNode *node = walker.back();
+        walker.pop_back();
+        if (!connectedNodes.count(node)) {
+            connectedNodes.insert(node);
+            for (Edge &e : node->edgesIn) {
+                walker.push_back(e.source);
+            }
+            for (Edge &e : node->edgesOut) {
+                walker.push_back(e.target);
+            }
+        }
+    }
+
+    std::unordered_set<MapNode *> disconnectedNodes;
+    for (MapNode *node : map) {
+        if (connectedNodes.count(node) == 0) {
+            disconnectedNodes.insert(node);
+        }
+    }
+    return disconnectedNodes;
+}
+
+
+void removeDisconnectedNodes(const std::unordered_set<MapNode *> &disconnectedNodes, std::vector<MapNode *> &map,
+                             std::vector<MapNode *> &recruitPoints, std::vector<MapNode *> &monitoringPoints,
+                             std::vector<SamplingSite *> &samplingSites,
+                             std::unordered_map<MapNode *, SamplingSite *> &samplingSitesByNode) {
+    for (MapNode *disconnectedNode : disconnectedNodes) {
+        auto recruitIter = std::find(recruitPoints.begin(), recruitPoints.end(), disconnectedNode);
+        if (recruitIter != recruitPoints.end()) {
+            recruitPoints.erase(recruitIter);
+        }
+
+        auto monitoringPointsIter = std::find(monitoringPoints.begin(), monitoringPoints.end(), disconnectedNode);
+        if (monitoringPointsIter != monitoringPoints.end()) {
+            monitoringPoints.erase(monitoringPointsIter);
+        }
+
+        SamplingSite* samplingSite = nullptr;
+        auto samplingNodeMapIter = samplingSitesByNode.find(disconnectedNode);
+        if (samplingNodeMapIter != samplingSitesByNode.end()) {
+            samplingSite = samplingNodeMapIter->second;
+            samplingSitesByNode.erase(samplingNodeMapIter);
+        }
+
+        if (samplingSite != nullptr) {
+            auto pointsIter = std::find(samplingSite->points.begin(), samplingSite->points.end(), disconnectedNode);
+            if (pointsIter != samplingSite->points.end()) {
+                samplingSite->points.erase(pointsIter);
+            }
+
+            if (samplingSite->points.empty()) {
+                auto samplingSitesIter = std::find(samplingSites.begin(), samplingSites.end(), samplingSite);
+                if (samplingSitesIter != samplingSites.end()) {
+                    samplingSites.erase(samplingSitesIter);
+                    delete samplingSite;
+                }
+            }
+        }
+
+        auto mapIter = std::find(map.begin(), map.end(), disconnectedNode);
+        if (mapIter != map.end()) {
+            map.erase(mapIter);
+            delete disconnectedNode;
+        }
     }
 }
 
@@ -938,13 +1034,17 @@ void loadMap(
         recPoints.push_back(dest[csvToInternalID[id]]);
     }
     // Clean up clean up everybody do your share
+    //condenseMissingNodes(dest);
+    std::unordered_set<MapNode *> disconnectedNodes = identifyDisconnectedNodes(dest, recPoints);
+    removeDisconnectedNodes(disconnectedNodes, dest, recPoints, monitoringPoints, samplingSites, samplingSitesByNode);
+
     std::unordered_set<MapNode *> protectedNodes;
-    populateProtectedNodes(monitoringPoints, samplingSitesByNode, recPoints, protectedNodes);
+    identifyProtectedNodes(monitoringPoints, samplingSitesByNode, recPoints, protectedNodes);
     simplifyBlindChannels(dest, blindChannelSimplificationRadius, protectedNodes);
     //fixBrokenEdges(dest);
     expandNearshoreLinks(dest, maxRealID);
     //assignCrossChannelEdges(dest); // OBSOLETE
-    fixDisjointDistributaries(dest, recPoints);
+    fixDisjointDistributaries(dest, recPoints, protectedNodes);
     assignNearestHydroNodes(dest, hydroNodes);
     fixElevations(dest, hydroNodes);
     cleanupRemovedNodeIdMappings(csvToInternalID, dest);

@@ -14,23 +14,12 @@ bool isDistributary(HabitatType t) {
     }
 }
 
-bool isDistributaryOrHarbor(const HabitatType t) {
-    switch(t) {
-    case HabitatType::Distributary:
-    case HabitatType::DistributaryEdge:
-        return true;
-    default:
-        return false;
-    }
+bool isHarbor(HabitatType t) {
+    return t == HabitatType::Harbor;
 }
 
 bool isNearshore(HabitatType t) {
-    switch(t){
-    case HabitatType::Nearshore:
-        return true;
-    default:
-        return false;
-    }
+    return t == HabitatType::Nearshore;
 }
 
 bool isBlindChannel(HabitatType t) {
@@ -40,7 +29,13 @@ bool isBlindChannel(HabitatType t) {
 bool isImpoundment(HabitatType t) {
     return t == HabitatType::Impoundment;
 }
+bool isDistributaryOrHarbor(const HabitatType t) {
+    return isDistributary(t) || isHarbor(t);
+}
 
+bool isDistributaryOrNearshore(const HabitatType t) {
+    return isDistributary(t) || isNearshore(t);
+}
 
 float habTypeMortalityConst(const HabitatType t, const float habitatMortalityMultiplier) {
     switch(t){

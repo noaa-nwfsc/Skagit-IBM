@@ -36,17 +36,11 @@ enum class HabitatType {
     Nearshore
 };
 
-// Returns true if t == Distributary or t == DistributaryEdge
 bool isDistributary(HabitatType t);
-
-// Returns true if t == Harbor
 bool isDistributaryOrHarbor(HabitatType t);
-
-// Returns true if t == Distributary or t == isNearshore
+bool isDistributaryOrNearshore(HabitatType t);
 bool isNearshore(HabitatType t);
-
 bool isBlindChannel(HabitatType t);
-
 bool isImpoundment(HabitatType t);
 
 // Returns the mortality constant for a given habitat type
