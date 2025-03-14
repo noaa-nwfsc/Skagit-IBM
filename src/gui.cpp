@@ -171,7 +171,7 @@ std::vector<std::string> getLocInfo(Model &model, MapNode &node) {
     os << "Area: " << node.area << "m2"; result.push_back(os.str()); os.str("");
     os << "Depth: " << model.hydroModel.getDepth(node) << "m"; result.push_back(os.str()); os.str("");
     os << "Temp: " << model.hydroModel.getTemp(node) << "C"; result.push_back(os.str()); os.str("");
-    os << "Flow speed: " << model.hydroModel.getFlowSpeedAt(node) << "m/s"; result.push_back(os.str()); os.str("");
+    os << "Flow speed: " << model.hydroModel.getUnsignedFlowSpeedAt(node) << "m/s"; result.push_back(os.str()); os.str("");
     for (SamplingSite *site : model.samplingSites) {
         for (MapNode *point : site->points) {
             if (point->id == node.id) {
