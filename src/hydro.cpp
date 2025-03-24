@@ -75,6 +75,10 @@ HydroModel::HydroModel(
     }
 }
 
+long HydroModel::getTime() const {
+    return currTimestep;
+}
+
 void HydroModel::updateTime(long newTime) {
     if (!this->useSimData) {
         this->currCresTide = this->cresTideData[newTime + hydroTimeIntercept];

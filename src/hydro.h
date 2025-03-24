@@ -46,6 +46,8 @@ public:
     // Set the hydro model's timestep to a given timestep
     void updateTime(long newTime);
 
+    long getTime() const;
+
     // The loaded crescent tide data, in m
     std::vector<float> cresTideData;
     // The loaded flow volume data, in m^3/s

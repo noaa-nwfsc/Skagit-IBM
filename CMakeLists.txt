@@ -1,3 +1,11 @@
+# examples
+# configure: "cmake -DCMAKE_BUILD_TYPE=Debug -S ~/code/Skagit-IBM -B ~/code/Skagit-IBM/build/debug"
+# build    : "cmake --build ~/code/Skagit-IBM/build/debug"
+# build a target: "cmake --build ~/code/Skagit-IBM/build/debug --target headless"
+# clean    : "cmake --build ~/code/Skagit-IBM/build/debug --target clean"
+#
+# executables show up in {Skagit-IBM-ROOT}/bin (under a subdirectory named Debug or Release
+
 cmake_minimum_required(VERSION 3.10)
 project(headless_gui VERSION 1.0)
 
@@ -10,6 +18,7 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
 # C++ standard
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Compiler options
 add_compile_options(-Wall -Wextra)
@@ -30,7 +39,11 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/local/netcdf-cxx4/include
   ${CMAKE_SOURCE_DIR}/local/netcdf-c/include
   ${CMAKE_SOURCE_DIR}/local/hdf5/include
+  ${CMAKE_SOURCE_DIR}/src
 )
+
+add_subdirectory(3rdParty/Catch2)
+add_subdirectory(tests)
 
 # Set link directories
 link_directories(
@@ -55,16 +68,17 @@ get_filename_component(ABSLIB_NCCPP "${CMAKE_SOURCE_DIR}/local/netcdf-cxx4/lib" 
 get_filename_component(ABSLIB_NCC "${CMAKE_SOURCE_DIR}/local/netcdf-c/lib" ABSOLUTE)
 
 # Determine dynamic library extension
-if(APPLE)
-  set(DL_EXT "dylib")
-else()
-  set(DL_EXT "so")
+if(NOT DL_EXT)
+  if(APPLE)
+    set(DL_EXT "dylib" CACHE STRING "Dynamic library extension")
+  else()
+    set(DL_EXT "so" CACHE STRING "Dynamic library extension")
+  endif()
 endif()
-
 # Create headless executable
 add_executable(headless ${COMMON_SOURCES} src/headless.cpp)
 set_target_properties(headless PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}
 )
 
 # NetCDF and other libraries for headless
@@ -94,7 +108,7 @@ if(wxWidgets_FOUND)
   
   add_executable(gui ${COMMON_SOURCES} src/gui.cpp)
   set_target_properties(gui PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}
   )
   
   target_compile_definitions(gui PRIVATE ${wxWidgets_DEFINITIONS})
