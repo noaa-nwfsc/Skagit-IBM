@@ -47,13 +47,20 @@ Compilation of the GUI also requires a recent (>=3.0) version of [wxWidgets](htt
 
         ./setup.sh
 
-1. Configure the build. This assumes you are in the root of the repository (probably named `Skagit-IBM`. For a debug build:
+1. Install the Catch2 automated testing framework:
+
+        mkdir 3rdParty; cd 3rdParty
+        git clone https://github.com/catchorg/Catch2.git
+        cd ..
+
+1. Configure the build. This assumes you are in the root of the repository (probably named `Skagit-IBM`. For a release build (the default):
+
+        mkdir build
+        cmake -S . -B ./build/release
+
+    For a debug build:     
 
         cmake -DCMAKE_BUILD_TYPE=Debug -S . -B ./build/debug
-
-    or for a release build:     
-
-        cmake -DCMAKE_BUILD_TYPE=Release -S . -B ./build/release
 
 1. Compile the model executables. Commands below assume you are in root of the repository.
 
