@@ -32,7 +32,8 @@ Compiling the model and its dependencies requires the following libraries and to
 
 These dependencies are installable on Mac via [Homebrew](https://brew.sh); once you have installed Homebrew, run `brew install curl automake autoconf libtool zlib` to get the required packages. A version of `clang` is available as part of the XCode developer tools, which can be installed using the command `xcode-select --install`.
 
-If you have any difficulty installing Homebrew, see [Troy's build notes](troys_build_notes.md).
+If you have any difficulty installing Homebrew, see [Troy's build notes](troys_build_notes.md). Alternatively, you could use a different package manager, such as [MacPorts](https://www.macports.org/), which tends to 
+be more flexible about allowing you to avoid restricted area on your filesystem and using your home directory instead for all installations.
 
 Compilation of the GUI also requires a recent (>=3.0) version of [wxWidgets](https://www.wxwidgets.org). On Mac, this can be obtained using Homebrew with `brew install wxmac`.
 
@@ -46,29 +47,47 @@ Compilation of the GUI also requires a recent (>=3.0) version of [wxWidgets](htt
 
         ./setup.sh
 
-1. Compile the model executables:
+1. Configure the build. This assumes you are in the root of the repository (probably named `Skagit-IBM`. For a debug build:
 
-        make
+        cmake -DCMAKE_BUILD_TYPE=Debug -S . -B ./build/debug
 
-    and/or
+    or for a release build:     
 
-        make gui
+        cmake -DCMAKE_BUILD_TYPE=Release -S . -B ./build/release
 
-## Running the model
+1. Compile the model executables. Commands below assume you are in root of the repository.
+
+        cmake --build ./build/debug/
+
+   The above command builds the `headless`, `gui`, and `tests` executables. You can also build specific targets in a similar manner:
+
+        cmake --build ./build/release/ --target clean
+        cmake --build ./build/release/ --target gui
+
+   More examples of build commands may be found at the top of the `CMakeLists.txt file`.
+
+## Running
+The executables are in the `bin` directory under a subdirectory named for the build type. The following examples assume a
+release build.
+### Unit tests
+
+        ./bin/Release/tests
+
+### Running the model
 
 - To run the model without a graphical interface:
         
-        bin/headless *name of run listing file* *name of folder where output should be saved* *config file*
+        bin/Release/headless *name of run listing file* *name of folder where output should be saved* *config file*
         
 By default, the model will use the environmental configuration in the file [default_config_env_from_file.json](default_config_env_from_file.json),         which directs the model to load one of the three maps, plus the hydrodynamic and recruit data from files stored in the `data` directory. If you             wish to use another configuration, you can specify it as the third argument to the executable.
         
 For example, to test the 2004 map I could run:
   
-        bin/headless test_run_listings.csv test_output_2004 config_test_2004_map.json
+        bin/Release/headless test_run_listings.csv test_output_2004 config_test_2004_map.json
 
 - To run the graphical model:
 
-        bin/gui *config file* *name of run listing file* *name of folder where output should be saved*
+        bin/Release/gui *config file* *name of run listing file* *name of folder where output should be saved*
     Note: the order fo the parameters for the GUI version is different from that of headless.
 
 Again see [Troy's build notes](troys_build_notes.md) for more examples of modern run commands.

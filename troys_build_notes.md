@@ -106,16 +106,15 @@ mkdir run9
 
 Run the model from the base directory.
 ```
-./bin/headless "test_run_listings_reepicheep.csv" "run9/map2013d2014" "run6_config/config_map_2013_data_2014.json"
+./bin/Debug/headless "test_run_listings_reepicheep.csv" "run9/map2013d2014" "run6_config/config_map_2013_data_2014.json"
 ```
 
 When invoking the GUI from the command line, the parameter order is different (the config json comes first):
 ```
-bin/gui "run6_config/config_map_2013_data_2014.json" "test_run_listings_reepicheep.csv" "run9/map2013d2014"
+bin/Debug/gui "run6_config/config_map_2013_data_2014.json" "test_run_listings_reepicheep.csv" "run9/map2013d2014"
 ```
 
-If using CLion, you can read about configuring a Makefile based project here:
-https://www.jetbrains.com/help/clion/makefiles-support.html
+If using CLion, simply point the IDE to the CMakeLists.txt file in the project root when opening the project for the first time.
 
 ### Python, Jupyter, Conda, and using .nc files (NetCDF)
 - Install [miniconda](https://docs.anaconda.com/miniconda/).  This is simply the command-line only version of conda. You could install the full GUI version of Anaconda if you prefer.
