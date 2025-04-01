@@ -1130,6 +1130,7 @@ Model *modelFromConfig(std::string configPath) {
     rapidjson::FileReadStream is(fp, readBuf, sizeof(readBuf));
     rapidjson::Document d;
     d.ParseStream(is);
+//    GlobalRand::reseed(42);
     std::string envDataType = d["envDataType"].GetString();
     unsigned int hwThreads = std::thread::hardware_concurrency();
     std::cout << hwThreads << " hardware threads available" << std::endl;

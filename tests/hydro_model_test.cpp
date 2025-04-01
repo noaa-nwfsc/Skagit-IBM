@@ -1,5 +1,5 @@
-#include "hydro.h"
 #include <catch2/catch_test_macros.hpp>
+#include "hydro.h"
 
 TEST_CASE( "hydro updates timestep", "" ) {
   std::vector<MapNode *> map;

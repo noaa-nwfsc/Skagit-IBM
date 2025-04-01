@@ -2,16 +2,37 @@
 #include <random>
 #include <cmath>
 
-std::default_random_engine generator;
-std::uniform_real_distribution<float> unit_dist;
-std::normal_distribution<float> normal_dist;
+std::random_device initial_rd;
+std::default_random_engine GlobalRand::generator(initial_rd());
+std::uniform_real_distribution<float> GlobalRand::unit_dist = std::uniform_real_distribution<float>(0, 1);
+std::normal_distribution<float> GlobalRand::normal_dist;
+
+
+float GlobalRand::unit_rand() {
+  auto rand_val = GlobalRand::unit_dist(GlobalRand::generator);
+  return rand_val;
+}
+
+float GlobalRand::unit_normal_rand() {
+  return GlobalRand::normal_dist(GlobalRand::generator);
+}
+
+void GlobalRand::reseed(const unsigned int seed) {
+  GlobalRand::generator = std::default_random_engine(seed);
+}
+
+// std::default_random_engine generator;
+// std::uniform_real_distribution<float> unit_dist;
+// std::normal_distribution<float> normal_dist;
 
 float unit_rand() {
-  return unit_dist(generator);
+  return GlobalRand::unit_rand();
+  // return unit_dist(generator);
 }
 
 float unit_normal_rand() {
-  return normal_dist(generator);
+  return GlobalRand::unit_normal_rand();
+  // return normal_dist(generator);
 }
 
 unsigned sample(float *weights, unsigned weightsLen) {

@@ -6,10 +6,12 @@ set(MODEL_SOURCES
         ../src/hydro.cpp
         ../src/map.cpp
         ../src/load.cpp
+        ../src/util.cpp
 )
 
 set(TEST_SOURCES
         hydro_model_test.cpp
+        util_test.cpp
 )
 
 # These tests can use the Catch2-provided main
