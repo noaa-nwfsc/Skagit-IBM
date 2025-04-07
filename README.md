@@ -86,11 +86,15 @@ release build.
         
         bin/Release/headless *name of run listing file* *name of folder where output should be saved* *config file*
         
-By default, the model will use the environmental configuration in the file [default_config_env_from_file.json](default_config_env_from_file.json),         which directs the model to load one of the three maps, plus the hydrodynamic and recruit data from files stored in the `data` directory. If you             wish to use another configuration, you can specify it as the third argument to the executable.
+By default, the model will use the environmental configuration in the file [default_config_env_from_file.json](default_config_env_from_file.json), 
+which directs the model to load one of the three maps, plus the hydrodynamic and recruit data from files stored in the 
+`data` directory. If you wish to use another configuration, you can specify it as the third argument to the executable.
         
 For example, to test the 2004 map I could run:
   
         bin/Release/headless test_run_listings.csv test_output_2004 config_test_2004_map.json
+
+- See [CONFIG_README.md](CONFIG_README.md) for detailed descriptions of configuration parameters.
 
 - To run the graphical model:
 

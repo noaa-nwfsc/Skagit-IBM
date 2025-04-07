@@ -5,6 +5,11 @@ Default model configurations are in the files [default_config_env_sim.json](defa
 
 Parameters:
 - `threadCount`: The maximum number of hardware threads to use when running the model (-1 = as many as are available)
+- `rng_seed` (optional): Random number generator seed. If a positive non-zero value is specified, the model will use 
+  the value to seed the random number generator. It will also limit the number of threads to 1 (overriding the 
+  `threadCount` parameter. Together this will create reproducible, deterministic outputs for testing or validation. If
+  `rng_seed` is 0 or not present, the random number generator will obtain a random seed, resulting in non-deterministic
+  outputs across multiple runs.
 - `envDataType`: string, either `file` or `sim`
     - if `envDataType` is `file`, the following entries are expected:
         - `recStartTimestep`: the number of 1-hour timesteps from midnight on January 1 to the start date/time of the recruitment data

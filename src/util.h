@@ -11,7 +11,10 @@ public:
 
     static float unit_rand();
     static float unit_normal_rand();
-    static void reseed(unsigned int seed = std::random_device{}());
+
+    static constexpr unsigned int USE_RANDOM_SEED = 0;
+    static void reseed(unsigned int seed);
+    static void reseed_random();
 };
 
 float unit_rand();

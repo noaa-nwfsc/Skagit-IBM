@@ -1,15 +1,21 @@
 # Release Notes
 
-This file records major feature changes. It goes back in time as far as 11.19.2024. "Releases" are actually just dates
+This file records major feature changes. It goes back in time to 11.19.2024. "Releases" are actually just dates
 when the completed feature was merged to the main branch. Functional parts of a feature may have been merged earlier.
 Minor updates are not recorded.
 
-## 03.03.2025
+## 04.07.2025
+- `rng_seed` is now available as a parameter in the config json for specifying a fixed seed to the random number 
+  generator. See [CONFIG_README.md](CONFIG_README.md) for further details.
+- new automated unit test framework.
 
-- nearest hydro node is now calculated using distance along edges rather than as the crow flies.
+## 03.03.2025
+- nearest hydro node is now calculated using distance along edges rather than as the crow flies, using a Dijkstra algorithm.
 - new output file `hydro_mapping_{#}.csv` : csv file describing the mapping of map nodes to hydro nodes. It contains three columns: internal node ID, hydro node ID, distance.
   "Distance" is the distance along edges to the nearest hydro node.
-- blind channel consolidation now works properly
+- blind channel consolidation now works properly, including related bug fixes in input datafile parsing.
+- improved water velocity implementation.
+- new flow/width equation for blind channels.
 
 ## 02.11.2025
 - added configuration to .json input file for habitat-based mortality multiplier:

@@ -22,13 +22,33 @@ TEST_CASE("randomness reseeding", "[rand]") {
     std::vector<float> second_results;
     int num_rands = 5;
 
-    SECTION( "reseed without value gives a new random sequence" ) {
+    SECTION( "reseed_random gives a new random sequence" ) {
+        GlobalRand::reseed_random();
         for (int i = 0; i < num_rands; ++i) {
             first_results.push_back(GlobalRand::unit_rand());
         }
 
-        GlobalRand::reseed();
+        GlobalRand::reseed_random();
+        for (int i = 0; i < num_rands; ++i) {
+            second_results.push_back(GlobalRand::unit_rand());
+        }
 
+        bool same = true;
+        for (int i = 0; i < num_rands; ++i) {
+            if (first_results[i] != second_results[i]) {
+                same = false;
+            }
+        }
+        REQUIRE( same == false );
+    }
+
+    SECTION( "reseed(RANDOMIZED_RNG_SEED) gives a new random sequence" ) {
+        GlobalRand::reseed(GlobalRand::USE_RANDOM_SEED);
+        for (int i = 0; i < num_rands; ++i) {
+            first_results.push_back(GlobalRand::unit_rand());
+        }
+
+        GlobalRand::reseed(GlobalRand::USE_RANDOM_SEED);
         for (int i = 0; i < num_rands; ++i) {
             second_results.push_back(GlobalRand::unit_rand());
         }
@@ -51,7 +71,6 @@ TEST_CASE("randomness reseeding", "[rand]") {
         }
 
         GlobalRand::reseed(seed);
-
         for (int i = 0; i < num_rands; ++i) {
             second_results.push_back(GlobalRand::unit_rand());
         }
@@ -76,8 +95,8 @@ TEST_CASE("randomness reseeding", "[rand]") {
         GlobalRand::reseed(different_seed);
         GlobalRand::unit_rand();
         GlobalRand::unit_rand();
-        GlobalRand::reseed(original_seed);
 
+        GlobalRand::reseed(original_seed);
         for (int i = 0; i < num_rands; ++i) {
             second_results.push_back(GlobalRand::unit_rand());
         }

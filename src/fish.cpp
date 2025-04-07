@@ -661,7 +661,8 @@ bool Fish::growAndDie(Model &model) {
 
     // Sample from bernoulli(m) to check if fish should die from mortality risk,
     const float mortalityProbability = mortality;
-    if (unit_rand() <= mortalityProbability) {
+    float sample = unit_rand();
+    if (sample <= mortalityProbability) {
         this->dieMortality(model);
         return false;
     }

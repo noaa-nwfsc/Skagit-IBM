@@ -1130,16 +1130,26 @@ Model *modelFromConfig(std::string configPath) {
     rapidjson::FileReadStream is(fp, readBuf, sizeof(readBuf));
     rapidjson::Document d;
     d.ParseStream(is);
-//    GlobalRand::reseed(42);
+    unsigned int rng_seed = GlobalRand::USE_RANDOM_SEED;
+    if (d.HasMember("rng_seed")) {
+        rng_seed = d["rng_seed"].GetInt();
+    }
+    GlobalRand::reseed(rng_seed);
     std::string envDataType = d["envDataType"].GetString();
     unsigned int hwThreads = std::thread::hardware_concurrency();
     std::cout << hwThreads << " hardware threads available" << std::endl;
-    int desiredThreads = d["threadCount"].GetInt();
+    int desiredThreads = hwThreads;
+    if (rng_seed != GlobalRand::USE_RANDOM_SEED) {
+        desiredThreads = 1;
+        std::cout << "Forcing max threads to 1 due to non-zero RNG seed (" << rng_seed << ")" << std::endl;
+    } else {
+        desiredThreads = d["threadCount"].GetInt();
+    }
     if (desiredThreads == -1) {
         desiredThreads = hwThreads;
     }
     size_t maxThreads = std::max(1U, std::min(hwThreads, (unsigned int) desiredThreads));
-    std::cout << maxThreads << " threads enabled" << std::endl;
+    std::cout << maxThreads << " thread(s) enabled" << std::endl;
     Model *m;
     if (envDataType == "file") {
         // Get model params from JSON config object
