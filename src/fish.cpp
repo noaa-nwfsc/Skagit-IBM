@@ -148,7 +148,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
             bool hasChildren = false;
             // Check all channels flowing into this node
             for (Edge &edge : point->edgesIn) {
-                if (!visited.count(edge.source) && model.hydroModel.getDepth(*edge.source) > DEPTH_CUTOFF) {
+                if (!visited.count(edge.source) && model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
                     // Effective movement speed along channel (swim speed adjusted by flow speed)
                     float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
                     // Check to make sure the fish can even make progress
@@ -172,7 +172,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
             // Check all channels flowing out of this node
             // Same as above (except flow directions are reversed)
             for (Edge &edge : point->edgesOut) {
-                if (!visited.count(edge.target) && model.hydroModel.getDepth(*edge.target) > DEPTH_CUTOFF) {
+                if (!visited.count(edge.target) && model.hydroModel.getDepth(*edge.target) >= DEPTH_CUTOFF) {
                     float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                     if (transitSpeed > 0.0f) {
                         float edgeCost = (edge.length/transitSpeed)*swimSpeed;
@@ -225,7 +225,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
         fringe.pop_front();
         // Check all channels flowing into this node
         for (Edge &edge : point->edgesIn) {
-            if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) > DEPTH_CUTOFF) {
+            if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
                 // Effective movement speed along channel (swim speed adjusted by flow speed)
                 float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
                 // Check to make sure the fish can even make progress
@@ -248,7 +248,7 @@ void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> 
         // Check all channels flowing out of this node
         // Same as above (except flow directions are reversed)
         for (Edge &edge : point->edgesOut) {
-            if (!out.count(edge.target) && model.hydroModel.getDepth(*edge.target) > DEPTH_CUTOFF) {
+            if (!out.count(edge.target) && model.hydroModel.getDepth(*edge.target) >= DEPTH_CUTOFF) {
                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                 if (transitSpeed > 0.0f) {
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
@@ -293,7 +293,7 @@ void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float
         float stayCost = remainingTime * model.hydroModel.getUnsignedFlowSpeedAt(*point);
         neighbors.emplace_back(point, cost+stayCost, fitness);
         for (Edge &edge : point->edgesIn) {
-            if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) > DEPTH_CUTOFF) {
+            if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
                 // Effective movement speed along channel (swim speed adjusted by flow speed)
                 float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
                 // Check to make sure the fish can even make progress
@@ -318,7 +318,7 @@ void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float
         // Check all channels flowing out of this node
         // Same as above (except flow directions are reversed)
         for (Edge &edge : point->edgesOut) {
-            if (!out.count(edge.target) && model.hydroModel.getDepth(*edge.target) > DEPTH_CUTOFF) {
+            if (!out.count(edge.target) && model.hydroModel.getDepth(*edge.target) >= DEPTH_CUTOFF) {
                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
                 if (transitSpeed > 0.0f) {
                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
@@ -387,7 +387,7 @@ bool Fish::move(Model &model) {
             neighbors.emplace_back(point, cost+stayCost, currFitness, lastFlowSpeed);
             // Check all channels flowing into this node
             for (Edge &edge : point->edgesIn) {
-                if (model.hydroModel.getDepth(*edge.source) > DEPTH_CUTOFF) {
+                if (model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
                     float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
                     // Effective movement speed along channel (swim speed adjusted by flow speed)
                     float transitSpeed = swimSpeed - edgeFlowSpeed;
@@ -412,7 +412,7 @@ bool Fish::move(Model &model) {
             // Check all channels flowing out of this node
             // Same as above (except flow directions are reversed)
             for (Edge &edge : point->edgesOut) {
-                if (model.hydroModel.getDepth(*edge.target) > DEPTH_CUTOFF) {
+                if (model.hydroModel.getDepth(*edge.target) >= DEPTH_CUTOFF) {
                     float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
                     float transitSpeed = swimSpeed + edgeFlowSpeed;
                     if (transitSpeed > 0.0f) {
