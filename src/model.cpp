@@ -1138,14 +1138,15 @@ Model *modelFromConfig(std::string configPath) {
     std::string envDataType = d["envDataType"].GetString();
     unsigned int hwThreads = std::thread::hardware_concurrency();
     std::cout << hwThreads << " hardware threads available" << std::endl;
-    int desiredThreads = hwThreads;
+    int desiredThreads = -1;
+    if (d.HasMember("threadCount")) {
+        desiredThreads = d["threadCount"].GetInt();
+    }
     if (rng_seed != GlobalRand::USE_RANDOM_SEED) {
         desiredThreads = 1;
         std::cout << "Forcing max threads to 1 due to non-zero RNG seed (" << rng_seed << ")" << std::endl;
-    } else {
-        desiredThreads = d["threadCount"].GetInt();
     }
-    if (desiredThreads == -1) {
+    if (desiredThreads <= 0) {
         desiredThreads = hwThreads;
     }
     size_t maxThreads = std::max(1U, std::min(hwThreads, (unsigned int) desiredThreads));
