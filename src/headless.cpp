@@ -202,5 +202,5 @@ int main(int argc, char **argv) {
     std::stringstream th;
     th << outputPath << "/taggedhist_" << runID << ".nc";
     m->saveTaggedHistories(th.str());
-
+    delete m;
 }
