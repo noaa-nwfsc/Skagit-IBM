@@ -1,4 +1,3 @@
-#include "load.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -14,6 +13,8 @@
 #include <algorithm>
 #include <netcdf>
 
+#include "load.h"
+#include "load_utils.h"
 #include "hydro.h"
 
 // calculate distance between <x1, y1> and <x2, y2>
@@ -21,6 +22,27 @@ inline float distance(float x1, float y1, float x2, float y2) {
     float dx = x2 - x1;
     float dy = y2 - y1;
     return sqrt(dx*dx + dy*dy);
+}
+
+void fix_all_missing_values(size_t stepCount, const netCDF::NcVar &nc_var_vector, std::vector<float> &hydro_vector) {
+    std::vector<std::string> log;
+    bool fillActive;
+    float fillVal;
+    nc_var_vector.getFillModeParameters(fillActive, &fillVal);
+    float nearby_good_value = find_first_non_missing_value(hydro_vector, fillVal);
+    for (size_t step = 0; step < stepCount; ++step) {
+        bool fixed = fix_missing_value(hydro_vector[step], nearby_good_value, fillVal);
+        if (fixed) {
+            log.push_back("\rWARNING!! Fixing missing hydro vector data at step " + std::to_string(step));
+        }
+    }
+    // if (log.size() != 0) {
+    //     std::cout << std::endl;
+    //     for (const auto& message: log) {
+    //         std::cout << message;
+    //     }
+    //     std::cout << std::endl;
+    // }
 }
 
 // Load the distributary hydrology data from two NetCDF files
@@ -62,9 +84,14 @@ void loadDistribHydro(std::string &flowPath, std::string &wseTempPath, std::vect
         v.getVar(flowIndex, flowCounts, node.vs.data());
         wse.getVar(flowIndex, flowCounts, node.wses.data());
         temp.getVar(flowIndex, flowCounts, node.temps.data());
+
+        fix_all_missing_values(timeCount, u, node.us);
+        fix_all_missing_values(timeCount, v, node.vs);
+        fix_all_missing_values(timeCount, wse, node.wses);
+        fix_all_missing_values(timeCount, temp, node.temps);
     }
     // Log that we've finished loading
-    std::cout << std::endl;
+    std::cout << std::endl << "done loading hydro" << std::endl;
 }
 
 void assignHydroNodeToMapNodeWithDistance(const unsigned hydroNodeIndex, MapNode *mapNode, const float distance) {

@@ -73,6 +73,7 @@ set(COMMON_SOURCES
   src/util.cpp
   src/env_sim.cpp
   src/map_gen.cpp
+  src/load_utils.cpp
 )
 
 # Get absolute paths for rpath

@@ -6,11 +6,13 @@ set(MODEL_SOURCES
         ../src/hydro.cpp
         ../src/map.cpp
         ../src/load.cpp
+        ../src/load_utils.cpp
         ../src/util.cpp
 )
 
 set(TEST_SOURCES
         hydro_model_test.cpp
+        load_utils_test.cpp
         util_test.cpp
 )
 
