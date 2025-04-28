@@ -64,10 +64,10 @@ void loadDistribHydro(std::string &flowPath, std::string &wseTempPath, std::vect
         wse.getVar(flowIndex, flowCounts, node.wses.data());
         temp.getVar(flowIndex, flowCounts, node.temps.data());
 
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(u), node.us);
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(v), node.vs);
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(wse), node.wses);
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(temp), node.temps);
+        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(u), node.us, "u (hydro u velocity)");
+        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(v), node.vs, "v (hydro v velocity)");
+        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(wse), node.wses, "wse (water surface elevation)");
+        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(temp), node.temps, "temp (hydro temperature)");
     }
     // Log that we've finished loading
     std::cout << std::endl << "done loading hydro" << std::endl;

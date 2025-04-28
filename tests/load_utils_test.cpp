@@ -3,6 +3,8 @@
 //
 
 #include <catch2/catch_test_macros.hpp>
+
+#include "custom_exceptions.h"
 #include "load_utils.h"
 
 SCENARIO("Correct missing netcdf values", "[load]") {
@@ -83,9 +85,10 @@ SCENARIO("find first good value") {
 
 class StubNcVar : public NcVarFillModeInterface {
 public:
-    StubNcVar(bool fillActive, float fillValue) : fillActive_(fillActive), fillValue_(fillValue) {}
+    StubNcVar(bool fillActive, float fillValue) : fillActive_(fillActive), fillValue_(fillValue) {
+    }
 
-    void getFillModeParameters(bool& fillActive, float* fillValue) const override {
+    void getFillModeParameters(bool &fillActive, float *fillValue) const override {
         fillActive = fillActive_;
         *fillValue = fillValue_;
     }
@@ -110,85 +113,82 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
             }
         }
     }
-        GIVEN("A vector with all missing values") {
+    GIVEN("A vector with all missing values") {
         const size_t stepCount = 5;
         const float fillValue = 999.0;
         std::vector<float> hydroVector = {fillValue, fillValue, fillValue, fillValue, fillValue};
         StubNcVar ncVar(true, fillValue);
-        
+
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
-            
-            THEN("The vector should remain unchanged since there are no non-missing values") {
-                std::vector<float> expectedVector = {fillValue, fillValue, fillValue, fillValue, fillValue};
-                REQUIRE(hydroVector == expectedVector);
+            THEN("An exception should be thrown") {
+                REQUIRE_THROWS_AS(fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector"), AllMissingValuesException);
             }
         }
     }
-    
+
     GIVEN("A vector with missing values at the beginning") {
         const size_t stepCount = 5;
         const float fillValue = 999.0;
         std::vector<float> hydroVector = {fillValue, fillValue, 3.0, 4.0, 5.0};
         StubNcVar ncVar(true, fillValue);
-        
+
         WHEN("fix_all_missing_values is called") {
             fix_all_missing_values(stepCount, ncVar, hydroVector);
-            
+
             THEN("Missing values should be replaced with the first non-missing value") {
                 std::vector<float> expectedVector = {3.0, 3.0, 3.0, 4.0, 5.0};
                 REQUIRE(hydroVector == expectedVector);
             }
         }
     }
-    
+
     GIVEN("A vector with missing values in the middle") {
         const size_t stepCount = 5;
         const float fillValue = 999.0;
         std::vector<float> hydroVector = {1.0, 2.0, fillValue, fillValue, 5.0};
         StubNcVar ncVar(true, fillValue);
-        
+
         WHEN("fix_all_missing_values is called") {
             fix_all_missing_values(stepCount, ncVar, hydroVector);
-            
+
             THEN("Missing values should be replaced with the last good value") {
                 std::vector<float> expectedVector = {1.0, 2.0, 2.0, 2.0, 5.0};
                 REQUIRE(hydroVector == expectedVector);
             }
         }
     }
-    
+
     GIVEN("A vector with missing values at the end") {
         const size_t stepCount = 5;
         const float fillValue = 999.0;
         std::vector<float> hydroVector = {1.0, 2.0, 3.0, fillValue, fillValue};
         StubNcVar ncVar(true, fillValue);
-        
+
         WHEN("fix_all_missing_values is called") {
             fix_all_missing_values(stepCount, ncVar, hydroVector);
-            
+
             THEN("Missing values should be replaced with the last good value") {
                 std::vector<float> expectedVector = {1.0, 2.0, 3.0, 3.0, 3.0};
                 REQUIRE(hydroVector == expectedVector);
             }
         }
     }
-    
+
     GIVEN("A vector with NaN values as missing indicators") {
         const size_t stepCount = 5;
         const float fillValue = std::numeric_limits<float>::quiet_NaN();
         std::vector<float> hydroVector = {
-            1.0, 
-            std::numeric_limits<float>::quiet_NaN(), 
-            3.0, 
-            std::numeric_limits<float>::quiet_NaN(), 
+            1.0,
+            std::numeric_limits<float>::quiet_NaN(),
+            3.0,
+            std::numeric_limits<float>::quiet_NaN(),
             5.0
         };
         StubNcVar ncVar(true, fillValue);
-        
+
         WHEN("fix_all_missing_values is called") {
             fix_all_missing_values(stepCount, ncVar, hydroVector);
-            
+
             THEN("NaN values should be replaced with the last good value") {
                 // Expected result after fixing NaN values
                 std::vector<float> expectedVector = {1.0, 1.0, 3.0, 3.0, 5.0};
@@ -196,62 +196,56 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
             }
         }
     }
-    
+
     GIVEN("An empty vector") {
         const size_t stepCount = 0;
         std::vector<float> hydroVector = {};
         StubNcVar ncVar(true, 999.0);
-        
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
-            
-            THEN("The vector should remain empty") {
-                REQUIRE(hydroVector.empty());
+            THEN("an exception should be thrown") {
+                REQUIRE_THROWS_AS(fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector"), AllMissingValuesException);
             }
         }
     }
-    
-    GIVEN("A vector with step count less than vector size") {
+
+    GIVEN("A vector with step count not equal to vector size") {
         const size_t stepCount = 3; // Only process first 3 elements
         const float fillValue = 999.0;
         std::vector<float> hydroVector = {fillValue, 2.0, fillValue, fillValue, 5.0};
         StubNcVar ncVar(true, fillValue);
-        
+
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
-            
-            THEN("Only the first 3 elements should be fixed") {
-                std::vector<float> expectedVector = {2.0, 2.0, 2.0, fillValue, 5.0};
-                REQUIRE(hydroVector == expectedVector);
+            THEN("an exception is thrown") {
+                REQUIRE_THROWS_AS(fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector"), WrongLengthVectorException);
             }
         }
     }
-    
+
     GIVEN("A vector with fill mode inactive") {
         const size_t stepCount = 5;
         const float fillValue = 999.0;
         std::vector<float> hydroVector = {1.0, fillValue, 3.0, fillValue, 5.0};
         StubNcVar ncVar(false, fillValue);
-        
+
         WHEN("fix_all_missing_values is called") {
             fix_all_missing_values(stepCount, ncVar, hydroVector);
-            
+
             THEN("Missing values should still be replaced using the fill value") {
                 std::vector<float> expectedVector = {1.0, 1.0, 3.0, 3.0, 5.0};
                 REQUIRE(hydroVector == expectedVector);
             }
         }
     }
-    
+
     GIVEN("A vector with alternating missing and non-missing values") {
         const size_t stepCount = 6;
         const float fillValue = 999.0;
         std::vector<float> hydroVector = {fillValue, 2.0, fillValue, 4.0, fillValue, 6.0};
         StubNcVar ncVar(true, fillValue);
-        
+
         WHEN("fix_all_missing_values is called") {
             fix_all_missing_values(stepCount, ncVar, hydroVector);
-            
+
             THEN("Each missing value should be replaced with the previous good value") {
                 std::vector<float> expectedVector = {2.0, 2.0, 2.0, 4.0, 4.0, 6.0};
                 REQUIRE(hydroVector == expectedVector);

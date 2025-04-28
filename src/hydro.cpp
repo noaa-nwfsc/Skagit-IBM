@@ -2,6 +2,7 @@
 #include "load.h"
 
 #include <cmath>
+#include <iostream>
 
 #define WSE_intercept 0.3373725
 #define WSE_flow_m3ps 0.00011386 // flow = m3/s

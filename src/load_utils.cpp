@@ -4,6 +4,8 @@
 #include <cmath>
 #include <vector>
 #include <netcdf>
+
+#include "custom_exceptions.h"
 #include "load_utils.h"
 
 
@@ -31,12 +33,22 @@ float find_first_non_missing_value(const std::vector<float> &values, const float
     return missing_indicator;
 }
 
-void fix_all_missing_values(size_t stepCount, const NcVarFillModeInterface &nc_var_vector, std::vector<float> &hydro_vector) {
+void fix_all_missing_values(size_t stepCount, const NcVarFillModeInterface &nc_var_vector, std::vector<float> &hydro_vector,
+                            const std::string &vector_name) {
     std::vector<std::string> log;
     bool is_fill_active;
     float missing_indicator;
+
     nc_var_vector.getFillModeParameters(is_fill_active, &missing_indicator);
     float nearby_good_value = find_first_non_missing_value(hydro_vector, missing_indicator);
+
+    if (stepCount != hydro_vector.size()) {
+        throw WrongLengthVectorException(vector_name);
+    }
+    if (is_missing_indicator(nearby_good_value, missing_indicator)) {
+        throw AllMissingValuesException(vector_name);
+    }
+
     for (size_t step = 0; step < stepCount; ++step) {
         bool fixed = fix_missing_value(hydro_vector[step], nearby_good_value, missing_indicator);
         if (fixed) {
@@ -44,4 +56,3 @@ void fix_all_missing_values(size_t stepCount, const NcVarFillModeInterface &nc_v
         }
     }
 }
-

@@ -27,6 +27,6 @@ private:
 
 bool fix_missing_value(float& cell, float& last_good_value, float missing_indicator);
 float find_first_non_missing_value(const std::vector<float> &values, float missing_indicator);
-void fix_all_missing_values(size_t stepCount, const NcVarFillModeInterface &nc_var_vector, std::vector<float> &hydro_vector);
+void fix_all_missing_values(size_t stepCount, const NcVarFillModeInterface &nc_var_vector, std::vector<float> &hydro_vector, const std::string &vector_name = "");
 
 #endif //LOAD_UTILS_H
