@@ -4,5 +4,6 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/3rdParty/Catch2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/rapidjson" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../rapidjson" vcs="Git" />
   </component>
 </project>
