@@ -98,7 +98,7 @@ private:
     float fillValue_;
 };
 
-SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
+SCENARIO("Fixing missing values in hydro vectors", "[netcdf]") {
     std::vector<std::string> logfile = {};
     GIVEN("A vector with no missing values") {
         const size_t stepCount = 5;
@@ -257,6 +257,25 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
                 std::vector<float> expectedVector = {2.0, 2.0, 2.0, 4.0, 4.0, 6.0};
                 REQUIRE(hydroVector == expectedVector);
                 REQUIRE(logfile.size() == 3);
+            }
+        }
+    }
+}
+
+SCENARIO("checking a required netcdf value", "[netcdf]") {
+    GIVEN("a netcdf var for a single value") {
+        float missing_indicator = 0;
+        StubNcVar ncVar(true, missing_indicator);
+
+        WHEN("the actual value valid") {
+            THEN("exception is not thrown") {
+                REQUIRE_NOTHROW(validate_required_value(ncVar, 1, "test value"));
+            }
+        }
+
+        WHEN("the actual value is missing") {
+            THEN("an exception is thrown if the value is missing") {
+                REQUIRE_THROWS_AS(validate_required_value(ncVar, missing_indicator, "missing test value"), MissingRequiredValueException);
             }
         }
     }

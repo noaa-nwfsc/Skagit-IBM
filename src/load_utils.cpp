@@ -15,6 +15,16 @@ bool is_missing_indicator(const float value, const float missing_indicator) {
     return value == missing_indicator;
 }
 
+void validate_required_value(const NcVarFillModeInterface &ncVar, float actual_value, std::string exception_msg) {
+    bool is_fill_active;
+    float missing_indicator;
+
+    ncVar.getFillModeParameters(is_fill_active, &missing_indicator);
+    if (is_missing_indicator(actual_value, missing_indicator)) {
+        throw MissingRequiredValueException(exception_msg);
+    }
+}
+
 bool fix_missing_value(float &cell, float &last_good_value, const float missing_indicator) {
     if (is_missing_indicator(cell, missing_indicator)) {
         cell = last_good_value;

@@ -52,6 +52,9 @@ void loadDistribHydro(std::string &flowPath, std::string &wseTempPath, std::vect
         std::vector<size_t> coordIndex{i};
         x.getVar(coordIndex, &node.x);
         y.getVar(coordIndex, &node.y);
+        validate_required_value(NetCDFVarFillAdapter(x), node.x, "Unrecoverable error: missing geo 'x' for hydro node: " + std::to_string(i+1));
+        validate_required_value(NetCDFVarFillAdapter(y), node.y, "Unrecoverable error: missing geo 'y' for hydro node: " + std::to_string(i+1));
+
         // These vectors are passed as indices to getVar to retrieve the NetCDF data
         std::vector<size_t> flowIndex{0, i};
         std::vector<size_t> flowCounts{timeCount, 1};
@@ -66,10 +69,10 @@ void loadDistribHydro(std::string &flowPath, std::string &wseTempPath, std::vect
         wse.getVar(flowIndex, flowCounts, node.wses.data());
         temp.getVar(flowIndex, flowCounts, node.temps.data());
 
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(u), node.us, "u (hydro u velocity), node: " + std::to_string(i+1), &error_log);
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(v), node.vs, "v (hydro v velocity), node: " + std::to_string(i+1), &error_log);
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(wse), node.wses, "wse (water surface elevation), node: " + std::to_string(i+1), &error_log);
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(temp), node.temps, "temp (hydro temperature), node: " + std::to_string(i+1), &error_log);
+        fix_all_missing_values(timeCount, NetCDFVarFillAdapter(u), node.us, "u (hydro u velocity), node: " + std::to_string(i+1), &error_log);
+        fix_all_missing_values(timeCount, NetCDFVarFillAdapter(v), node.vs, "v (hydro v velocity), node: " + std::to_string(i+1), &error_log);
+        fix_all_missing_values(timeCount, NetCDFVarFillAdapter(wse), node.wses, "wse (water surface elevation), node: " + std::to_string(i+1), &error_log);
+        fix_all_missing_values(timeCount, NetCDFVarFillAdapter(temp), node.temps, "temp (hydro temperature), node: " + std::to_string(i+1), &error_log);
     }
     std::cout << std::endl << "done loading hydro" << std::endl;
     if (error_log.size() > 0) {
