@@ -34,8 +34,7 @@ float find_first_non_missing_value(const std::vector<float> &values, const float
 }
 
 void fix_all_missing_values(size_t stepCount, const NcVarFillModeInterface &nc_var_vector, std::vector<float> &hydro_vector,
-                            const std::string &vector_name) {
-    std::vector<std::string> log;
+                            const std::string &vector_name, std::vector<std::string> *error_log) {
     bool is_fill_active;
     float missing_indicator;
 
@@ -51,8 +50,8 @@ void fix_all_missing_values(size_t stepCount, const NcVarFillModeInterface &nc_v
 
     for (size_t step = 0; step < stepCount; ++step) {
         bool fixed = fix_missing_value(hydro_vector[step], nearby_good_value, missing_indicator);
-        if (fixed) {
-            log.push_back("\rWARNING!! Fixing missing hydro vector data at step " + std::to_string(step));
+        if (fixed && error_log != nullptr) {
+            error_log->push_back("WARNING!! Fixing missing vector data in " + vector_name + " at step " + std::to_string(step));
         }
     }
 }

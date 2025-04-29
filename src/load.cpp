@@ -42,6 +42,8 @@ void loadDistribHydro(std::string &flowPath, std::string &wseTempPath, std::vect
     netCDF::NcVar temp = wseTempSourceFile.getVar("temp");
     // Create each node
     std::cout << std::endl;
+    std::vector<std::string> error_log;
+
     for (size_t i = 0; i < nodeCount; ++i) {
         std::cout << "\rloading distributary hydrology data: " << (i+1) << "/" << nodeCount;
         std::cout.flush();
@@ -64,13 +66,19 @@ void loadDistribHydro(std::string &flowPath, std::string &wseTempPath, std::vect
         wse.getVar(flowIndex, flowCounts, node.wses.data());
         temp.getVar(flowIndex, flowCounts, node.temps.data());
 
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(u), node.us, "u (hydro u velocity)");
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(v), node.vs, "v (hydro v velocity)");
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(wse), node.wses, "wse (water surface elevation)");
-        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(temp), node.temps, "temp (hydro temperature)");
+        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(u), node.us, "u (hydro u velocity), node: " + std::to_string(i+1), &error_log);
+        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(v), node.vs, "v (hydro v velocity), node: " + std::to_string(i+1), &error_log);
+        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(wse), node.wses, "wse (water surface elevation), node: " + std::to_string(i+1), &error_log);
+        fix_all_missing_values(timeCount, NetCDFVarVectorAdapter(temp), node.temps, "temp (hydro temperature), node: " + std::to_string(i+1), &error_log);
     }
-    // Log that we've finished loading
     std::cout << std::endl << "done loading hydro" << std::endl;
+    if (error_log.size() > 0) {
+        std::cout << "WARNINGS occurred while reading hydro data. Please fix:" << std::endl;
+        for (const std::string &error : error_log) {
+            std::cout << error << std::endl;
+        }
+        std::cout << std::endl;
+    }
 }
 
 void assignHydroNodeToMapNodeWithDistance(const unsigned hydroNodeIndex, MapNode *mapNode, const float distance) {

@@ -99,6 +99,7 @@ private:
 };
 
 SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
+    std::vector<std::string> logfile = {};
     GIVEN("A vector with no missing values") {
         const size_t stepCount = 5;
         std::vector<float> hydroVector = {1.0, 2.0, 3.0, 4.0, 5.0};
@@ -106,10 +107,11 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
         StubNcVar ncVar(true, 999.0);
 
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
+            fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector", &logfile);
 
             THEN("The vector should remain unchanged") {
                 REQUIRE(hydroVector == expectedVector);
+                REQUIRE(logfile.empty());
             }
         }
     }
@@ -133,11 +135,12 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
         StubNcVar ncVar(true, fillValue);
 
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
+            fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector", &logfile);
 
             THEN("Missing values should be replaced with the first non-missing value") {
                 std::vector<float> expectedVector = {3.0, 3.0, 3.0, 4.0, 5.0};
                 REQUIRE(hydroVector == expectedVector);
+                REQUIRE(logfile.size() == 2);
             }
         }
     }
@@ -149,11 +152,12 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
         StubNcVar ncVar(true, fillValue);
 
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
+            fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector", &logfile);
 
             THEN("Missing values should be replaced with the last good value") {
                 std::vector<float> expectedVector = {1.0, 2.0, 2.0, 2.0, 5.0};
                 REQUIRE(hydroVector == expectedVector);
+                REQUIRE(logfile.size() == 2);
             }
         }
     }
@@ -165,11 +169,12 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
         StubNcVar ncVar(true, fillValue);
 
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
+            fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector", &logfile);
 
             THEN("Missing values should be replaced with the last good value") {
                 std::vector<float> expectedVector = {1.0, 2.0, 3.0, 3.0, 3.0};
                 REQUIRE(hydroVector == expectedVector);
+                REQUIRE(logfile.size() == 2);
             }
         }
     }
@@ -187,12 +192,13 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
         StubNcVar ncVar(true, fillValue);
 
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
+            fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector", &logfile);
 
             THEN("NaN values should be replaced with the last good value") {
                 // Expected result after fixing NaN values
                 std::vector<float> expectedVector = {1.0, 1.0, 3.0, 3.0, 5.0};
                 REQUIRE(hydroVector == expectedVector);
+                REQUIRE(logfile.size() == 2);
             }
         }
     }
@@ -228,11 +234,12 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
         StubNcVar ncVar(false, fillValue);
 
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
+            fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector", &logfile);
 
             THEN("Missing values should still be replaced using the fill value") {
                 std::vector<float> expectedVector = {1.0, 1.0, 3.0, 3.0, 5.0};
                 REQUIRE(hydroVector == expectedVector);
+                REQUIRE(logfile.size() == 2);
             }
         }
     }
@@ -244,11 +251,12 @@ SCENARIO("Fixing missing values in hydro vectors", "[fix_all_missing_values]") {
         StubNcVar ncVar(true, fillValue);
 
         WHEN("fix_all_missing_values is called") {
-            fix_all_missing_values(stepCount, ncVar, hydroVector);
+            fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector", &logfile);
 
             THEN("Each missing value should be replaced with the previous good value") {
                 std::vector<float> expectedVector = {2.0, 2.0, 2.0, 4.0, 4.0, 6.0};
                 REQUIRE(hydroVector == expectedVector);
+                REQUIRE(logfile.size() == 3);
             }
         }
     }
