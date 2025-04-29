@@ -14,6 +14,7 @@
 #include <netcdf>
 
 #include "load.h"
+#include "custom_exceptions.h"
 #include "load_utils.h"
 #include "hydro.h"
 
@@ -48,31 +49,38 @@ void loadDistribHydro(std::string &flowPath, std::string &wseTempPath, std::vect
         std::cout << "\rloading distributary hydrology data: " << (i+1) << "/" << nodeCount;
         std::cout.flush();
         nodesOut.emplace_back(i);
-        DistribHydroNode &node = nodesOut.back();
-        std::vector<size_t> coordIndex{i};
-        x.getVar(coordIndex, &node.x);
-        y.getVar(coordIndex, &node.y);
-        validate_required_value(NetCDFVarFillAdapter(x), node.x, "Unrecoverable error: missing geo 'x' for hydro node: " + std::to_string(i+1));
-        validate_required_value(NetCDFVarFillAdapter(y), node.y, "Unrecoverable error: missing geo 'y' for hydro node: " + std::to_string(i+1));
+        try {
+            DistribHydroNode &node = nodesOut.back();
+            std::vector<size_t> coordIndex{i};
+            x.getVar(coordIndex, &node.x);
+            y.getVar(coordIndex, &node.y);
+            validate_required_value(NetCDFVarFillAdapter(x), node.x, "Unrecoverable error: missing geo 'x' for hydro node: " + std::to_string(i+1));
+            validate_required_value(NetCDFVarFillAdapter(y), node.y, "Unrecoverable error: missing geo 'y' for hydro node: " + std::to_string(i+1));
 
-        // These vectors are passed as indices to getVar to retrieve the NetCDF data
-        std::vector<size_t> flowIndex{0, i};
-        std::vector<size_t> flowCounts{timeCount, 1};
-        // resize the lists' memory footprint ahead of time to fit the right number of timesteps
-        node.us.resize(timeCount);
-        node.vs.resize(timeCount);
-        node.wses.resize(timeCount);
-        node.temps.resize(timeCount);
-        // Retrieve the data from the NetCDF file, store it in the node's flow component lists
-        u.getVar(flowIndex, flowCounts, node.us.data());
-        v.getVar(flowIndex, flowCounts, node.vs.data());
-        wse.getVar(flowIndex, flowCounts, node.wses.data());
-        temp.getVar(flowIndex, flowCounts, node.temps.data());
+            // These vectors are passed as indices to getVar to retrieve the NetCDF data
+            std::vector<size_t> flowIndex{0, i};
+            std::vector<size_t> flowCounts{timeCount, 1};
+            // resize the lists' memory footprint ahead of time to fit the right number of timesteps
+            node.us.resize(timeCount);
+            node.vs.resize(timeCount);
+            node.wses.resize(timeCount);
+            node.temps.resize(timeCount);
+            // Retrieve the data from the NetCDF file, store it in the node's flow component lists
+            u.getVar(flowIndex, flowCounts, node.us.data());
+            v.getVar(flowIndex, flowCounts, node.vs.data());
+            wse.getVar(flowIndex, flowCounts, node.wses.data());
+            temp.getVar(flowIndex, flowCounts, node.temps.data());
 
-        fix_all_missing_values(timeCount, NetCDFVarFillAdapter(u), node.us, "u (hydro u velocity), node: " + std::to_string(i+1), &error_log);
-        fix_all_missing_values(timeCount, NetCDFVarFillAdapter(v), node.vs, "v (hydro v velocity), node: " + std::to_string(i+1), &error_log);
-        fix_all_missing_values(timeCount, NetCDFVarFillAdapter(wse), node.wses, "wse (water surface elevation), node: " + std::to_string(i+1), &error_log);
-        fix_all_missing_values(timeCount, NetCDFVarFillAdapter(temp), node.temps, "temp (hydro temperature), node: " + std::to_string(i+1), &error_log);
+            fix_all_missing_values(timeCount, NetCDFVarFillAdapter(u), node.us, "u (hydro u velocity), node: " + std::to_string(i+1), &error_log);
+            fix_all_missing_values(timeCount, NetCDFVarFillAdapter(v), node.vs, "v (hydro v velocity), node: " + std::to_string(i+1), &error_log);
+            fix_all_missing_values(timeCount, NetCDFVarFillAdapter(wse), node.wses, "wse (water surface elevation), node: " + std::to_string(i+1), &error_log);
+            fix_all_missing_values(timeCount, NetCDFVarFillAdapter(temp), node.temps, "temp (hydro temperature), node: " + std::to_string(i+1), &error_log);
+        } catch (CustomExceptionWithMessage &e) {
+            std::cout << std::endl;
+            std::cout << "ERROR! " << e.what() << "; skipping hydro node " << i+1 << "..." << std::endl;
+            std::cout << "Please fix this error in " << flowPath << " or " << wseTempPath << std::endl << std::endl;
+            nodesOut.pop_back();
+        }
     }
     std::cout << std::endl << "done loading hydro" << std::endl;
     if (error_log.size() > 0) {
