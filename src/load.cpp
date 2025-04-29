@@ -79,6 +79,7 @@ void loadDistribHydro(std::string &flowPath, std::string &wseTempPath, std::vect
             std::cout << std::endl;
             std::cout << "ERROR! " << e.what() << "; skipping hydro node " << i+1 << "..." << std::endl;
             std::cout << "Please fix this error in " << flowPath << " or " << wseTempPath << std::endl << std::endl;
+
             nodesOut.pop_back();
         }
     }
