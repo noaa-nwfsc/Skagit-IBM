@@ -427,13 +427,14 @@ void Model::planRecruitment() {
     size_t count = this->recCounts[(this->time + this->recTimeIntercept) / 24];
     // For each recruit in the day, place it in a random timestep's slot
     for (size_t i = 0; i < count; ++i) {
-        ++this->recDayPlan[(int) (unit_rand() * 24.0f)];
+        size_t timestep = GlobalRand::int_rand(0, 23);
+        ++this->recDayPlan[timestep];
     }
 }
 
 // Collect sampling data from the sampling sites
 void Model::sampling() {
-    for (SamplingSite *site : this->samplingSites) {
+    for (SamplingSite *site: this->samplingSites) {
         // At each site, calculate the statistics of interest:
         float totalMass = 0.0f;
         float totalLength = 0.0f;

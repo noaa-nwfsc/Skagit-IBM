@@ -4,7 +4,13 @@
 # build a target: "cmake --build ~/code/Skagit-IBM/build/debug --target headless"
 # clean    : "cmake --build ~/code/Skagit-IBM/build/debug --target clean"
 #
-# executables show up in {Skagit-IBM-ROOT}/bin (under a subdirectory named Debug or Release
+# configure release build with ASAN and debugging info:
+#    "cmake -DCMAKE_BUILD_TYPE=RelWithDebugStack -DENABLE_ASAN=ON -S ~/code/Skagit-IBM -B ~/code/Skagit-IBM/build/releaseWithSyms"
+# and build it: "cmake --build ~/code/Skagit-IBM/build/releaseWithSyms --target headless"
+# a good set of ASAN options to run that build with (note the suppression of leak detection):
+# "export ASAN_OPTIONS=detect_odr_violation=0:alloc_dealloc_mismatch=0:halt_on_error=0:print_stacktrace=1:quarantine_size_mb=256:verbosity=0:sleep_before_dying=30:detect_leaks=0"
+#
+# executables show up in {Skagit-IBM-ROOT}/bin under a subdirectory (e.g. /Debug or /Release)
 
 cmake_minimum_required(VERSION 3.10)
 project(headless_gui VERSION 1.0)
@@ -20,6 +26,27 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# Compiler options
+add_compile_options(-Wall -Wextra)
+
+# Build type specific options
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_compile_options(-g -O0 -fno-inline -fstack-protector-all)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+  add_compile_options(-O2 -ffast-math -DNDEBUG -march=native)
+endif()
+
+# Add a new build type: RelWithDebugStack with extra diagnostics
+set(CMAKE_CXX_FLAGS_RELWITHDEBUGSTACK "-O2 -ffast-math -DNDEBUG -march=native -g -fno-omit-frame-pointer")
+set(CMAKE_C_FLAGS_RELWITHDEBUGSTACK "${CMAKE_CXX_FLAGS_RELWITHDEBUGSTACK}")
+set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBUGSTACK "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
+set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBUGSTACK "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")
+
+set(CMAKE_CONFIGURATION_TYPES "${CMAKE_CONFIGURATION_TYPES};RelWithDebugStack" CACHE STRING "" FORCE)
+if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebugStack")
+  message(STATUS "Build type: RelWithDebugStack - Release with debug symbols and frame pointers")
+endif()
+
 # Define sanitizer option (OFF by default)
 option(ENABLE_ASAN "Enable Address Sanitizer" OFF)
 
@@ -30,16 +57,6 @@ if(ENABLE_ASAN)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
-endif()
-
-# Compiler options
-add_compile_options(-Wall -Wextra)
-
-# Build type specific options
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_options(-g -O0 -fno-inline -fstack-protector-all)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-  add_compile_options(-O2 -ffast-math -DNDEBUG -march=native)
 endif()
 
 # Find packages

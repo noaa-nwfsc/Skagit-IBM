@@ -6,6 +6,7 @@ std::random_device initial_rd;
 std::default_random_engine GlobalRand::generator(initial_rd());
 std::uniform_real_distribution<float> GlobalRand::unit_dist;
 std::normal_distribution<float> GlobalRand::normal_dist;
+std::uniform_int_distribution<int> GlobalRand::int_dist;
 
 
 float GlobalRand::unit_rand() {
@@ -14,6 +15,11 @@ float GlobalRand::unit_rand() {
 
 float GlobalRand::unit_normal_rand() {
     return GlobalRand::normal_dist(GlobalRand::generator);
+}
+
+int GlobalRand::int_rand(int min, int max) {
+    GlobalRand::int_dist = std::uniform_int_distribution<int>(min, max);
+    return GlobalRand::int_dist(GlobalRand::generator);
 }
 
 void GlobalRand::reseed(const unsigned int seed) {

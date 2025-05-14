@@ -5,16 +5,19 @@
 
 class GlobalRand {
 public:
-    static std::default_random_engine generator;
-    static std::uniform_real_distribution<float> unit_dist;
-    static std::normal_distribution<float> normal_dist;
-
     static float unit_rand();
     static float unit_normal_rand();
+    static int int_rand(int min, int max);
 
     static constexpr unsigned int USE_RANDOM_SEED = 0;
     static void reseed(unsigned int seed);
     static void reseed_random();
+
+private:
+    static std::default_random_engine generator;
+    static std::uniform_real_distribution<float> unit_dist;
+    static std::normal_distribution<float> normal_dist;
+    static std::uniform_int_distribution<int> int_dist;
 };
 
 float unit_rand();
