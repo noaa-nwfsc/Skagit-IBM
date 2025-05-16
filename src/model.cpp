@@ -398,7 +398,7 @@ void Model::recruitSingle() {
         this->time,
         forkLength,
         // This samples a random (uniform) recruit start node
-        this->recPoints[std::min(this->recPoints.size()-1, (std::size_t) (unit_rand()*(float) this->recPoints.size()))]
+        this->recPoints[GlobalRand::int_rand(0, (int) this->recPoints.size()-1)]
     );
     // this->addHistoryBuffers();
     const size_t last_id = this->individuals.back().id;
