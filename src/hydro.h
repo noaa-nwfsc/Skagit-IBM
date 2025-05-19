@@ -30,6 +30,8 @@ public:
         float distFlow
     );
 
+    virtual ~HydroModel() = default;
+
     // Return the flow speed in m/s along the provided edge (from edge.source to edge.target)
     float getFlowSpeedAlong(Edge &edge);
     // Return the flow speed in m/s at a given location
@@ -48,6 +50,14 @@ public:
 
     long getTime() const;
 
+public:
+    virtual float getCurrentU(const MapNode& node) const; // m/s
+    virtual float getCurrentV(const MapNode& node) const; // m/s
+private:
+    float getCurrentU(const DistribHydroNode &hydroNode) const; // Get the current timestep's horizontal flow speed component (in m/s) at a given DistribHydroNode
+    float getCurrentV(const DistribHydroNode &hydroNode) const; // Get the current timestep's vertical flow speed component (in m/s) at a given DistribHydroNode
+
+public:
     // The loaded crescent tide data, in m
     std::vector<float> cresTideData;
     // The loaded flow volume data, in m^3/s
@@ -62,17 +72,13 @@ private:
     std::unordered_map<MapNode *, std::vector<float>> simDepths;
     std::unordered_map<MapNode *, std::vector<float>> simTemps;
     float simDistFlow;
-    
+
     int hydroTimeIntercept;
     float currCresTide;
     float currFlowVol;
     float currAirTemp;
     long currTimestep;
 
-    // Get the current timestep's horizontal flow speed component (in m/s) at a given DistribHydroNode
-    float getCurrentU(DistribHydroNode &hydroNode);
-    // Get the current timestep's vertical flow speed component (in m/s) at a given DistribHydroNode
-    float getCurrentV(DistribHydroNode &hydroNode);
 };
 
 #endif

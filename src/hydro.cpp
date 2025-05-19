@@ -113,12 +113,18 @@ float HydroModel::getFlowSpeedAlong(Edge &edge) {
 }
 
 // Get the current horizontal (E/W) flow velocity in m/s at the given node
-float HydroModel::getCurrentU(DistribHydroNode &hydroNode) {
+float HydroModel::getCurrentU(const MapNode &node) const {
+    return this->getCurrentU(this->hydroNodes[node.nearestHydroNodeID]);
+}
+float HydroModel::getCurrentU(const DistribHydroNode &hydroNode) const {
     return hydroNode.us[currTimestep];
 }
 
 // Get the current vertical (N/S) flow velocity in m/s at the given node
-float HydroModel::getCurrentV(DistribHydroNode &hydroNode) {
+float HydroModel::getCurrentV(const MapNode &node) const {
+    return this->getCurrentV(this->hydroNodes[node.nearestHydroNodeID]);
+}
+float HydroModel::getCurrentV(const DistribHydroNode &hydroNode) const {
     return hydroNode.vs[currTimestep];
 }
 

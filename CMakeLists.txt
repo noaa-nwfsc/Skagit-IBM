@@ -91,6 +91,7 @@ set(COMMON_SOURCES
   src/env_sim.cpp
   src/map_gen.cpp
   src/load_utils.cpp
+  src/fish_movement.cpp
 )
 
 # Get absolute paths for rpath

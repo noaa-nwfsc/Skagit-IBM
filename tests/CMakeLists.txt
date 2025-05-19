@@ -8,9 +8,11 @@ set(MODEL_SOURCES
         ../src/load.cpp
         ../src/load_utils.cpp
         ../src/util.cpp
+        ../src/fish_movement.cpp
 )
 
 set(TEST_SOURCES
+        fish_movement_test.cpp
         hydro_model_test.cpp
         load_utils_test.cpp
         util_test.cpp
