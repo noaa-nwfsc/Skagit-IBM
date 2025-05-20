@@ -1,4 +1,5 @@
 #include "fish.h"
+#include "fish_movement.h"
 
 #include <deque>
 #include <cmath>
@@ -387,10 +388,18 @@ bool Fish::move(Model &model) {
             neighbors.emplace_back(point, cost+stayCost, currFitness, lastFlowSpeed);
             // Check all channels flowing into this node
             for (Edge &edge : point->edgesIn) {
+                float edgeFlowSpeed = 0;
+                float transitSpeed = 0;
                 if (model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
-                    float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
-                    // Effective movement speed along channel (swim speed adjusted by flow speed)
-                    float transitSpeed = swimSpeed - edgeFlowSpeed;
+                    if (model.directionlessEdges) {
+                        edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge); // TODO: GROT make the transit speed fn return this
+                        transitSpeed = FishMovement(&model.hydroModel).calculateTransitSpeed(edge, edge.target, swimSpeed);
+                    }
+                    else {
+                        edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
+                        // Effective movement speed along channel (swim speed adjusted by flow speed)
+                        transitSpeed = swimSpeed - edgeFlowSpeed;
+                    }
                     // Check to make sure the fish can even make progress
                     if (transitSpeed > 0.0f) {
                         // Calculate effective distance swum
@@ -413,8 +422,16 @@ bool Fish::move(Model &model) {
             // Same as above (except flow directions are reversed)
             for (Edge &edge : point->edgesOut) {
                 if (model.hydroModel.getDepth(*edge.target) >= DEPTH_CUTOFF) {
-                    float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
-                    float transitSpeed = swimSpeed + edgeFlowSpeed;
+                    float edgeFlowSpeed = 0;
+                    float transitSpeed = 0;
+                    if (model.directionlessEdges) {
+                        edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge); // TODO: GROT make the transit speed fn return this
+                        transitSpeed = FishMovement(&model.hydroModel).calculateTransitSpeed(edge, edge.source, swimSpeed);
+                    }
+                    else {
+                        edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
+                        transitSpeed = swimSpeed + edgeFlowSpeed;
+                    }
                     if (transitSpeed > 0.0f) {
                         float edgeCost = (edge.length/transitSpeed)*swimSpeed;
                         // if (isDistributary(edge.target->type) && point == this->location) {

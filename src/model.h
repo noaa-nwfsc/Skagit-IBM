@@ -93,6 +93,8 @@ public:
     float habitatTypeExitConditionHours;
     float habitatMortalityMultiplier;
 
+    bool directionlessEdges = false;
+
     Model(
         int globalTimeIntercept,
         int hydroTimeIntercept,
