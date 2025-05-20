@@ -386,67 +386,87 @@ bool Fish::move(Model &model) {
         float stayCost = remainingTime * pointFlowSpeed;
         if (remainingTime > 0.0f) {
             neighbors.emplace_back(point, cost+stayCost, currFitness, lastFlowSpeed);
-            // Check all channels flowing into this node
-            for (Edge &edge : point->edgesIn) {
-                float edgeFlowSpeed = 0;
-                float transitSpeed = 0;
-                if (model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
-                    if (model.directionlessEdges) {
-                        edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge); // TODO: GROT make the transit speed fn return this
-                        transitSpeed = FishMovement(&model.hydroModel).calculateTransitSpeed(edge, edge.target, swimSpeed);
-                    }
-                    else {
-                        edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
+            if (model.directionlessEdges) {
+                std::vector<Edge> allEdges;
+                allEdges.reserve(point->edgesIn.size() + point->edgesOut.size());
+                allEdges.insert(allEdges.end(), point->edgesIn.begin(), point->edgesIn.end());
+                allEdges.insert(allEdges.end(), point->edgesOut.begin(), point->edgesOut.end());
+                for (Edge &edge: allEdges) {
+                    MapNode* startNode = point;
+                    MapNode* endNode = (startNode == edge.source ? edge.target : edge.source);
+                    if (model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
                         // Effective movement speed along channel (swim speed adjusted by flow speed)
-                        transitSpeed = swimSpeed - edgeFlowSpeed;
-                    }
-                    // Check to make sure the fish can even make progress
-                    if (transitSpeed > 0.0f) {
-                        // Calculate effective distance swum
-                        float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                        if (isDistributary(edge.source->type) && point == this->location){ // || (this->forkLength >= 75)){
-                            // Artificially discount the cost to make at least 1 distributary channel passable
-                            // (since they are widely spaced)
-                            edgeCost = std::min(edgeCost, swimRange - cost);
-                        }
-                        // Check if connected node is reachable
-                        if (cost + edgeCost <= swimRange) {
-                            // Add it to the neighbor list with its fitness value
-                            float fitness = this->getFitness(model, *edge.source, cost + edgeCost);
-                            neighbors.emplace_back(edge.source, cost+edgeCost, fitness, edgeFlowSpeed);
+                        float transitSpeed = FishMovement(&model.hydroModel).calculateTransitSpeed(edge, startNode, swimSpeed);
+                        // Check to make sure the fish can even make progress
+                        if (transitSpeed > 0.0f) {
+                            // Calculate effective distance swum
+                            float edgeCost = (edge.length / transitSpeed) * swimSpeed;
+                            if (isDistributary(endNode->type) && point == this->location) {
+                                // || (this->forkLength >= 75)){
+                                // Artificially discount the cost to make at least 1 distributary channel passable
+                                // (since they are widely spaced)
+                                edgeCost = std::min(edgeCost, swimRange - cost);
+                            }
+                            // Check if connected node is reachable
+                            if (cost + edgeCost <= swimRange) {
+                                // Add it to the neighbor list with its fitness value
+                                float fitness = this->getFitness(model, *endNode, cost + edgeCost);
+                                float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge); //TODO: maybe get this from calculateTransitSpeed ?
+                                neighbors.emplace_back(endNode, cost + edgeCost, fitness, edgeFlowSpeed);
+                            }
                         }
                     }
                 }
             }
-            // Check all channels flowing out of this node
-            // Same as above (except flow directions are reversed)
-            for (Edge &edge : point->edgesOut) {
-                if (model.hydroModel.getDepth(*edge.target) >= DEPTH_CUTOFF) {
-                    float edgeFlowSpeed = 0;
-                    float transitSpeed = 0;
-                    if (model.directionlessEdges) {
-                        edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge); // TODO: GROT make the transit speed fn return this
-                        transitSpeed = FishMovement(&model.hydroModel).calculateTransitSpeed(edge, edge.source, swimSpeed);
-                    }
-                    else {
-                        edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
-                        transitSpeed = swimSpeed + edgeFlowSpeed;
-                    }
-                    if (transitSpeed > 0.0f) {
-                        float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                        // if (isDistributary(edge.target->type) && point == this->location) {
-                        if (isDistributary(point->type) && point == this->location){ //|| (this->forkLength >= 75)){
-                            edgeCost = std::min(edgeCost, swimRange - cost);
+            else {
+                // Check all channels flowing into this node
+                for (Edge &edge: point->edgesIn) {
+                    if (model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
+                        float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
+                        // Effective movement speed along channel (swim speed adjusted by flow speed)
+                        float transitSpeed = swimSpeed - edgeFlowSpeed;
+                        // Check to make sure the fish can even make progress
+                        if (transitSpeed > 0.0f) {
+                            // Calculate effective distance swum
+                            float edgeCost = (edge.length / transitSpeed) * swimSpeed;
+                            if (isDistributary(edge.source->type) && point == this->location) {
+                                // || (this->forkLength >= 75)){
+                                // Artificially discount the cost to make at least 1 distributary channel passable
+                                // (since they are widely spaced)
+                                edgeCost = std::min(edgeCost, swimRange - cost);
+                            }
+                            // Check if connected node is reachable
+                            if (cost + edgeCost <= swimRange) {
+                                // Add it to the neighbor list with its fitness value
+                                float fitness = this->getFitness(model, *edge.source, cost + edgeCost);
+                                neighbors.emplace_back(edge.source, cost + edgeCost, fitness, edgeFlowSpeed);
+                            }
                         }
-                        if (cost + edgeCost <= swimRange) {
-                            float fitness = this->getFitness(model, *edge.target, cost + edgeCost);
-                            neighbors.emplace_back(edge.target, cost+edgeCost, fitness, edgeFlowSpeed);
+                    }
+                }
+                // Check all channels flowing out of this node
+                // Same as above (except flow directions are reversed)
+                for (Edge &edge: point->edgesOut) {
+                    if (model.hydroModel.getDepth(*edge.target) >= DEPTH_CUTOFF) {
+                        float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
+                        float transitSpeed = swimSpeed + edgeFlowSpeed;
+                        if (transitSpeed > 0.0f) {
+                            float edgeCost = (edge.length / transitSpeed) * swimSpeed;
+                            // if (isDistributary(edge.target->type) && point == this->location) {
+                            if (isDistributary(point->type) && point == this->location) {
+                                //|| (this->forkLength >= 75)){
+                                edgeCost = std::min(edgeCost, swimRange - cost);
+                            }
+                            if (cost + edgeCost <= swimRange) {
+                                float fitness = this->getFitness(model, *edge.target, cost + edgeCost);
+                                neighbors.emplace_back(edge.target, cost + edgeCost, fitness, edgeFlowSpeed);
+                            }
                         }
                     }
                 }
             }
         }
-        if (neighbors.size() > 0) {
+        if (!neighbors.empty()) {
             weights.clear();
             float totalFitness = 0.0f;
             for (size_t i = 0; i < neighbors.size(); ++i) {
