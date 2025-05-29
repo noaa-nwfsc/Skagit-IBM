@@ -42,7 +42,13 @@ Compilation of the GUI also requires a recent (>=3.0) version of [wxWidgets](htt
         git clone git@github.com:noaa-nwfsc/Skagit-IBM.git 
         cd Skagit-IBM
 
-1. RapidJSON should be installed first. See [Troy's build notes](troys_build_notes.md) for how to do this properly.
+1. RapidJSON should be installed first. (For more details see [Troy's build notes](troys_build_notes.md).)
+
+        cd ..
+        git clone https://github.com/Tencent/rapidjson.git
+        cd Skagit-IBM
+        ln -s ../rapidjson .
+
 1. Then, fetch and install additional dependencies (hdf5, netcdf-c, netcdf-cxx) and compile them. Again, see [Troy's build notes](troys_build_notes.md) if you have difficulty.
 
         ./setup.sh
