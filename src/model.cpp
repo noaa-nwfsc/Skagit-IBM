@@ -68,7 +68,8 @@ Model::Model(
     // Path of the flow speed data (netCDF)
     std::string flowSpeedFilename,
     // Path of the distributary WSE/temp data (netCDF)
-    std::string distribWseTempFilename
+    std::string distribWseTempFilename,
+    int directionlessEdges
 
 ) : hydroModel(cresTideFilename, flowVolFilename, airTempFilename, flowSpeedFilename, distribWseTempFilename, hydroTimeIntercept),
     recTimeIntercept(recTimeIntercept),
@@ -83,8 +84,11 @@ Model::Model(
     habitatMortalityMultiplier(habitatMortalityMultiplier),
     nextFishID(0UL),
     maxThreads(maxThreads),
-    recruitTagRate(0.5f)
+    recruitTagRate(0.5f),
+    directionlessEdges(directionlessEdges)
 {
+    if (directionlessEdges) std::cout << "directionless edges!" << std::endl;
+
     // Load the map
     loadMap(
         // The resulting nodes are stored in the model's "map" field
@@ -1192,7 +1196,8 @@ Model *modelFromConfig(std::string configPath) {
             std::string(d["flowVolFile"].GetString()),
             std::string(d["airTempFile"].GetString()),
             std::string(d["flowSpeedFile"].GetString()),
-            std::string(d["distribWseTempFile"].GetString())
+            std::string(d["distribWseTempFile"].GetString()),
+            d.HasMember("directionlessEdges") ? d["directionlessEdges"].GetInt() : 0
         );
     } else {
         // Generate map from JSON config params

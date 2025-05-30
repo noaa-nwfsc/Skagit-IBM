@@ -113,7 +113,8 @@ public:
         std::string flowFilename,
         std::string airTempFilename,
         std::string flowSpeedFilename,
-        std::string distribWseTempFilename
+        std::string distribWseTempFilename,
+        int directionlessEdges
     );
 
     Model(

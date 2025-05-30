@@ -14,8 +14,10 @@
     "airTempFile": "data/airTempC.csv",
     "flowSpeedFile": "data/mod_flow_condensed.nc",
     "distribWseTempFile": "data/wse.temp.full.nc",
-    "threadCount": 96,
-    "blindChannelSimplificationRadius": 15.0,
     "habitatTypeExitConditionHours": 2.0,
-    "habitatMortalityMultiplier": 2.0
+    "habitatMortalityMultiplier": 2.0,
+    "blindChannelSimplificationRadius": 15.0,
+    "threadCount": 8,
+    "rng_seed" : 0,
+    "directionlessEdges": 1
 }

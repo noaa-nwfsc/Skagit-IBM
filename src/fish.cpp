@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <cmath>
+#include <iostream>
 #include <unordered_set>
 #include <utility>
 #include "util.h"
@@ -396,7 +397,7 @@ bool Fish::move(Model &model) {
                     MapNode* endNode = (startNode == edge.source ? edge.target : edge.source);
                     if (model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
                         // Effective movement speed along channel (swim speed adjusted by flow speed)
-                        float transitSpeed = FishMovement(&model.hydroModel).calculateTransitSpeed(edge, startNode, swimSpeed);
+                        float transitSpeed = (float) FishMovement(&model.hydroModel).calculateTransitSpeed(edge, startNode, swimSpeed);
                         // Check to make sure the fish can even make progress
                         if (transitSpeed > 0.0f) {
                             // Calculate effective distance swum

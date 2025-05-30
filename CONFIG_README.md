@@ -80,6 +80,7 @@ Parameters:
         - `blindChannelSimplificationRadius`: float; the maximum distance between blind channel nodes that will result in them being merged when the map data is loaded (to speed up model prediction).
         - `habitatTypeExitConditionHours`: float; optional, default 2.0; the number of consecutive hours a fish must reside in a Nearshore habitat (at the end of each hour) after which it will "exit" the simulation.
         - `habitatMortalityMultiplier`: float; default 2.0; additional mortality multiplier applied in distributaries and nearshore habitats.
+        - `directionlessEdges`: int; optional, default 0; treated as boolean determining whether or not to use directionless edges.
     - if `envDataType` is "sim", the following entries are expected:
         - `mapParams`: A subgroup of parameters containing the following keys:
             - `m`: int, the number of distributary nodes per grid row/column
