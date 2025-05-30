@@ -7,6 +7,8 @@
 #include "custom_exceptions.h"
 #include "load_utils.h"
 
+#include <cmath>
+
 SCENARIO("Correct missing netcdf values", "[load]") {
     GIVEN("a reference to one cell from a loaded netcdf vector") {
         const float MISSING_INDICATOR = 99;
