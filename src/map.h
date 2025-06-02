@@ -17,6 +17,14 @@ typedef struct DistribHydroNode {
     DistribHydroNode(unsigned id) : id(id), us(), vs(), wses(), temps() {}
 } DistribHydroNode;
 
+typedef struct FlowVelocity {
+    float u; // horizontal component of flow speed (m/s)
+    float v; // vertical component of flow speed (m/s)
+
+    FlowVelocity() : u(0), v(0) {}
+    FlowVelocity(float u, float v) : u(u), v(v) {}
+} FlowVelocity;
+
 class MapNode;
 
 /*

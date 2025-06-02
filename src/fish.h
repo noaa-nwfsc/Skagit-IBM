@@ -56,7 +56,8 @@ public:
     float lastMortality;
     float lastTemp;
     float lastDepth;
-    float lastFlowSpeed;
+    float lastFlowSpeed_old; // deprecated
+    FlowVelocity lastFlowVelocity;
 
     // the mass rank of this fish among fish at its location
     int massRank;
@@ -74,7 +75,8 @@ public:
     std::vector<float> *mortalityHistory;
     std::vector<float> *tempHistory;
     std::vector<float> *depthHistory;
-    std::vector<float> *flowSpeedHistory;
+    std::vector<float> *flowSpeedHistory_old;
+    std::vector<FlowVelocity> *flowVelocityHistory;
     // mass history (only present if in replay mode)
     std::vector<float> *massHistory;
     // fork length history (only present if in replay mode)

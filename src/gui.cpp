@@ -172,6 +172,7 @@ std::vector<std::string> getLocInfo(Model &model, MapNode &node) {
     os << "Depth: " << model.hydroModel.getDepth(node) << "m"; result.push_back(os.str()); os.str("");
     os << "Temp: " << model.hydroModel.getTemp(node) << "C"; result.push_back(os.str()); os.str("");
     os << "Flow speed: " << model.hydroModel.getUnsignedFlowSpeedAt(node) << "m/s"; result.push_back(os.str()); os.str("");
+    os << "Flow velocity (u, v): " << model.hydroModel.getCurrentU(node) << ", " << model.hydroModel.getCurrentV(node) << "m/s"; result.push_back(os.str()); os.str("");
     for (SamplingSite *site : model.samplingSites) {
         for (MapNode *point : site->points) {
             if (point->id == node.id) {
@@ -195,7 +196,8 @@ std::vector<std::string> getFishInfo(Model &model, Fish &fish) {
     os << "Mortality: " << fish.lastMortality; result.push_back(os.str()); os.str("");
     os << "Temp: " << fish.lastTemp; result.push_back(os.str()); os.str("");
     os << "Depth: " << fish.lastDepth; result.push_back(os.str()); os.str("");
-    os << "Flow speed: " << fish.lastFlowSpeed; result.push_back(os.str()); os.str("");
+    os << "Flow speed: " << fish.lastFlowSpeed_old; result.push_back(os.str()); os.str("");
+    os << "Flow velocity (u, v): " << fish.lastFlowVelocity.u << ", " << fish.lastFlowVelocity.v; result.push_back(os.str()); os.str("");
     if (fish.taggedTime != -1) {
         os << "Tagged at timestep " << fish.taggedTime; result.push_back(os.str()); os.str("");
     }

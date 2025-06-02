@@ -112,6 +112,8 @@ All model outputs are saved as [netCDF 4](https://www.unidata.ucar.edu/software/
     - `tempHistory[n, t]`: floats, the temperature in the current location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
     - `depthHistory[n, t]`: floats, the water depth in the location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
     - `flowSpeedHistory[n, t]`: floats, the flow speed in the location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
+    - `flowVelocityUHistory[n, t]`: floats, the flow velocity u component in the location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
+    - `flowVelocityVHistory[n, t]`: floats, the flow velocity v component in the location at the end of each timestep for each fish, or 0 if the fish wasn't in the model on the timestep in question
   
 ### Metadata
 
