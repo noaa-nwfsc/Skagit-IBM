@@ -2,9 +2,9 @@
 // Created by Troy Frever on 5/19/25.
 //
 
-#include "fish_movement.h"
-
+#include <cmath>
 #include <vector>
+#include "fish_movement.h"
 
 float FishMovement::getCurrentU(const MapNode& node) const {
     return hydroModel->getCurrentU(node);
