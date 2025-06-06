@@ -1,0 +1,23 @@
+{
+    "envDataType": "file",
+    "recStartTimestep": 744,
+    "hydroStartTimestep": 1116,
+    "recruitEntryNodes": [31289, 31175, 31172],
+    "recruitCountsFile": "data/skagit_migrants_2014_feb_start.csv",
+    "recruitSizesFile": "data/skagit_weekly_lengths_2014_ed.csv",
+    "samplingSitesFile": "data/sampling_sites.csv",
+    "mapNodesFile": "data/Current maps/Skagit2013_vertices.csv",
+    "mapEdgesFile": "data/Current maps/Skagit2013_edges.csv",
+    "mapGeometryFile": "data/Current maps/Skagit2013_geometry.csv",
+    "tideFile": "data/cresTide.csv",
+    "flowVolFile": "data/flowM3ps.csv",
+    "airTempFile": "data/airTempC.csv",
+    "flowSpeedFile": "data/mod_flow_condensed.nc",
+    "distribWseTempFile": "data/wse.temp.full.nc",
+    "habitatTypeExitConditionHours": 2.0,
+    "habitatMortalityMultiplier": 2.0,
+    "blindChannelSimplificationRadius": 0.0,
+    "threadCount": 1,
+    "rng_seed" : 42,
+    "directionlessEdges": 1
+}

@@ -139,9 +139,8 @@ float HydroModel::scaledFlowSpeed(const float velocity, const MapNode &node) {
     if (!isBlindChannel(node.type) && !isImpoundment(node.type)) {
         return velocity;
     }
-    constexpr double M_TO_CM_CONV = 100.0;
-    const double hydroVelocity = this->getUnsignedFlowSpeedAtHydroNode(this->hydroNodes[node.nearestHydroNodeID]);
-    const double hydroWidth = pow((hydroVelocity / 0.04479583), (1.0 / 0.45896));
+    const double hydroFlowSpeed = this->getUnsignedFlowSpeedAtHydroNode(this->hydroNodes[node.nearestHydroNodeID]);
+    const double hydroWidth = pow((hydroFlowSpeed / 0.04479583), (1.0 / 0.45896));
     const double blindChannelWidth = sqrt(node.area);
     double scalar = blindChannelWidth / hydroWidth;
 
