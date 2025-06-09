@@ -16,6 +16,7 @@ set(TEST_SOURCES
         hydro_model_test.cpp
         load_utils_test.cpp
         util_test.cpp
+        is_missing_indicator_test.cpp
 )
 
 # These tests can use the Catch2-provided main

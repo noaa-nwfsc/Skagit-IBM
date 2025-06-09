@@ -34,4 +34,6 @@ void fix_all_missing_values(size_t stepCount, const NcVarFillModeInterface &nc_v
                             const std::string &vector_name = "", std::vector<std
                                 ::string> *error_log = nullptr);
 
+bool is_missing_indicator(float value, float missing_indicator);
+
 #endif //LOAD_UTILS_H

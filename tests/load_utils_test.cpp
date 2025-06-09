@@ -46,6 +46,7 @@ SCENARIO("Correct missing netcdf values", "[load]") {
             float cell = NaN_value;
             fix_missing_value(cell, last_good, NaN_value);
             THEN("the cell is updated with the replacement value") {
+                REQUIRE_FALSE(std::isnan(cell));
                 REQUIRE(cell == last_good);
             }
         }
@@ -125,7 +126,8 @@ SCENARIO("Fixing missing values in hydro vectors", "[netcdf]") {
 
         WHEN("fix_all_missing_values is called") {
             THEN("An exception should be thrown") {
-                REQUIRE_THROWS_AS(fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector"), AllMissingValuesException);
+                REQUIRE_THROWS_AS(fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector"),
+                                  AllMissingValuesException);
             }
         }
     }
@@ -211,7 +213,8 @@ SCENARIO("Fixing missing values in hydro vectors", "[netcdf]") {
         StubNcVar ncVar(true, 999.0);
         WHEN("fix_all_missing_values is called") {
             THEN("an exception should be thrown") {
-                REQUIRE_THROWS_AS(fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector"), AllMissingValuesException);
+                REQUIRE_THROWS_AS(fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector"),
+                                  AllMissingValuesException);
             }
         }
     }
@@ -224,7 +227,8 @@ SCENARIO("Fixing missing values in hydro vectors", "[netcdf]") {
 
         WHEN("fix_all_missing_values is called") {
             THEN("an exception is thrown") {
-                REQUIRE_THROWS_AS(fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector"), WrongLengthVectorException);
+                REQUIRE_THROWS_AS(fix_all_missing_values(stepCount, ncVar, hydroVector, "test vector"),
+                                  WrongLengthVectorException);
             }
         }
     }
@@ -277,7 +281,8 @@ SCENARIO("checking a required netcdf value", "[netcdf]") {
 
         WHEN("the actual value is missing") {
             THEN("an exception is thrown if the value is missing") {
-                REQUIRE_THROWS_AS(validate_required_value(ncVar, missing_indicator, "missing test value"), MissingRequiredValueException);
+                REQUIRE_THROWS_AS(validate_required_value(ncVar, missing_indicator, "missing test value"),
+                                  MissingRequiredValueException);
             }
         }
     }

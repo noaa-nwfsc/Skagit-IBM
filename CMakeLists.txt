@@ -33,11 +33,11 @@ add_compile_options(-Wall -Wextra)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_options(-g -O0 -fno-inline -fstack-protector-all)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-  add_compile_options(-O2 -ffast-math -DNDEBUG -march=native)
+  add_compile_options(-O2 -ffast-math -fno-finite-math-only -DNDEBUG -march=native)
 endif()
 
 # Add a new build type: RelWithDebugStack with extra diagnostics
-set(CMAKE_CXX_FLAGS_RELWITHDEBUGSTACK "-O2 -ffast-math -DNDEBUG -march=native -g -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS_RELWITHDEBUGSTACK "-O2 -ffast-math -fno-finite-math-only -DNDEBUG -march=native -g -fno-omit-frame-pointer")
 set(CMAKE_C_FLAGS_RELWITHDEBUGSTACK "${CMAKE_CXX_FLAGS_RELWITHDEBUGSTACK}")
 set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBUGSTACK "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
 set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBUGSTACK "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}")

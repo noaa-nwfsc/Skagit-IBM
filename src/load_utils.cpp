@@ -3,6 +3,7 @@
 //
 #include <cmath>
 #include <vector>
+#include <limits>
 #include <netcdf>
 
 #include "custom_exceptions.h"
@@ -10,10 +11,18 @@
 
 
 bool is_missing_indicator(const float value, const float missing_indicator) {
-    if (std::isnan(missing_indicator))
+    if (std::isnan(missing_indicator)) {
         return std::isnan(value);
-    return value == missing_indicator;
+    }
+    if (std::isinf(missing_indicator)) {
+        return std::isinf(value) &&
+               ((missing_indicator > 0) == (value > 0));
+    }
+
+    const float epsilon = std::numeric_limits<float>::epsilon();
+    return std::abs(value - missing_indicator) <= epsilon * std::abs(missing_indicator);
 }
+
 
 void validate_required_value(const NcVarFillModeInterface &ncVar, float actual_value, std::string exception_msg) {
     bool is_fill_active;
