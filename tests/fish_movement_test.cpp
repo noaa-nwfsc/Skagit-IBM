@@ -53,9 +53,35 @@ TEST_CASE("FishMovement::calculateFishMovement tests", "[fish_movement]") {
         hydroModel->vValue = 0.0f;
 
         double stillWaterSpeed = 1.0;
-        double result = fishMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
+        double normalChannelResult = fishMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
 
-        REQUIRE(result == Catch::Approx(1.5)); // Speed should be increased by current
+        REQUIRE(normalChannelResult == Catch::Approx(1.5)); // Speed should be increased by current
+
+        SECTION("Same movement in blind channel has reduced current effect") {
+            // Create a blind channel mock that inherits the existing hydroModel's values
+            class BlindChannelMockHydroModel : public MockHydroModel {
+            public:
+                explicit BlindChannelMockHydroModel(const MockHydroModel* baseModel) {
+                    uValue = baseModel->uValue;
+                    vValue = baseModel->vValue;
+                }
+
+                float scaledFlowSpeed(float speed, const MapNode&) override {
+                    return speed * 0.5f; // 50% reduction in blind channels
+                }
+            };
+
+            auto blindHydroModel = std::make_unique<BlindChannelMockHydroModel>(hydroModel.get());
+            FishMovement blindChannelFishMover(blindHydroModel.get());
+
+            double blindChannelResult = blindChannelFishMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
+
+            // With 0.5 current scaled down by 50%, the effective speed should be:
+            // stillWaterSpeed(1.0) + scaledCurrent(0.25) = 1.25
+            REQUIRE(blindChannelResult == Catch::Approx(1.25));
+            REQUIRE(blindChannelResult < normalChannelResult);
+        }
+
     }
 
     SECTION("Fish moving against strong current") {

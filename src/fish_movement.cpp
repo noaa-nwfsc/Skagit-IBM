@@ -60,11 +60,10 @@ double FishMovement::calculateEffectiveSwimSpeed(const MapNode& startNode, const
     double avgU = (getCurrentU(startNode) + getCurrentU(endNode)) / 2.0;
     double avgV = (getCurrentV(startNode) + getCurrentV(endNode)) / 2.0;
 
-    // Calculate the component of water velocity in the direction of fish movement
-    double waterVelocityComponent = dotProduct(avgU, avgV, dirX, dirY);
-    waterVelocityComponent = hydroModel->scaledFlowSpeed(static_cast<float>(waterVelocityComponent), startNode);
-    // Calculate effective swim speed
-    double effectiveSpeed = stillWaterSwimSpeed + waterVelocityComponent;
+    // water velocity in the direction of fish movement
+    double waterVelocityInDirectionOfMovement = dotProduct(avgU, avgV, dirX, dirY);
+    waterVelocityInDirectionOfMovement = hydroModel->scaledFlowSpeed(static_cast<float>(waterVelocityInDirectionOfMovement), startNode);
+    double effectiveSpeed = stillWaterSwimSpeed + waterVelocityInDirectionOfMovement;
 
     // Ensure the effective speed is non-negative
     return std::max(0.0, effectiveSpeed);
