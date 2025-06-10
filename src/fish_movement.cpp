@@ -57,8 +57,10 @@ double FishMovement::calculateEffectiveSwimSpeed(const MapNode& startNode, const
     normalizeVector(dirX, dirY);
 
     // Calculate the average water velocity along the edge
-    double avgU = (getCurrentU(startNode) + getCurrentU(endNode)) / 2.0;
-    double avgV = (getCurrentV(startNode) + getCurrentV(endNode)) / 2.0;
+    auto startNodeVelocity = hydroModel->getScaledFlowVelocityAt(startNode);
+    auto endNodeVelocity = hydroModel->getScaledFlowVelocityAt(endNode);
+    double avgU = (startNodeVelocity.u + endNodeVelocity.u) / 2.0;
+    double avgV = (startNodeVelocity.v + endNodeVelocity.v) / 2.0;
 
     // water velocity in the direction of fish movement
     double waterVelocityInDirectionOfMovement = dotProduct(avgU, avgV, dirX, dirY);

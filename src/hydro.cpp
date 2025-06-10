@@ -135,7 +135,7 @@ float HydroModel::getUnsignedFlowSpeedAtHydroNode(DistribHydroNode &hydroNode) {
     return sqrt(currU*currU + currV*currV);
 }
 
-FlowVelocity HydroModel::getScaledFlowVelocityAt(MapNode &node) {
+FlowVelocity HydroModel::getScaledFlowVelocityAt(const MapNode &node) {
     auto scalar = static_cast<float>(calculateFlowSpeedScalar(node));
     return {getCurrentU(node) * scalar, getCurrentV(node) * scalar};
 }
