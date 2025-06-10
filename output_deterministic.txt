@@ -1,0 +1,50 @@
+# ./bin/Release/headless "troy_run_listings.csv" "run9/map2013d2014" "run6_config/config_map_2013_data_2014_deterministic.json"
+
+Mon Jun  9 15:35:01 PDT 2025
+Configuring model...
+8 hardware threads available
+Forcing max threads to 1 due to non-zero RNG seed (42)
+1 thread(s) enabled
+
+loading distributary hydrology data: 341/341
+done loading hydro
+directionless edges!
+Made  0 disconnected 'distributary' nodes into blind channels
+Found 0 disconnected nodes
+Found 0 orphaned nodes
+Found 0 orphaned protected nodes
+Sample data will be saved to run9/map2013d2014/output_0.nc
+Step 330: 0.171922s elapsed; 15m26s remaining; 111070 living fish; 193819 exited; 450982 dead
+Writing intermediary file at step: 330
+Step 660: 0.420816s elapsed; 17m52s remaining; 251064 living fish; 478186 exited; 1064364 dead
+Writing intermediary file at step: 660
+Step 990: 0.178523s elapsed; 15m1s remaining; 93605 living fish; 656013 exited; 1384578 dead
+Writing intermediary file at step: 990
+Step 1320: 0.114542s elapsed; 11m46s remaining; 67822 living fish; 742016 exited; 1582910 dead
+Writing intermediary file at step: 1320
+Step 1650: 0.0819865s elapsed; 9m16s remaining; 53002 living fish; 845092 exited; 1742644 dead
+Writing intermediary file at step: 1650
+Step 1980: 0.0866475s elapsed; 7m5s remaining; 46598 living fish; 908329 exited; 1845102 dead
+Writing intermediary file at step: 1980
+Step 2310: 0.0942025s elapsed; 5m23s remaining; 54181 living fish; 957153 exited; 1939814 dead
+Writing intermediary file at step: 2310
+Step 2640: 0.0323222s elapsed; 3m55s remaining; 18963 living fish; 996618 exited; 1992208 dead
+Writing intermediary file at step: 2640
+Step 2970: 0.0101963s elapsed; 2m40s remaining; 5621 living fish; 1007237 exited; 2009092 dead
+Writing intermediary file at step: 2970
+Step 3300: 0.010924s elapsed; 1m37s remaining; 7048 living fish; 1011838 exited; 2018264 dead
+Writing intermediary file at step: 3300
+Step 3630: 0.00736425s elapsed; 46s remaining; 4210 living fish; 1015572 exited; 2023901 dead
+Writing intermediary file at step: 3630
+Step 3960: 0.002774s elapsed; 2s remaining; 848 living fish; 1017152 exited; 2025954 dead
+Writing intermediary file at step: 3960
+
+Finished at step 3984; 475.901s elapsed since start
+In saveTaggedHistories
+
+Values for N: 1239, and T: 3985
+
+N: 1239,   T: 3985
+
+Finished loading all tracks
+Mon Jun  9 15:43:33 PDT 2025

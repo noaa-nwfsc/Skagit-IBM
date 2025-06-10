@@ -135,9 +135,14 @@ float HydroModel::getUnsignedFlowSpeedAtHydroNode(DistribHydroNode &hydroNode) {
     return sqrt(currU*currU + currV*currV);
 }
 
-float HydroModel::scaledFlowSpeed(const float velocity, const MapNode &node) {
+FlowVelocity HydroModel::getScaledFlowVelocityAt(MapNode &node) {
+    auto scalar = static_cast<float>(calculateFlowSpeedScalar(node));
+    return {getCurrentU(node) * scalar, getCurrentV(node) * scalar};
+}
+
+double HydroModel::calculateFlowSpeedScalar(const MapNode &node) {
     if (!isBlindChannel(node.type) && !isImpoundment(node.type)) {
-        return velocity;
+        return 1.0;
     }
     const double hydroFlowSpeed = this->getUnsignedFlowSpeedAtHydroNode(this->hydroNodes[node.nearestHydroNodeID]);
     const double hydroWidth = pow((hydroFlowSpeed / 0.04479583), (1.0 / 0.45896));
@@ -151,10 +156,15 @@ float HydroModel::scaledFlowSpeed(const float velocity, const MapNode &node) {
         constexpr double IMPOUNDMENT_MIN_FLOW_ADDL_SCALAR = 0.1;
         scalar *= IMPOUNDMENT_MIN_FLOW_ADDL_SCALAR;
     }
+    return scalar;
+}
 
-    const double scaledFlowSpeed = scalar * velocity;
+float HydroModel::scaledFlowSpeed(const float flowSpeed, const MapNode &node) {
+    double scalar = calculateFlowSpeedScalar(node);
+    const double scaledFlowSpeed = scalar * flowSpeed;
     return static_cast<float>(scaledFlowSpeed);
 }
+
 
 float HydroModel::getUnsignedFlowSpeedAt(MapNode &node) {
     if (this->useSimData) {

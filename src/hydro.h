@@ -37,7 +37,11 @@ public:
     // Return the flow speed in m/s at a given location
     float getUnsignedFlowSpeedAt(MapNode &node);
     float getUnsignedFlowSpeedAtHydroNode(DistribHydroNode &hydroNode);
-    virtual float scaledFlowSpeed(float velocity, const MapNode &node);
+    FlowVelocity getScaledFlowVelocityAt(MapNode &node);
+
+    double calculateFlowSpeedScalar(const MapNode &node);
+
+    virtual float scaledFlowSpeed(float flowSpeed, const MapNode &node);
     // Return the temperature in degrees C at a given location
     float getTemp(MapNode &node);
     // Return the water depth in meters at a given location
@@ -53,7 +57,7 @@ public:
 public:
     virtual float getCurrentU(const MapNode& node) const; // m/s
     virtual float getCurrentV(const MapNode& node) const; // m/s
-private:
+protected:
     float getCurrentU(const DistribHydroNode &hydroNode) const; // Get the current timestep's horizontal flow speed component (in m/s) at a given DistribHydroNode
     float getCurrentV(const DistribHydroNode &hydroNode) const; // Get the current timestep's vertical flow speed component (in m/s) at a given DistribHydroNode
 
