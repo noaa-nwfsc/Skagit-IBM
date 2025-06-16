@@ -37,7 +37,7 @@ public:
     // Return the flow speed in m/s at a given location
     float getUnsignedFlowSpeedAt(MapNode &node);
     float getUnsignedFlowSpeedAtHydroNode(DistribHydroNode &hydroNode);
-    FlowVelocity getScaledFlowVelocityAt(const MapNode &node);
+    virtual FlowVelocity getScaledFlowVelocityAt(const MapNode &node);
 
     double calculateFlowSpeedScalar(const MapNode &node);
 

@@ -69,6 +69,10 @@ TEST_CASE("FishMovement::calculateFishMovement tests", "[fish_movement]") {
                 float scaledFlowSpeed(float speed, const MapNode&) override {
                     return speed * 0.5f; // 50% reduction in blind channels
                 }
+
+                FlowVelocity getScaledFlowVelocityAt(const MapNode &node) {
+                    return {getCurrentU(node) * 0.5f, getCurrentV(node) * 0.5f};
+                }
             };
 
             auto blindHydroModel = std::make_unique<BlindChannelMockHydroModel>(hydroModel.get());

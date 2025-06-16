@@ -53,18 +53,14 @@ double FishMovement::calculateEffectiveSwimSpeed(const MapNode& startNode, const
     double dirX = endNode.x - startNode.x;
     double dirY = endNode.y - startNode.y;
 
-    // Normalize the direction vector
     normalizeVector(dirX, dirY);
 
-    // Calculate the average water velocity along the edge
     auto startNodeVelocity = hydroModel->getScaledFlowVelocityAt(startNode);
     auto endNodeVelocity = hydroModel->getScaledFlowVelocityAt(endNode);
     double avgU = (startNodeVelocity.u + endNodeVelocity.u) / 2.0;
     double avgV = (startNodeVelocity.v + endNodeVelocity.v) / 2.0;
 
-    // water velocity in the direction of fish movement
     double waterVelocityInDirectionOfMovement = dotProduct(avgU, avgV, dirX, dirY);
-    waterVelocityInDirectionOfMovement = hydroModel->scaledFlowSpeed(static_cast<float>(waterVelocityInDirectionOfMovement), startNode);
     double effectiveSpeed = stillWaterSwimSpeed + waterVelocityInDirectionOfMovement;
 
     // Ensure the effective speed is non-negative
@@ -84,7 +80,7 @@ double FishMovement::calculateTransitSpeed(const Edge& edge, const MapNode* star
     const MapNode* endNode = (startNode == edge.source) ? edge.target : edge.source;
 
     return calculateEffectiveSwimSpeed(*startNode, *endNode, stillWaterSwimSpeed);
-    // return calculateFishMovementAdvanced(*startNode, *endNode, stillWaterSwimSpeed);
+    // return calculateFishMovementAdvanced(*startNode, *endNode, stillWaterSwimSpeed, 1);
 }
 
 /**
@@ -121,6 +117,12 @@ double FishMovement::calculateFishMovementAdvanced(const MapNode &startNode,
         double vEnd = getCurrentV(endNode);
         double uInterp = uStart + t * (uEnd - uStart);
         double vInterp = vStart + t * (vEnd - vStart);
+
+        auto startNodeVelocity = hydroModel->getScaledFlowVelocityAt(startNode);
+        auto endNodeVelocity = hydroModel->getScaledFlowVelocityAt(endNode);
+        double avgU = (startNodeVelocity.u + endNodeVelocity.u) / 2.0;
+        double avgV = (startNodeVelocity.v + endNodeVelocity.v) / 2.0;
+
 
         // Calculate water velocity component along the path
         double waterVelComponent = dotProduct(uInterp, vInterp, dirX, dirY);
