@@ -84,7 +84,7 @@ double FishMovement::calculateTransitSpeed(const Edge& edge, const MapNode* star
     const MapNode* endNode = (startNode == edge.source) ? edge.target : edge.source;
 
     return calculateEffectiveSwimSpeed(*startNode, *endNode, stillWaterSwimSpeed);
-ad    // return calculateFishMovementAdvanced(*startNode, *endNode, stillWaterSwimSpeed);
+    // return calculateFishMovementAdvanced(*startNode, *endNode, stillWaterSwimSpeed);
 }
 
 /**
