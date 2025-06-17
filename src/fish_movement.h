@@ -19,7 +19,6 @@ public:
 private:
     HydroModel* hydroModel;
 
-    double calculateFishMovementAdvanced(const MapNode &startNode, const MapNode &endNode, double stillWaterSwimSpeed, int numSegments = 10) const;
     double calculateEffectiveSwimSpeed(const MapNode& startNode, const MapNode& endNode, double stillWaterSwimSpeed) const;
 
     float getCurrentU(const MapNode& node) const;

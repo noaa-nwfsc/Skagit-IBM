@@ -32,15 +32,6 @@ void normalizeVector(double& x, double& y) {
 }
 
 /**
- * Calculate the distance between two points
- */
-double calculateDistance(double x1, double y1, double x2, double y2) {
-    double dx = x2 - x1;
-    double dy = y2 - y1;
-    return std::sqrt(dx * dx + dy * dy);
-}
-
-/**
  * Calculate the effective swim speed of a fish moving between two nodes
  *
  * @param startNode The node where the fish starts
@@ -57,8 +48,14 @@ double FishMovement::calculateEffectiveSwimSpeed(const MapNode& startNode, const
 
     auto startNodeVelocity = hydroModel->getScaledFlowVelocityAt(startNode);
     auto endNodeVelocity = hydroModel->getScaledFlowVelocityAt(endNode);
-    double avgU = (startNodeVelocity.u + endNodeVelocity.u) / 2.0;
-    double avgV = (startNodeVelocity.v + endNodeVelocity.v) / 2.0;
+
+    double uStart = static_cast<double>(startNodeVelocity.u);
+    double uEnd = static_cast<double>(endNodeVelocity.u);
+    double vStart = static_cast<double>(startNodeVelocity.v);
+    double vEnd = static_cast<double>(endNodeVelocity.v);
+
+    double avgU = (uStart + uEnd) / 2.0;
+    double avgV = (vStart + vEnd) / 2.0;
 
     double waterVelocityInDirectionOfMovement = dotProduct(avgU, avgV, dirX, dirY);
     double effectiveSpeed = stillWaterSwimSpeed + waterVelocityInDirectionOfMovement;
@@ -80,68 +77,4 @@ double FishMovement::calculateTransitSpeed(const Edge& edge, const MapNode* star
     const MapNode* endNode = (startNode == edge.source) ? edge.target : edge.source;
 
     return calculateEffectiveSwimSpeed(*startNode, *endNode, stillWaterSwimSpeed);
-    // return calculateFishMovementAdvanced(*startNode, *endNode, stillWaterSwimSpeed, 1);
-}
-
-/**
- * More accurate version that divides the edge into segments to account for
- * varying water velocity along the edge
- *
- * @param startNode Pointer to the node where the fish starts (must be either edge.nodeA or edge.nodeB)
- * @param endNode
- * @param stillWaterSwimSpeed The swim speed of the fish in still water (non-negative)
- * @param numSegments Number of segments to divide the edge into
- * @return The effective swim speed (non-negative, returns 0 if fish cannot make progress in any segment)
- */
-double FishMovement::calculateFishMovementAdvanced(const MapNode &startNode,
-                                                   const MapNode &endNode, double stillWaterSwimSpeed, int numSegments)  const {
-    // Calculate direction vector and distance
-    double dirX = endNode.x - startNode.x;
-    double dirY = endNode.y - startNode.y;
-    double totalDistance = calculateDistance(startNode.x, startNode.y, endNode.x, endNode.y);
-
-    // Normalize the direction vector
-    normalizeVector(dirX, dirY);
-
-    double segmentLength = totalDistance / numSegments;
-    double totalTime = 0.0;
-
-    for (int i = 0; i < numSegments; ++i) {
-        // Calculate interpolation factor (0 at startNode, 1 at endNode)
-        double t = (i + 0.5) / numSegments;
-
-        // Linearly interpolate water velocity at this segment
-        double uStart = getCurrentU(startNode);
-        double uEnd = getCurrentU(endNode);
-        double vStart = getCurrentV(startNode);
-        double vEnd = getCurrentV(endNode);
-        double uInterp = uStart + t * (uEnd - uStart);
-        double vInterp = vStart + t * (vEnd - vStart);
-
-        auto startNodeVelocity = hydroModel->getScaledFlowVelocityAt(startNode);
-        auto endNodeVelocity = hydroModel->getScaledFlowVelocityAt(endNode);
-        double avgU = (startNodeVelocity.u + endNodeVelocity.u) / 2.0;
-        double avgV = (startNodeVelocity.v + endNodeVelocity.v) / 2.0;
-
-
-        // Calculate water velocity component along the path
-        double waterVelComponent = dotProduct(uInterp, vInterp, dirX, dirY);
-        double waterVelocityInDirectionOfMovement = hydroModel->scaledFlowSpeed(static_cast<float>(waterVelComponent), startNode);
-
-        // Calculate effective speed in this segment
-        double segmentEffectiveSpeed = stillWaterSwimSpeed + waterVelocityInDirectionOfMovement;
-
-        // Check if fish can make progress in this segment
-        if (segmentEffectiveSpeed <= 0) {
-            return 0.0; // Fish cannot make progress against the current
-        }
-
-        // Add time to traverse this segment
-        totalTime += segmentLength / segmentEffectiveSpeed;
-    }
-
-    // Calculate average effective speed
-    double avgEffectiveSpeed = totalDistance / totalTime;
-
-    return std::max(0.0, avgEffectiveSpeed);;
 }
