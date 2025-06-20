@@ -400,7 +400,7 @@ bool Fish::move(Model &model) {
                 for (Edge &edge: allEdges) {
                     MapNode* startNode = point;
                     MapNode* endNode = (startNode == edge.source ? edge.target : edge.source);
-                    if (model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
+                    if (model.hydroModel.getDepth(*endNode) >= DEPTH_CUTOFF) {
                         // Effective movement speed along channel (swim speed adjusted by flow speed)
                         float transitSpeed = (float) FishMovement(&model.hydroModel).calculateTransitSpeed(edge, startNode, swimSpeed);
                         // Check to make sure the fish can even make progress
