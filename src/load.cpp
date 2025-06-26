@@ -607,6 +607,7 @@ void expandNearshoreLinks(std::vector<MapNode *> &map, unsigned int maxRealID) {
         map.push_back(newNode);
         ++newID;
     }
+    std::cout << "Created " << newID - maxRealID - 1 << " new nearshore connector nodes" << std::endl;
 }
 
 // Count all neighbors of a given node that are distributary nodes
