@@ -922,6 +922,32 @@ void removeDisconnectedNodes(const std::unordered_set<MapNode *> &disconnectedNo
     }
 }
 
+// Check if any nodes have duplicate edges in their edgesIn or edgesOut vectors
+void checkDuplicateEdges(const std::vector<MapNode *> &nodes) {
+    int duplicateInEdges = 0;
+    int duplicateOutEdges = 0;
+    for (const MapNode *node: nodes) {
+        for (size_t i = 0; i < node->edgesIn.size(); i++) {
+            for (size_t j = i + 1; j < node->edgesIn.size(); j++) {
+                if (node->edgesIn[i].source == node->edgesIn[j].source &&
+                    node->edgesIn[i].target == node->edgesIn[j].target) {
+                    duplicateInEdges++;
+                }
+            }
+        }
+        for (size_t i = 0; i < node->edgesOut.size(); i++) {
+            for (size_t j = i + 1; j < node->edgesOut.size(); j++) {
+                if (node->edgesOut[i].source == node->edgesOut[j].source &&
+                    node->edgesOut[i].target == node->edgesOut[j].target) {
+                    duplicateOutEdges++;
+                }
+            }
+        }
+    }
+    std::cout << "Found " << duplicateInEdges << " duplicate input edges" << std::endl;
+    std::cout << "Found " << duplicateOutEdges << " duplicate output edges" << std::endl;
+}
+
 // Load a map from vertex, edge, and geometry files
 // (additionally runs cleanup on the resulting map graph)
 void loadMap(
@@ -1060,8 +1086,11 @@ void loadMap(
         }
         recPoints.push_back(dest[csvToInternalID[id]]);
     }
+
     // Clean up clean up everybody do your share
     //condenseMissingNodes(dest);
+    checkDuplicateEdges(dest);
+
     std::unordered_set<MapNode *> disconnectedNodes = identifyDisconnectedNodes(dest, recPoints);
     removeDisconnectedNodes(disconnectedNodes, dest, recPoints, monitoringPoints, samplingSites, samplingSitesByNode);
 
