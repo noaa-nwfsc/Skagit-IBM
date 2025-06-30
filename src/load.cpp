@@ -585,16 +585,40 @@ MapNode *elaborateEdge(Edge e) {
     return newNode;
 }
 
+
+std::string getHabitatTypeName(HabitatType t) {
+    switch(t) {
+        case HabitatType::Impoundment:
+            return "Impoundment";
+        case HabitatType::Distributary:
+            return "Distributary";
+        case HabitatType::DistributaryEdge:
+            return "Distributary edge";
+        case HabitatType::BlindChannel:
+            return "Blind channel";
+        case HabitatType::LowTideTerrace:
+            return "Low tide terrace";
+        case HabitatType::Nearshore:
+            return "Nearshore";
+        case HabitatType::Harbor:
+            return "Boat harbor";
+    }
+}
+
 // Elaborate all nearshore edges
 void expandNearshoreLinks(std::vector<MapNode *> &map, unsigned int maxRealID) {
     std::unordered_set<MapNode *> toAdd;
+    std::unordered_map<HabitatType, int> habitatTypeCount;
+
     for (MapNode *node : map) {
         bool updated = true;
         while (updated) {
             updated = false;
             for (Edge &e : node->edgesOut) {
                 if (((e.target->type == HabitatType::Nearshore) != (node->type == HabitatType::Nearshore)) && !toAdd.count(e.target)) {
-                    toAdd.insert(elaborateEdge(e));
+                    auto newNode = elaborateEdge(e);
+                    toAdd.insert(newNode);
+                    habitatTypeCount[newNode->type]++;
                     updated = true;
                     break;
                 }
@@ -606,6 +630,12 @@ void expandNearshoreLinks(std::vector<MapNode *> &map, unsigned int maxRealID) {
         newNode->id = newID;
         map.push_back(newNode);
         ++newID;
+    }
+
+    for (const auto& [type, count] : habitatTypeCount) {
+        if (count > 0) {
+            std::cout << "Created " << count << " new nodes of type " << getHabitatTypeName(type) << std::endl;
+        }
     }
     std::cout << "Created " << newID - maxRealID - 1 << " new nearshore connector nodes" << std::endl;
 }
