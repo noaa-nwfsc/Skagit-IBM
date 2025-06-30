@@ -190,16 +190,21 @@ void findDistances(std::vector<MapNode *> &sourceNodes, std::unordered_map<MapNo
 // map with pairs of ints as keys
 typedef std::tuple<int, int> map_coord_t;
 
-struct coord_hash : public std::unary_function<map_coord_t, std::size_t>
-{
+struct coord_hash {
+    typedef map_coord_t argument_type;
+    typedef std::size_t result_type;
+
     std::size_t operator()(const map_coord_t& k) const
     {
         return std::get<0>(k) ^ std::get<1>(k);
     }
 };
 
-struct coord_equal : public std::binary_function<map_coord_t, map_coord_t, bool>
-{
+struct coord_equal {
+    typedef map_coord_t first_argument_type;
+    typedef map_coord_t second_argument_type;
+    typedef bool result_type;
+
     bool operator()(const map_coord_t& v0, const map_coord_t& v1) const
     {
         return (

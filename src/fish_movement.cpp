@@ -2,7 +2,7 @@
 // Created by Troy Frever on 5/19/25.
 //
 
-#include <cmath> # keep for Linux
+#include <cmath> // keep for Linux
 #include <vector>
 #include "fish_movement.h"
 
