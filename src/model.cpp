@@ -82,10 +82,10 @@ Model::Model(
     mortConstC(MORT_CONST_C),
     habitatTypeExitConditionHours(habitatTypeExitConditionHours),
     habitatMortalityMultiplier(habitatMortalityMultiplier),
+    directionlessEdges(directionlessEdges),
     nextFishID(0UL),
     maxThreads(maxThreads),
-    recruitTagRate(0.5f),
-    directionlessEdges(directionlessEdges)
+    recruitTagRate(0.5f)
 {
     if (directionlessEdges) std::cout << "directionless edges!" << std::endl;
 
