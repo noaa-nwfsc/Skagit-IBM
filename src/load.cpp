@@ -922,7 +922,6 @@ void removeDisconnectedNodes(const std::unordered_set<MapNode *> &disconnectedNo
     }
 }
 
-// Check if any nodes have duplicate edges in their edgesIn or edgesOut vectors
 void checkDuplicateEdges(const std::vector<MapNode *> &nodes) {
     int duplicateInEdges = 0;
     int duplicateOutEdges = 0;
@@ -947,6 +946,42 @@ void checkDuplicateEdges(const std::vector<MapNode *> &nodes) {
     std::cout << "Found " << duplicateInEdges << " duplicate input edges" << std::endl;
     std::cout << "Found " << duplicateOutEdges << " duplicate output edges" << std::endl;
 }
+
+bool hasReversedEdgeOf(const Edge &newEdge) {
+    const auto& edgesIn = newEdge.source->edgesIn;
+    return std::any_of(edgesIn.begin(), edgesIn.end(),
+        [&](const Edge& old_edge){
+            return old_edge.source == newEdge.target && old_edge.target == newEdge.source;
+        });
+}
+
+bool hasMatchingEdge(const std::vector<Edge>& edges, const Edge& e) {
+    return std::any_of(edges.begin(), edges.end(),
+        [&](const Edge& old_edge) {
+            return old_edge.source == e.source && old_edge.target == e.target;
+        });
+}
+
+void addEdgeIfNotDuplicate(std::vector<Edge>& edges, const Edge& e) {
+    if (!hasMatchingEdge(edges, e)) {
+        edges.push_back(e);
+    }
+}
+
+void checkAndAddEdge(Edge e) {
+    MapNode* edgeSource = e.source;
+    MapNode* edgeTarget = e.target;
+
+    if (edgeSource == edgeTarget)
+        return;
+
+    if (hasReversedEdgeOf(e))
+        return;
+
+    addEdgeIfNotDuplicate(edgeSource->edgesOut, e);
+    addEdgeIfNotDuplicate(edgeTarget->edgesIn, e);
+}
+
 
 // Load a map from vertex, edge, and geometry files
 // (additionally runs cleanup on the resulting map graph)
@@ -1050,19 +1085,9 @@ void loadMap(
             continue;
         }
         float length = std::stof(chunks[18]);
+
         Edge e(dest[csvToInternalID[idSource]], dest[csvToInternalID[idTarget]], length);
-        // Check to make sure this edge isn't redundant before adding it
-        bool redundant = false;
-        for (Edge &e2 : e.source->edgesIn) {
-            if (e2.source == e.target) {
-                redundant = true;
-                break;
-            }
-        }
-        if (!redundant) {
-            dest[csvToInternalID[idSource]]->edgesOut.push_back(e);
-            dest[csvToInternalID[idTarget]]->edgesIn.push_back(e);
-        }
+        checkAndAddEdge(e);
     }
     // Load node locations from the geometry file
     first = true;

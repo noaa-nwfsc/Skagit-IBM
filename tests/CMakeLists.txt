@@ -17,6 +17,7 @@ set(TEST_SOURCES
         load_utils_test.cpp
         util_test.cpp
         is_missing_indicator_test.cpp
+        load_test.cpp
 )
 
 # These tests can use the Catch2-provided main
