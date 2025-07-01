@@ -1,4 +1,4 @@
-Mon Jun 30 18:38:38 PDT 2025
+Tue Jul  1 11:38:43 PDT 2025
 Configuring model...
 8 hardware threads available
 Forcing max threads to 1 due to non-zero RNG seed (42)
@@ -9,44 +9,51 @@ done loading hydro
 directionless edges!
 Found 0 duplicate input edges
 Found 0 duplicate output edges
-Created 1 new nodes of type Low tide terrace
-Created 5 new nodes of type Distributary
-Created 5 new nodes of type Distributary edge
-Created 31 new nodes of type Blind channel
-Created 1 new nodes of type Impoundment
-Created 377 new nodes of type Nearshore
+Nearshore connector nodes: 5 Distributary
+Nearshore connector nodes: 1 Low tide terrace
+Nearshore connector nodes: 5 Distributary edge
+Nearshore connector nodes: 31 Blind channel
+Nearshore connector nodes: 1 Impoundment
+Nearshore connector nodes: 377 Nearshore
 Created 420 new nearshore connector nodes
 Made  0 disconnected 'distributary' nodes into blind channels
 Found 0 disconnected nodes
 Found 0 orphaned nodes
 Found 0 orphaned protected nodes
+Map nodes: 6 Boat harbor
+Map nodes: 150 Low tide terrace
+Map nodes: 1322 Distributary edge
+Map nodes: 2126 Distributary
+Map nodes: 688 Nearshore
+Map nodes: 155 Impoundment
+Map nodes: 27661 Blind channel
 Sample data will be saved to run32/map2000d2014/output_0.nc
-Step 330: 0.153392s elapsed; 7m58s remaining; 111568 living fish; 9086 exited; 304279 dead
+Step 330: 0.387274s elapsed; 19m37s remaining; 131400 living fish; 12267 exited; 281602 dead
 Writing intermediary file at step: 330
-Step 660: 0.341805s elapsed; 12m7s remaining; 216398 living fish; 38394 exited; 961771 dead
+Step 660: 0.868312s elapsed; 29m30s remaining; 261459 living fish; 51454 exited; 904471 dead
 Writing intermediary file at step: 660
-Step 990: 0.549219s elapsed; 14m40s remaining; 345292 living fish; 68075 exited; 1819108 dead
+Step 990: 1.49495s elapsed; 37m8s remaining; 413806 living fish; 91880 exited; 1729070 dead
 Writing intermediary file at step: 990
-Step 1320: 0.203846s elapsed; 13m34s remaining; 132878 living fish; 93642 exited; 2387717 dead
+Step 1320: 0.596807s elapsed; 35m45s remaining; 169667 living fish; 128079 exited; 2319273 dead
 Writing intermediary file at step: 1320
-Step 1650: 0.111567s elapsed; 10m51s remaining; 82786 living fish; 114257 exited; 2690090 dead
+Step 1650: 0.238974s elapsed; 28m34s remaining; 99064 living fish; 158387 exited; 2632810 dead
 Writing intermediary file at step: 1650
-Step 1980: 0.170383s elapsed; 8m31s remaining; 83101 living fish; 134595 exited; 2916779 dead
+Step 1980: 0.266926s elapsed; 21m57s remaining; 99482 living fish; 186841 exited; 2851080 dead
 Writing intermediary file at step: 1980
-Step 2310: 0.115113s elapsed; 6m37s remaining; 72021 living fish; 144947 exited; 3087028 dead
+Step 2310: 0.20758s elapsed; 16m35s remaining; 87426 living fish; 201317 exited; 3018371 dead
 Writing intermediary file at step: 2310
-Step 2640: 0.111559s elapsed; 4m55s remaining; 65850 living fish; 157025 exited; 3225824 dead
+Step 2640: 0.219365s elapsed; 12m8s remaining; 79047 living fish; 218706 exited; 3154131 dead
 Writing intermediary file at step: 2640
-Step 2970: 0.0463713s elapsed; 3m25s remaining; 29640 living fish; 164616 exited; 3321567 dead
+Step 2970: 0.0998034s elapsed; 8m25s remaining; 35944 living fish; 229740 exited; 3253367 dead
 Writing intermediary file at step: 2970
-Step 3300: 0.0152922s elapsed; 2m6s remaining; 11260 living fish; 169931 exited; 3352392 dead
+Step 3300: 0.0338691s elapsed; 5m10s remaining; 13317 living fish; 237845 exited; 3285662 dead
 Writing intermediary file at step: 3300
-Step 3630: 0.0169174s elapsed; 1m0s remaining; 10970 living fish; 171015 exited; 3366432 dead
+Step 3630: 0.0357727s elapsed; 2m27s remaining; 12698 living fish; 239713 exited; 3299294 dead
 Writing intermediary file at step: 3630
-Step 3960: 0.00975108s elapsed; 3s remaining; 6234 living fish; 172148 exited; 3375959 dead
+Step 3960: 0.0182086s elapsed; 9s remaining; 7115 living fish; 241472 exited; 3309048 dead
 Writing intermediary file at step: 3960
 
-Finished at step 3984; 620.29s elapsed since start
+Finished at step 3984; 1517.34s elapsed since start
 In saveTaggedHistories
 
 Values for N: 1427, and T: 3985
@@ -54,4 +61,4 @@ Values for N: 1427, and T: 3985
 N: 1427,   T: 3985
 
 Finished loading all tracks
-Mon Jun 30 18:49:35 PDT 2025
+Tue Jul  1 12:05:08 PDT 2025
