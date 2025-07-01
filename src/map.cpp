@@ -38,15 +38,11 @@ bool isDistributaryOrNearshore(const HabitatType t) {
 }
 
 float habTypeMortalityConst(const HabitatType t, const float habitatMortalityMultiplier) {
-    switch(t){
-    case HabitatType::Distributary:
-    // case HabitatType::Harbor:
-    case HabitatType::Nearshore:
-    // case HabitatType::Impoundment:
+    float defaultNoMultiplier = 1.0;
+    if (isDistributaryOrNearshore(t)) {
         return habitatMortalityMultiplier;
-    default:
-        return 1.0;
     }
+    return defaultNoMultiplier;
 }
 
 Edge::Edge(MapNode *source, MapNode *target, float length)
