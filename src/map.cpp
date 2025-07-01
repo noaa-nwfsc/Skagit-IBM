@@ -37,9 +37,13 @@ bool isDistributaryOrNearshore(const HabitatType t) {
     return isDistributary(t) || isNearshore(t);
 }
 
+bool isDistributaryExcludingDistributaryEdgeOrNearshore(HabitatType habitat) {
+    return habitat == HabitatType::Distributary || isNearshore(habitat);
+}
+
 float habTypeMortalityConst(const HabitatType t, const float habitatMortalityMultiplier) {
     float defaultNoMultiplier = 1.0;
-    if (isDistributaryOrNearshore(t)) {
+    if (isDistributaryExcludingDistributaryEdgeOrNearshore(t)) {
         return habitatMortalityMultiplier;
     }
     return defaultNoMultiplier;

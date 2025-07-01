@@ -605,10 +605,25 @@ std::string getHabitatTypeName(HabitatType t) {
     }
 }
 
+void outputNodeCounts(const std::vector<MapNode*> &nodes, const std::string &nodeCategory) {
+    std::unordered_map<HabitatType, int> habitatTypeCount;
+
+    // Count nodes by habitat type
+    for (const auto* node : nodes) {
+        habitatTypeCount[node->type]++;
+    }
+
+    // Output the counts
+    for (const auto& [type, count] : habitatTypeCount) {
+        if (count > 0) {
+            std::cout << nodeCategory << " nodes: " << count << " " << getHabitatTypeName(type) << std::endl;
+        }
+    }
+}
+
 // Elaborate all nearshore edges
 void expandNearshoreLinks(std::vector<MapNode *> &map, unsigned int maxRealID) {
     std::unordered_set<MapNode *> toAdd;
-    std::unordered_map<HabitatType, int> habitatTypeCount;
 
     for (MapNode *node : map) {
         bool updated = true;
@@ -618,7 +633,6 @@ void expandNearshoreLinks(std::vector<MapNode *> &map, unsigned int maxRealID) {
                 if (((e.target->type == HabitatType::Nearshore) != (node->type == HabitatType::Nearshore)) && !toAdd.count(e.target)) {
                     auto newNode = elaborateEdge(e);
                     toAdd.insert(newNode);
-                    habitatTypeCount[newNode->type]++;
                     updated = true;
                     break;
                 }
@@ -632,11 +646,7 @@ void expandNearshoreLinks(std::vector<MapNode *> &map, unsigned int maxRealID) {
         ++newID;
     }
 
-    for (const auto& [type, count] : habitatTypeCount) {
-        if (count > 0) {
-            std::cout << "Created " << count << " new nodes of type " << getHabitatTypeName(type) << std::endl;
-        }
-    }
+    outputNodeCounts(std::vector<MapNode*>(toAdd.begin(), toAdd.end()), "Nearshore connector");
     std::cout << "Created " << newID - maxRealID - 1 << " new nearshore connector nodes" << std::endl;
 }
 
@@ -1159,4 +1169,5 @@ void loadMap(
     assignNearestHydroNodes(dest, hydroNodes);
     fixElevations(dest, hydroNodes);
     cleanupRemovedNodeIdMappings(csvToInternalID, dest);
+    outputNodeCounts(dest, "Map");
 }
