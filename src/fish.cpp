@@ -661,7 +661,7 @@ float Fish::getGrowth(Model &model, MapNode &loc, float cost, float Pmax) const 
 
 // Calculate mortality risk for a given node
 float Fish::getMortality(Model &model, MapNode &loc) const {
-    const float habTypeConst = habTypeMortalityConst(loc.type, model.habitatMortalityMultiplier);
+    const float habTypeConst = habitatTypeMortalityConst(loc.type, model.habitatMortalityMultiplier);
     const float a = 1.849; // slope
     const float b_m = -0.8; //slope at inflection
     const float b_s = -2.395; // intercept

@@ -52,7 +52,7 @@ bool isBlindChannel(HabitatType t);
 bool isImpoundment(HabitatType t);
 
 // Returns the mortality constant for a given habitat type
-float habTypeMortalityConst(HabitatType t, float habitatMortalityMultiplier);
+float habitatTypeMortalityConst(const HabitatType t, const float habitatMortalityMultiplier);
 
 // Represents a link between two map locations
 class Edge {
