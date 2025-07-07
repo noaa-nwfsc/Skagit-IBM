@@ -44,7 +44,7 @@ enum class HabitatType {
     Nearshore
 };
 
-bool isDistributary(HabitatType t);
+bool isDistributary(HabitatType t, bool includeDistributaryEdge = true);
 bool isDistributaryOrHarbor(HabitatType t);
 bool isDistributaryOrNearshore(HabitatType t);
 bool isNearshore(HabitatType t);

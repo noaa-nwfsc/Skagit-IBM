@@ -4,14 +4,8 @@
 #include <cmath>
 #include <limits>
 
-bool isDistributary(HabitatType t) {
-    switch(t){
-    case HabitatType::Distributary:
-    case HabitatType::DistributaryEdge:
-        return true;
-    default:
-        return false;
-    }
+bool isDistributary(HabitatType t, bool includeDistributaryEdge) {
+    return (t==HabitatType::Distributary) || (includeDistributaryEdge && t==HabitatType::DistributaryEdge);
 }
 
 bool isHarbor(HabitatType t) {
@@ -37,13 +31,13 @@ bool isDistributaryOrNearshore(const HabitatType t) {
     return isDistributary(t) || isNearshore(t);
 }
 
-bool isDistributaryExcludingDistributaryEdgeOrNearshore(HabitatType habitat) {
-    return habitat == HabitatType::Distributary || isNearshore(habitat);
+bool isDistributaryWithoutEdgeOrIsNearshore(HabitatType habitat) {
+    return isDistributary(habitat, false) || isNearshore(habitat);
 }
 
 float habitatTypeMortalityConst(const HabitatType t, const float habitatMortalityMultiplier) {
     float defaultNoMultiplier = 1.0;
-    if (isDistributaryExcludingDistributaryEdgeOrNearshore(t)) {
+    if (isDistributaryWithoutEdgeOrIsNearshore(t)) {
         return habitatMortalityMultiplier;
     }
     return defaultNoMultiplier;

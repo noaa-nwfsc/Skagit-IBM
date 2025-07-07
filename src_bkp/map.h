@@ -37,7 +37,7 @@ enum class HabitatType {
 };
 
 // Returns true if t == Distributary or t == DistributaryEdge
-bool isDistributary(HabitatType t);
+bool isDistributary(HabitatType t, bool includeDistributaryEdge = true);
 
 // Returns the mortality constant for a given habitat type
 float habTypeMortalityConst(HabitatType t);
