@@ -82,16 +82,17 @@ link_directories(
 
 # Define source files used for both targets
 set(COMMON_SOURCES
-  src/model.cpp
+  src/env_sim.cpp
+  src/fish.cpp
+  src/fish_movement.cpp
   src/hydro.cpp
   src/load.cpp
-  src/fish.cpp
-  src/map.cpp
-  src/util.cpp
-  src/env_sim.cpp
-  src/map_gen.cpp
   src/load_utils.cpp
-  src/fish_movement.cpp
+  src/map.cpp
+  src/map_gen.cpp
+  src/model.cpp
+  src/model_config_map.cpp
+  src/util.cpp
 )
 
 # Get absolute paths for rpath

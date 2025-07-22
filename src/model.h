@@ -8,6 +8,7 @@
 #include "fish.h"
 #include "map.h"
 #include "hydro.h"
+#include "model_config_map.h"
 
 #ifndef __FISH_FISH_CLS
 class Fish;
@@ -93,8 +94,6 @@ public:
     float habitatTypeExitConditionHours;
     float habitatMortalityMultiplier;
 
-    bool directionlessEdges = false;
-
     Model(
         int globalTimeIntercept,
         int hydroTimeIntercept,
@@ -114,7 +113,7 @@ public:
         std::string airTempFilename,
         std::string flowSpeedFilename,
         std::string distribWseTempFilename,
-        int directionlessEdges
+        const ModelConfigMap& config
     );
 
     Model(
@@ -178,6 +177,9 @@ public:
     void saveNodeIdMapping(const std::string &nodeIdMappingPath);
     void saveHydroMapping(const std::string & hydroMappingCsvPath) const;
 
+    int getInt(ModelParamKey key) const;
+    float getFloat(ModelParamKey key) const;
+    std::string getString(ModelParamKey key) const;
 
     // add addhistory from fish???
     // void addHistoryBuffers();
@@ -186,6 +188,7 @@ public:
 
 private:
 
+    ModelConfigMap configMap;
     unsigned long nextFishID;
     size_t maxThreads;
     float recruitTagRate;

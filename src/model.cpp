@@ -69,8 +69,7 @@ Model::Model(
     std::string flowSpeedFilename,
     // Path of the distributary WSE/temp data (netCDF)
     std::string distribWseTempFilename,
-    int directionlessEdges
-
+    const ModelConfigMap& config
 ) : hydroModel(cresTideFilename, flowVolFilename, airTempFilename, flowSpeedFilename, distribWseTempFilename, hydroTimeIntercept),
     recTimeIntercept(recTimeIntercept),
     globalTimeIntercept(globalTimeIntercept),
@@ -82,12 +81,12 @@ Model::Model(
     mortConstC(MORT_CONST_C),
     habitatTypeExitConditionHours(habitatTypeExitConditionHours),
     habitatMortalityMultiplier(habitatMortalityMultiplier),
-    directionlessEdges(directionlessEdges),
     nextFishID(0UL),
     maxThreads(maxThreads),
-    recruitTagRate(0.5f)
+    recruitTagRate(0.5f),
+    configMap(config)
 {
-    if (directionlessEdges) std::cout << "directionless edges!" << std::endl;
+    if (getInt(ModelParamKey::DirectionlessEdges)) std::cout << "directionless edges!" << std::endl;
 
     // Load the map
     loadMap(
@@ -1151,6 +1150,18 @@ void Model::setHistoryTimestep(long timestep) {
     this->countAll(false);
 }
 
+int Model::getInt(ModelParamKey key) const {
+    return configMap.getInt(key);
+}
+
+float Model::getFloat(ModelParamKey key) const {
+    return configMap.getFloat(key);
+}
+
+std::string Model::getString(ModelParamKey key) const {
+    return configMap.getString(key);
+}
+
 // Initialize a model instance from a JSON config file
 Model *modelFromConfig(std::string configPath) {
     FILE *fp = fopen(configPath.c_str(), "r");
@@ -1162,10 +1173,11 @@ Model *modelFromConfig(std::string configPath) {
     rapidjson::FileReadStream is(fp, readBuf, sizeof(readBuf));
     rapidjson::Document d;
     d.ParseStream(is);
-    unsigned int rng_seed = GlobalRand::USE_RANDOM_SEED;
-    if (d.HasMember("rng_seed")) {
-        rng_seed = d["rng_seed"].GetInt();
-    }
+
+    ModelConfigMap config;
+    config.loadFromJson(d);
+
+    unsigned int rng_seed = config.getInt(ModelParamKey::rng_seed);
     GlobalRand::reseed(rng_seed);
     std::string envDataType = d["envDataType"].GetString();
     unsigned int hwThreads = std::thread::hardware_concurrency();
@@ -1198,7 +1210,7 @@ Model *modelFromConfig(std::string configPath) {
         for (rapidjson::Value::ConstValueIterator it = recPointArr.Begin(); it != recPointArr.End(); ++it) {
             recPoints.push_back(it->GetUint());
         }
-        // construct the model
+
         m = new Model(
             timeIntercept,
             hydroTimeIntercept,
@@ -1224,7 +1236,7 @@ Model *modelFromConfig(std::string configPath) {
             std::string(d["airTempFile"].GetString()),
             std::string(d["flowSpeedFile"].GetString()),
             std::string(d["distribWseTempFile"].GetString()),
-            d.HasMember("directionlessEdges") ? d["directionlessEdges"].GetInt() : 0
+            config
         );
     } else {
         // Generate map from JSON config params

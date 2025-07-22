@@ -392,7 +392,7 @@ bool Fish::move(Model &model) {
         float stayCost = remainingTime * pointFlowSpeed;
         if (remainingTime > 0.0f) {
             neighbors.emplace_back(point, cost+stayCost, currFitness);
-            if (model.directionlessEdges) {
+            if (model.getInt(ModelParamKey::DirectionlessEdges)) {
                 std::vector<Edge> allEdges;
                 allEdges.reserve(point->edgesIn.size() + point->edgesOut.size());
                 allEdges.insert(allEdges.end(), point->edgesIn.begin(), point->edgesIn.end());
