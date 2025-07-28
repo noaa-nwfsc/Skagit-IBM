@@ -20,7 +20,6 @@
 constexpr float MORT_CONST_C = 0.03096;
 constexpr float MORT_CONST_A = -0.42;
 constexpr float DEFAULT_EXIT_CONDITION_HOURS = 2.0;
-constexpr float DEFAULT_HABITAT_MORTALITY_MULTIPLIER = 2.0;
 
 /*
  * Constructs a model instance from parameters and data filenames.
@@ -50,7 +49,6 @@ Model::Model(
     // List of map node IDs where new recruits enter the model
     std::vector<unsigned> recPointIds,
     float habitatTypeExitConditionHours,
-    float habitatMortalityMultiplier,
     // Path of the file containing map node descriptions (area, habitat type, elevation, among other columns)
     std::string mapLocationFilename,
     // Path of the file containing map edge descriptions (source and target nodes, path lengths, among other columns)
@@ -80,7 +78,6 @@ Model::Model(
     mortConstA(MORT_CONST_A),
     mortConstC(MORT_CONST_C),
     habitatTypeExitConditionHours(habitatTypeExitConditionHours),
-    habitatMortalityMultiplier(habitatMortalityMultiplier),
     nextFishID(0UL),
     maxThreads(maxThreads),
     recruitTagRate(0.5f),
@@ -138,7 +135,6 @@ Model::Model(
     mortConstA(MORT_CONST_A),
     mortConstC(MORT_CONST_C),
     habitatTypeExitConditionHours(DEFAULT_EXIT_CONDITION_HOURS),
-    habitatMortalityMultiplier(DEFAULT_HABITAT_MORTALITY_MULTIPLIER),
     nextFishID(0UL),
     maxThreads(maxThreads),
     recruitTagRate(0.5f)
@@ -168,19 +164,6 @@ void Model::masterUpdate() {
     // Sync the hydro model's time with the main model time
     this->hydroModel.updateTime(this->time);
 }
-
-// TODO: GROT
-// bool Model::checkMonitoringNodes() {
-//     int missingCount = 0;
-//     for (auto n : this->monitoringPoints) {
-//         auto it = std::find(this->map.begin(), this->map.end(), n);
-//         if (it == this->map.end()) {
-//             missingCount += 1;
-//         }
-//     }
-//     std::cout << "bad monitors: " << missingCount << std::endl;
-//     return missingCount == 0;
-// }
 
 void Model::update1h() {
     // Introduce new recruits
@@ -1222,9 +1205,6 @@ Model *modelFromConfig(std::string configPath) {
             d.HasMember("habitatTypeExitConditionHours")
                 ? d["habitatTypeExitConditionHours"].GetFloat()
                 : DEFAULT_EXIT_CONDITION_HOURS,
-            d.HasMember("habitatMortalityMultiplier")
-                ? d["habitatMortalityMultiplier"].GetFloat()
-                : DEFAULT_HABITAT_MORTALITY_MULTIPLIER,
             std::string(d["mapNodesFile"].GetString()),
             std::string(d["mapEdgesFile"].GetString()),
             std::string(d["mapGeometryFile"].GetString()),

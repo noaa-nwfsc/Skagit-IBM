@@ -13,17 +13,14 @@ using ConfigDefinition = std::pair<std::string, ConfigValue>;
 enum class ModelParamKey {
     DirectionlessEdges,
     rng_seed,
+    HabitatMortalityMultiplier,
 };
 
 static const std::unordered_map<ModelParamKey, ConfigDefinition>& getModelConfigDefinitions() {
     static const std::unordered_map<ModelParamKey, ConfigDefinition> modelConfigDefinitions = {
         {ModelParamKey::DirectionlessEdges, {"directionlessEdges", 0}},
-        {ModelParamKey::rng_seed, {"rng_seed", static_cast<int>(GlobalRand::USE_RANDOM_SEED)}}
-        // {ModelConfigKey::LearningRate, {"learningRate", 0.01f}},
-        // {ModelConfigKey::ModelName, {"modelName", std::string("default")}},
-        // {ModelConfigKey::MaxIterations, {"maxIterations", 1000}},
-        // {ModelConfigKey::Tolerance, {"tolerance", 1e-6f}},
-        // {ModelConfigKey::OutputPath, {"outputPath", std::string("./output")}}
+        {ModelParamKey::rng_seed, {"rng_seed", static_cast<int>(GlobalRand::USE_RANDOM_SEED)}},
+        {ModelParamKey::HabitatMortalityMultiplier, {"habitatMortalityMultiplier", 2.0f}},
     };
     return modelConfigDefinitions;
 }

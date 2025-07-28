@@ -661,12 +661,15 @@ float Fish::getGrowth(Model &model, MapNode &loc, float cost, float Pmax) const 
 
 // Calculate mortality risk for a given node
 float Fish::getMortality(Model &model, MapNode &loc) const {
-    const float habTypeConst = habitatTypeMortalityConst(loc.type, model.habitatMortalityMultiplier);
+    float mort_min = 0.0005;
+    float mort_max = 0.002;
+    float habitat_mortality_multiplier = model.getFloat(ModelParamKey::HabitatMortalityMultiplier);
+    const float habTypeMortConst = habitatTypeMortalityConst(loc.type, habitat_mortality_multiplier);
     const float a = 1.849; // slope
     const float b_m = -0.8; //slope at inflection
     const float b_s = -2.395; // intercept
-    const float c = 0.0005; // min
-    const float d = 0.002; // max
+    const float c = mort_min; // min
+    const float d = mort_max; // max
     const float e = 500; // inflection point on x
     const float L = this->forkLength;
     const float X = loc.popDensity; // * 1000; // convert m^2 to ha
@@ -678,7 +681,7 @@ float Fish::getMortality(Model &model, MapNode &loc) const {
     //    ) * model.mortConstC * pow(this->forkLength, model.mortConstA);
     // Instantaneous mortality=c+(d−c)exp{−exp[−b(log(X)−log(e))]}
     // Scalar = S/{ exp(b + a(log(L)))}
-    return (((c + (d - c) * exp(-exp(-b_m * (log(X) - log(e))))) * (S / (exp(b_s + a * log(L))) ))) * habTypeConst;
+    return (((c + (d - c) * exp(-exp(-b_m * (log(X) - log(e))))) * (S / (exp(b_s + a * log(L))) ))) * habTypeMortConst;
 }
 
 // Calculate growth amount and mortality risk at this fish's current location,
