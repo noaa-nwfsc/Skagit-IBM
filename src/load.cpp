@@ -17,6 +17,7 @@
 #include "custom_exceptions.h"
 #include "load_utils.h"
 #include "hydro.h"
+#include "model_config_map.h"
 
 // calculate distance between <x1, y1> and <x2, y2>
 inline float distance(float x1, float y1, float x2, float y2) {
@@ -1036,7 +1037,8 @@ void loadMap(
     std::vector<MapNode *> &recPoints,
     std::vector<MapNode *> &monitoringPoints,
     std::vector<SamplingSite *> &samplingSites,
-    float blindChannelSimplificationRadius
+    float blindChannelSimplificationRadius,
+    const ModelConfigMap& configMap
 ) {
     std::ifstream locationFile;
     locationFile.open(locationFilePath);
@@ -1163,7 +1165,9 @@ void loadMap(
     identifyProtectedNodes(monitoringPoints, samplingSitesByNode, recPoints, protectedNodes);
     simplifyBlindChannels(dest, blindChannelSimplificationRadius, protectedNodes);
     //fixBrokenEdges(dest);
-    expandNearshoreLinks(dest, maxRealID);
+    if (configMap.getInt(ModelParamKey::VirtualNodes)) {
+        expandNearshoreLinks(dest, maxRealID);
+    };
     //assignCrossChannelEdges(dest); // OBSOLETE
     fixDisjointDistributaries(dest, recPoints, protectedNodes);
     assignNearestHydroNodes(dest, hydroNodes);

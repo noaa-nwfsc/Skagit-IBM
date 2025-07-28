@@ -1,5 +1,9 @@
 {
   "envDataType": "file",
+  "threadCount": 1,
+  "rng_seed" : 42,
+  "directionlessEdges": 1,
+  "virtualNodes": 1,
   "recStartTimestep": 0,
   "hydroStartTimestep": 0,
   "recruitEntryNodes": [29331,29346,29401],
@@ -16,7 +20,7 @@
   "distribWseTempFile": "data/wse.temp.full.nc",
   "blindChannelSimplificationRadius": 0.0,
   "habitatTypeExitConditionHours": 48,
-  "threadCount": 1,
-  "rng_seed" : 42,
-  "directionlessEdges": 1
+  "mortMin": 0.0005,
+  "mortMax": 0.002
+
 }

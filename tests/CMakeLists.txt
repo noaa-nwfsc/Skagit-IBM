@@ -6,6 +6,7 @@ set(MODEL_SOURCES
         ../src/hydro.cpp
         ../src/map.cpp
         ../src/load.cpp
+        ../src/model_config_map.cpp
         ../src/load_utils.cpp
         ../src/util.cpp
         ../src/fish_movement.cpp

@@ -1,28 +1,25 @@
 #include "model_config_map.h"
 #include <stdexcept>
 
-const std::unordered_map<ModelParamKey, std::string>& ModelConfigMap::getFileKeyMap() {
-    static std::unordered_map<ModelParamKey, std::string> keyMap;
-    if (keyMap.empty()) {
-        for (const auto& [key, def] : getModelConfigDefinitions()) {
-            keyMap[key] = def.first;
-        }
-    }
-    return keyMap;
+std::unordered_map<ModelParamKey, ConfigDefinition> ModelConfigMap::createDefaultDefinitions() {
+    return {
+        {ModelParamKey::DirectionlessEdges, {"directionlessEdges", 0}},
+        {ModelParamKey::VirtualNodes, {"virtualNodes", 1}},
+        {ModelParamKey::rng_seed, {"rng_seed", static_cast<int>(GlobalRand::USE_RANDOM_SEED)}},
+        {ModelParamKey::HabitatMortalityMultiplier, {"habitatMortalityMultiplier", 2.0f}},
+        {ModelParamKey::MortMin, {"mortMin", 0.0005f}},
+        {ModelParamKey::MortMax, {"mortMax", 0.002f}},
+    };
 }
 
-const std::unordered_map<ModelParamKey, ConfigValue>&
-ModelConfigMap::getDefaultValues() {
-    static std::unordered_map<ModelParamKey, ConfigValue> defaults;
-    if (defaults.empty()) {
-        for (const auto& [key, def] : getModelConfigDefinitions()) {
-            defaults[key] = def.second;
-        }
-    }
-    return defaults;
-}
+ModelConfigMap::ModelConfigMap() {
+    auto definitions = createDefaultDefinitions();
 
-ModelConfigMap::ModelConfigMap() : paramValues_(getDefaultValues()) {}
+    for (const auto& [key, def] : definitions) {
+        fileKeyMap_[key] = def.first;
+        paramValues_[key] = def.second;
+    }
+}
 
 int ModelConfigMap::getInt(ModelParamKey key) const {
     auto it = paramValues_.find(key);
@@ -53,20 +50,16 @@ void ModelConfigMap::set(ModelParamKey key, const ConfigValue& value) {
 }
 
 void ModelConfigMap::loadFromJson(const rapidjson::Document& d) {
-    const auto& keyMap = getFileKeyMap();
-
-    for (const auto& [configKey, fileKey] : keyMap) {
+    for (const auto& [configKey, fileKey] : fileKeyMap_) {
         if (d.HasMember(fileKey.c_str())) {
             const auto& jsonValue = d[fileKey.c_str()];
+            const auto& currentValue = paramValues_.at(configKey);
 
-            // Determine expected type from default value
-            const auto& defaultValue = getDefaultValues().at(configKey);
-
-            if (std::holds_alternative<int>(defaultValue) && jsonValue.IsInt()) {
+            if (std::holds_alternative<int>(currentValue) && jsonValue.IsInt()) {
                 set(configKey, jsonValue.GetInt());
-            } else if (std::holds_alternative<float>(defaultValue) && jsonValue.IsNumber()) {
+            } else if (std::holds_alternative<float>(currentValue) && jsonValue.IsNumber()) {
                 set(configKey, jsonValue.GetFloat());
-            } else if (std::holds_alternative<std::string>(defaultValue) && jsonValue.IsString()) {
+            } else if (std::holds_alternative<std::string>(currentValue) && jsonValue.IsString()) {
                 set(configKey, std::string(jsonValue.GetString()));
             }
         }
@@ -74,7 +67,6 @@ void ModelConfigMap::loadFromJson(const rapidjson::Document& d) {
 }
 
 std::string ModelConfigMap::getFileKey(ModelParamKey key) const {
-    const auto& keyMap = getFileKeyMap();
-    auto it = keyMap.find(key);
-    return (it != keyMap.end()) ? it->second : "unknown";
+    auto it = fileKeyMap_.find(key);
+    return (it != fileKeyMap_.end()) ? it->second : "unknown";
 }

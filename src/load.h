@@ -7,6 +7,7 @@
 
 #include "map.h"
 
+class ModelConfigMap;
 // Utility function to split a string into chunks delimited by a given character
 std::vector<std::string> split(std::string& s, char c);
 
@@ -48,6 +49,6 @@ void loadMap(
     std::vector<MapNode *> &recPoints,
     std::vector<MapNode *> &monitoringPoints,
     std::vector<SamplingSite *> &samplingSites,
-    float blindChannelSimplificationRadius);
+    float blindChannelSimplificationRadius, const ModelConfigMap& configMap);
 
 #endif

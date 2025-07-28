@@ -98,7 +98,8 @@ Model::Model(
         this->recPoints,
         this->monitoringPoints,
         this->samplingSites,
-        blindChannelSimplificationRadius
+        blindChannelSimplificationRadius,
+        configMap
     );
     for (size_t i = 0; i < this->monitoringPoints.size(); ++i) {
         this->monitoringHistory.emplace_back();
