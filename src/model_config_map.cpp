@@ -9,6 +9,7 @@ std::unordered_map<ModelParamKey, ConfigDefinition> ModelConfigMap::createDefaul
         {ModelParamKey::HabitatMortalityMultiplier, {"habitatMortalityMultiplier", 2.0f}},
         {ModelParamKey::MortMin, {"mortMin", 0.0005f}},
         {ModelParamKey::MortMax, {"mortMax", 0.002f}},
+        {ModelParamKey::GrowthSlope, {"growthSlope", 0.0007f}},
     };
 }
 

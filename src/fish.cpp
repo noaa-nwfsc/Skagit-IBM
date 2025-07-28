@@ -598,11 +598,11 @@ void Fish::dieStarvation(Model &model) {
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
-float Fish::getPmax(const MapNode &loc) { // NOLINT(*-convert-member-functions-to-static)
+float Fish::getPmax(const Model &model, const MapNode &loc) { // NOLINT(*-convert-member-functions-to-static)
     constexpr float SQ_METER_TO_HECTARE_CONVERSION = 10000.0;
-    constexpr float GROWTH_FACTOR = 0.0007;
+    const float growthSlope = model.getFloat(ModelParamKey::GrowthSlope);
 
-    float Pmax = 0.8f - ((loc.popDensity * SQ_METER_TO_HECTARE_CONVERSION) * GROWTH_FACTOR);
+    float Pmax = 0.8f - ((loc.popDensity * SQ_METER_TO_HECTARE_CONVERSION) * growthSlope);
 
     constexpr float PMAX_MIN = 0.2;
     if (Pmax < PMAX_MIN) {
@@ -622,7 +622,7 @@ float Fish::getBoundedTempForGrowth(Model &model, MapNode &loc) const {
 // Calculate growth amount (in g) for a given location and distance swum
 // Cost is in meters
 float Fish::getGrowth(Model &model, MapNode &loc, float cost) {
-    const float pmax = this->getPmax(loc);
+    const float pmax = this->getPmax(model, loc);
     return this->getGrowth(model, loc, cost, pmax);
 }
 
@@ -663,10 +663,6 @@ float Fish::getGrowth(Model &model, MapNode &loc, float cost, float Pmax) const 
 float Fish::getMortality(Model &model, MapNode &loc) const {
     const float mort_min_c = model.getFloat(ModelParamKey::MortMin);
     const float mort_max_d = model.getFloat(ModelParamKey::MortMax);
-    // if (mort_min_c != 0.0005f || mort_max_d != 0.002f) {
-    //     std::cout << "float conversion error! (min exp_min max exp_max)" << std::endl;
-    //     std::cout << mort_min_c << " " << 0.0005f << " " << mort_max_d << " " << 0.002f << std::endl;
-    // }
     float habitat_mortality_multiplier = model.getFloat(ModelParamKey::HabitatMortalityMultiplier);
     const float habTypeMortConst = habitatTypeMortalityConst(loc.type, habitat_mortality_multiplier);
     const float a = 1.849; // slope
@@ -684,7 +680,7 @@ float Fish::getMortality(Model &model, MapNode &loc) const {
 // Calculate growth amount and mortality risk at this fish's current location,
 // then apply growth and check mortality risk (and die if that's the way it goes)
 bool Fish::growAndDie(Model &model) {
-    const float pMax = this->getPmax(*(this->location));
+    const float pMax = this->getPmax(model, *(this->location));
     const float growth = this->getGrowth(model, *(this->location), this->travel, pMax);
     const float mortality = this->getMortality(model, *(this->location));
     this->lastGrowth = growth;

@@ -19,6 +19,7 @@ enum class ModelParamKey {
     HabitatMortalityMultiplier,
     MortMin,
     MortMax,
+    GrowthSlope
 };
 
 class ModelConfigMap {

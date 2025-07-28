@@ -119,7 +119,7 @@ public:
     // Register this fish as dead due to starvation
     void dieStarvation(Model &model);
 
-    float getPmax(const MapNode &loc);
+    float getPmax(const Model &model, const MapNode &loc);
     // Compute the growth (g) for a given location and movement cost (meters swum) and pmax
     float getGrowth(Model &model, MapNode &loc, float cost, float pmax) const;
     // compute growth, pmax calculated internally

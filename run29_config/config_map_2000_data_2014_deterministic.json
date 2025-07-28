@@ -21,6 +21,7 @@
   "blindChannelSimplificationRadius": 0.0,
   "habitatTypeExitConditionHours": 48,
   "mortMin": 0.0005,
-  "mortMax": 0.002
+  "mortMax": 0.002,
+  "growthSlope": 0.0007
 
 }
