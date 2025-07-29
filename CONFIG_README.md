@@ -5,11 +5,15 @@ Default model configurations are in the files [default_config_env_sim.json](defa
 
 Parameters:
 - `threadCount`: The maximum number of hardware threads to use when running the model (-1 = as many as are available)
-- `rng_seed` (optional): Random number generator seed. If a positive non-zero value is specified, the model will use 
+- `rng_seed` (optional): Random Number Generator (RNG) seed. If a positive non-zero value is specified, the model will use 
   the value to seed the random number generator. It will also limit the number of threads to 1 (overriding the 
-  `threadCount` parameter. Together this will create reproducible, deterministic outputs for testing or validation. If
-  `rng_seed` is 0 or not present, the random number generator will obtain a random seed, resulting in non-deterministic
-  outputs across multiple runs.
+  `threadCount` parameter.) Together this will create reproducible, deterministic outputs for testing or validation. 
+  If negative or omitted, the RNG will use a pseudo-random seed.
+- `habitatTypeExitConditionHours`: float; optional, default 2.0; the number of consecutive hours a fish must reside in a Nearshore habitat (at the end of each hour) after which it will "exit" the simulation.
+- `habitatMortalityMultiplier`: float; optional; default 2.0; additional mortality multiplier applied in distributaries and nearshore habitats
+- `mortMin`: float; optional; default 0.0005; mort_min_c parameter used in fish mortality equation
+- `mortMax`: float; optional; default 0.002; mort_max_d parameter used in fish mortality equation
+- `growthSlope`: float; optional; default 0.007; growthSlope used in Pmax equation
 - `envDataType`: string, either `file` or `sim`
     - if `envDataType` is `file`, the following entries are expected:
         - `recStartTimestep`: the number of 1-hour timesteps from midnight on January 1 to the start date/time of the recruitment data
@@ -75,12 +79,11 @@ Parameters:
 
                 dimensions: time (1hr increments, starting at midnight on January 1st), node
 
-            Distributary nodes retrieve flow speed, depth, and temperature from their nearest hydro node, so these nodes should be relatively dense spatially in distributary regions.
+            Distributary nodes retrieve flow speed, depth, and temperature from their nearest hydro node, so these nodes should be relatively dense spatially in distributary regions
 
         - `blindChannelSimplificationRadius`: float; the maximum distance between blind channel nodes that will result in them being merged when the map data is loaded (to speed up model prediction).
-        - `habitatTypeExitConditionHours`: float; optional, default 2.0; the number of consecutive hours a fish must reside in a Nearshore habitat (at the end of each hour) after which it will "exit" the simulation.
-        - `habitatMortalityMultiplier`: float; default 2.0; additional mortality multiplier applied in distributaries and nearshore habitats.
-        - `directionlessEdges`: int; optional, default 0; treated as boolean determining whether or not to use directionless edges.
+        - `directionlessEdges`: int; optional, default 0; treated as boolean determining whether or not to use directionless edges
+        - `virtualNodes`: int; optional; default 1; boolean determining whether to allow the creation of virtual nearshore nodes 
     - if `envDataType` is "sim", the following entries are expected:
         - `mapParams`: A subgroup of parameters containing the following keys:
             - `m`: int, the number of distributary nodes per grid row/column
