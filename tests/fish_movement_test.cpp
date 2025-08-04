@@ -20,12 +20,41 @@ private:
     std::vector<std::vector<float>> empty_temps_;
 };
 
+class MockModel : public Model {
+public:
+    MockModel() : Model(0, // maxThreads
+                       empty_map_,
+                       empty_recPoints_,
+                       empty_recCounts_,
+                       empty_recSizeDists_,
+                       empty_depths_,
+                       empty_temps_,
+                       0.0f) // distFlow
+    {
+        // Replace the HydroModel created by Model constructor with our MockHydroModel
+        this->hydroModel = *mockHydroModel;
+    }
+
+    MockHydroModel* getMockHydroModel() { return &mockHydroModel; }
+
+private:
+    MockHydroModel mockHydroModel;
+    std::vector<MapNode*> empty_map_;
+    std::vector<MapNode*> empty_recPoints_;
+    std::vector<int> empty_recCounts_;
+    std::vector<std::vector<float>> empty_recSizeDists_;
+    std::vector<std::vector<float>> empty_depths_;
+    std::vector<std::vector<float>> empty_temps_;
+};
+
+
 auto createMapNode(float x, float y) {
     auto mapNode = std::make_unique<MapNode>(HabitatType::Distributary, 0.0, 0.0, 0.0);
     mapNode->x = x;
     mapNode->y = y;
     return mapNode;
 }
+
 
 TEST_CASE("FishMovement::calculateFishMovement tests", "[fish_movement]") {
     auto hydroModel = std::make_unique<MockHydroModel>();

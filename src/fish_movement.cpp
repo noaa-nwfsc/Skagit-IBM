@@ -5,6 +5,9 @@
 #include <cmath> // keep for Linux
 #include <vector>
 #include "fish_movement.h"
+#include "model.h"
+#include "hydro.h"
+#include "map.h"
 
 float FishMovement::getCurrentU(const MapNode& node) const {
     return hydroModel->getCurrentU(node);
@@ -77,4 +80,38 @@ double FishMovement::calculateTransitSpeed(const Edge& edge, const MapNode* star
     const MapNode* endNode = (startNode == edge.source) ? edge.target : edge.source;
 
     return calculateEffectiveSwimSpeed(*startNode, *endNode, stillWaterSwimSpeed);
+}
+
+std::vector<std::tuple<MapNode*, float, float>> FishMovement::getReachableNeighbors(
+    MapNode* startPoint,
+    float swimSpeed,
+    float swimRange,
+    float currentCost,
+    MapNode* fishLocation,
+    const std::function<float(Model&, MapNode&, float)>& fitnessCalculator
+) const {
+    std::vector<std::tuple<MapNode*, float, float>> neighbors;
+    std::vector<Edge> allEdges;
+    allEdges.reserve(startPoint->edgesIn.size() + startPoint->edgesOut.size());
+    allEdges.insert(allEdges.end(), startPoint->edgesIn.begin(), startPoint->edgesIn.end());
+    allEdges.insert(allEdges.end(), startPoint->edgesOut.begin(), startPoint->edgesOut.end());
+
+    for (Edge &edge: allEdges) {
+        MapNode* startNode = startPoint;
+        MapNode* endNode = (startNode == edge.source ? edge.target : edge.source);
+        if (model.hydroModel.getDepth(*endNode) >= MOVEMENT_DEPTH_CUTOFF) {
+            float transitSpeed = (float) calculateTransitSpeed(edge, startNode, swimSpeed);
+            if (transitSpeed > 0.0f) {
+                float edgeCost = (edge.length / transitSpeed) * swimSpeed;
+                if (isDistributary(endNode->type) && startPoint == fishLocation) {
+                    edgeCost = std::min(edgeCost, swimRange - currentCost);
+                }
+                if (currentCost + edgeCost <= swimRange) {
+                    float fitness = fitnessCalculator(model, *endNode, currentCost + edgeCost);
+                    neighbors.emplace_back(endNode, currentCost + edgeCost, fitness);
+                }
+            }
+        }
+    }
+    return neighbors;
 }

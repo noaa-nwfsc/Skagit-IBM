@@ -1,3 +1,73 @@
+latest
+Mon Aug  4 10:39:38 PDT 2025
+Configuring model...
+8 hardware threads available
+Forcing max threads to 1 due to non-zero RNG seed (42)
+1 thread(s) enabled
+
+loading distributary hydrology data: 341/341
+done loading hydro
+directionless edges!
+Found 0 duplicate input edges
+Found 0 duplicate output edges
+Nearshore connector nodes: 1 Low tide terrace
+Nearshore connector nodes: 5 Distributary
+Nearshore connector nodes: 31 Blind channel
+Nearshore connector nodes: 5 Distributary edge
+Nearshore connector nodes: 1 Impoundment
+Nearshore connector nodes: 377 Nearshore
+Created 420 new nearshore connector nodes
+Made  0 disconnected 'distributary' nodes into blind channels
+Found 0 disconnected nodes
+Found 0 orphaned nodes
+Found 0 orphaned protected nodes
+Map nodes: 6 Boat harbor
+Map nodes: 150 Low tide terrace
+Map nodes: 1322 Distributary edge
+Map nodes: 2126 Distributary
+Map nodes: 688 Nearshore
+Map nodes: 155 Impoundment
+Map nodes: 27661 Blind channel
+Sample data will be saved to run32/map2000d2014/output_0.nc
+Step 330: 0.186209s elapsed; 9m59s remaining; 131508 living fish; 12257 exited; 281559 dead
+Writing intermediary file at step: 330
+Step 660: 0.453591s elapsed; 15m30s remaining; 261085 living fish; 51113 exited; 905289 dead
+Writing intermediary file at step: 660
+Step 990: 0.711648s elapsed; 18m47s remaining; 414153 living fish; 91357 exited; 1729195 dead
+Writing intermediary file at step: 990
+Step 1320: 0.286429s elapsed; 17m31s remaining; 169787 living fish; 128021 exited; 2319214 dead
+Writing intermediary file at step: 1320
+Step 1650: 0.139417s elapsed; 14m3s remaining; 98685 living fish; 158410 exited; 2633157 dead
+Writing intermediary file at step: 1650
+Step 1980: 0.150556s elapsed; 10m55s remaining; 99475 living fish; 186829 exited; 2851102 dead
+Writing intermediary file at step: 1980
+Step 2310: 0.134314s elapsed; 8m20s remaining; 87802 living fish; 201478 exited; 3017753 dead
+Writing intermediary file at step: 2310
+Step 2640: 0.125457s elapsed; 6m9s remaining; 79168 living fish; 218930 exited; 3153643 dead
+Writing intermediary file at step: 2640
+Step 2970: 0.0580439s elapsed; 4m17s remaining; 35982 living fish; 229833 exited; 3253071 dead
+Writing intermediary file at step: 2970
+Step 3300: 0.018837s elapsed; 2m38s remaining; 13529 living fish; 238048 exited; 3285122 dead
+Writing intermediary file at step: 3300
+Step 3630: 0.0199968s elapsed; 1m15s remaining; 12577 living fish; 239877 exited; 3299137 dead
+Writing intermediary file at step: 3630
+Step 3960: 0.0111072s elapsed; 4s remaining; 7061 living fish; 241631 exited; 3308792 dead
+Writing intermediary file at step: 3960
+
+Finished at step 3984; 774.232s elapsed since start
+In saveTaggedHistories
+
+Values for N: 1427, and T: 3985
+
+N: 1427,   T: 3985
+
+Finished loading all tracks
+Mon Aug  4 10:53:08 PDT 2025
+
+
+=================
+older
+
 Tue Jul  1 11:38:43 PDT 2025
 Configuring model...
 8 hardware threads available
