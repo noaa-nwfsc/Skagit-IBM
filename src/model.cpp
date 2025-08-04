@@ -67,8 +67,10 @@ Model::Model(
     std::string flowSpeedFilename,
     // Path of the distributary WSE/temp data (netCDF)
     std::string distribWseTempFilename,
-    const ModelConfigMap& config
-) : hydroModel(cresTideFilename, flowVolFilename, airTempFilename, flowSpeedFilename, distribWseTempFilename, hydroTimeIntercept),
+    const ModelConfigMap &config
+) : defaultHydroModel(std::make_unique<HydroModel>(cresTideFilename, flowVolFilename, airTempFilename,
+                                                   flowSpeedFilename, distribWseTempFilename, hydroTimeIntercept)),
+    hydroModel(*defaultHydroModel),
     recTimeIntercept(recTimeIntercept),
     globalTimeIntercept(globalTimeIntercept),
     firstHighTide(false),
@@ -81,8 +83,7 @@ Model::Model(
     nextFishID(0UL),
     maxThreads(maxThreads),
     recruitTagRate(0.5f),
-    configMap(config)
-{
+    configMap(config) {
     if (getInt(ModelParamKey::DirectionlessEdges)) std::cout << "directionless edges!" << std::endl;
 
     // Load the map
@@ -118,12 +119,13 @@ Model::Model(
     std::vector<MapNode *> &map,
     std::vector<MapNode *> &recPoints,
     std::vector<int> &recCounts,
-    std::vector<std::vector<float>> &recSizeDists,
-    std::vector<std::vector<float>> &depths,
-    std::vector<std::vector<float>> &temps,
+    std::vector<std::vector<float> > &recSizeDists,
+    std::vector<std::vector<float> > &depths,
+    std::vector<std::vector<float> > &temps,
     float distFlow
 ) : map(map),
-    hydroModel(map, depths, temps, distFlow),
+    defaultHydroModel(std::make_unique<HydroModel>(map, depths, temps, distFlow)),
+    hydroModel(*defaultHydroModel),
     recCounts(recCounts),
     recSizeDists(recSizeDists),
     recPoints(recPoints),
@@ -138,11 +140,26 @@ Model::Model(
     habitatTypeExitConditionHours(DEFAULT_EXIT_CONDITION_HOURS),
     nextFishID(0UL),
     maxThreads(maxThreads),
-    recruitTagRate(0.5f)
-{
+    recruitTagRate(0.5f) {
     // Make room in the recruit plan vector (per-timestep recruit counts for the current day)
     this->recDayPlan.resize(24, 0UL);
 }
+
+Model::Model(HydroModel *hydroModel)
+    : defaultHydroModel(nullptr),
+      hydroModel(*hydroModel),
+      recTimeIntercept(0),
+      globalTimeIntercept(0),
+      firstHighTide(false),
+      time(0UL),
+      deadCount(0),
+      exitedCount(0),
+      mortConstA(MORT_CONST_A),
+      mortConstC(MORT_CONST_C),
+      habitatTypeExitConditionHours(DEFAULT_EXIT_CONDITION_HOURS),
+      nextFishID(0UL),
+      maxThreads(1),
+      recruitTagRate(0.5f) {}
 
 void Model::masterUpdate() {
     if (this->time % 24 == 0) {
@@ -214,9 +231,9 @@ void moveThread(
 // Handles launching of movement threads
 void Model::moveAll() {
     // Each thread should handle at minimum 4096 fish
-    unsigned threadBatchSize = std::max(4096U, (unsigned) (this->livingIndividuals.size()/this->maxThreads));
+    unsigned threadBatchSize = std::max(4096U, (unsigned) (this->livingIndividuals.size() / this->maxThreads));
     // Figure out how many threads to launch based on the calculated per-thread fish count
-    unsigned numThreads = std::max(1U, (unsigned) (this->livingIndividuals.size()/threadBatchSize));
+    unsigned numThreads = std::max(1U, (unsigned) (this->livingIndividuals.size() / threadBatchSize));
     // Allocate storage for thread datastructures
     std::thread *threads = new std::thread[numThreads];
     // Iterator for the beginning of the living fish list
@@ -241,7 +258,7 @@ void Model::moveAll() {
     delete[] threads;
 
     // Re-pack the living fish into the first part of the living fish list
-    
+
     // Tracker for where to put living fish in the list (start at the start)
     auto targetIt = this->livingIndividuals.begin();
     for (auto sourceIt = this->livingIndividuals.begin(); sourceIt != this->livingIndividuals.end(); ++sourceIt) {
@@ -250,8 +267,7 @@ void Model::moveAll() {
         if (f.status == FishStatus::Alive) {
             *targetIt = *sourceIt;
             ++targetIt;
-        }
-        else if (f.status == FishStatus::Exited) {
+        } else if (f.status == FishStatus::Exited) {
             ++this->exitedCount;
         }
     }
@@ -275,9 +291,9 @@ void growAndDieThread(
 // Handles launching of growth+death threads
 void Model::growAndDieAll() {
     // Each thread should handle at minimum 4096 fish
-    unsigned threadBatchSize = std::max(4096U, (unsigned) (this->livingIndividuals.size()/this->maxThreads));
+    unsigned threadBatchSize = std::max(4096U, (unsigned) (this->livingIndividuals.size() / this->maxThreads));
     // Figure out how many threads to launch based on the calculated per-thread fish count
-    unsigned numThreads = std::max(1U, (unsigned) (this->livingIndividuals.size()/threadBatchSize));
+    unsigned numThreads = std::max(1U, (unsigned) (this->livingIndividuals.size() / threadBatchSize));
     // Allocate storage for thread datastructures
     std::thread *threads = new std::thread[numThreads];
     // Iterator for the beginning of the living fish list
@@ -302,7 +318,7 @@ void Model::growAndDieAll() {
     delete[] threads;
 
     // Re-pack the living fish into the first part of the living fish list, remove dead fish
-    
+
     // Tracker for where to put living fish in the list (start at the start)
     auto targetIt = this->livingIndividuals.begin();
     for (auto sourceIt = this->livingIndividuals.begin(); sourceIt != this->livingIndividuals.end(); ++sourceIt) {
@@ -327,6 +343,7 @@ struct FishSortDummy {
     long id;
     float val;
     FishSortDummy(long id, float val) : id(id), val(val) {};
+
     friend bool operator<(const FishSortDummy &a, const FishSortDummy &b) {
         return a.val < b.val;
     }
@@ -335,19 +352,19 @@ struct FishSortDummy {
 // Calculate per-node population and median mass
 void Model::countAll(bool updateTracking) {
     // Reset node tracker values
-    for (MapNode *node : this->map) {
+    for (MapNode *node: this->map) {
         node->residentIds.clear();
         node->maxMass = 0.0f;
     }
     // Place each fish in the trackers for its node
-    for (long i : this->livingIndividuals) {
+    for (long i: this->livingIndividuals) {
         Fish &f = this->individuals[i];
         f.location->residentIds.push_back(i);
         f.location->maxMass = std::max(f.location->maxMass, f.mass);
     }
     std::vector<FishSortDummy> residentMasses;
     std::vector<FishSortDummy> residentArrivalTimes;
-    for (MapNode *node : this->map) {
+    for (MapNode *node: this->map) {
         // Calculate population density (pop/area)
         node->popDensity = ((float) node->residentIds.size()) / node->area;
         // Calculate median mass
@@ -355,7 +372,7 @@ void Model::countAll(bool updateTracking) {
             residentMasses.clear();
             residentArrivalTimes.clear();
             // Make a list of node's resident masses
-            for (long id : node->residentIds) {
+            for (long id: node->residentIds) {
                 residentMasses.emplace_back(id, this->individuals[id].mass);
                 residentArrivalTimes.emplace_back(id, this->individuals[id].travel);
             }
@@ -373,11 +390,11 @@ void Model::countAll(bool updateTracking) {
 // Generates a single recruit and adds it to a random recruit start node
 void Model::recruitSingle() {
     // Get the current slice of the recruit size distribution data
-    std::vector<float> &recSizeDist = this->recSizeDists[(this->time + this->recTimeIntercept)/(24*14)];
+    std::vector<float> &recSizeDist = this->recSizeDists[(this->time + this->recTimeIntercept) / (24 * 14)];
     // Sample the fork length bucket index from the distribution
     unsigned flIdx = sample(recSizeDist.data(), recSizeDist.size());
     // Calculate the fork length from the bucket index
-    float forkLength = 35.0f + 5.0f*flIdx + unit_rand()*5.0f;
+    float forkLength = 35.0f + 5.0f * flIdx + unit_rand() * 5.0f;
     // Construct a fish and place it in the *ALL* fish list
     this->individuals.emplace_back(
         // This gets the new fish's ID (current val of nextFishID) and then updates nextFishID
@@ -385,7 +402,7 @@ void Model::recruitSingle() {
         this->time,
         forkLength,
         // This samples a random (uniform) recruit start node
-        this->recPoints[GlobalRand::int_rand(0, (int) this->recPoints.size()-1)]
+        this->recPoints[GlobalRand::int_rand(0, (int) this->recPoints.size() - 1)]
     );
     // this->addHistoryBuffers();
     const size_t last_id = this->individuals.back().id;
@@ -429,8 +446,8 @@ void Model::sampling() {
         size_t totalPop = 0;
         // "Instant" sampling (just use the current timestep's resident info) for both modes
         // (difference is in how sampling nodes are assigned)
-        for (MapNode *point : site->points) {
-            for (long id : point->residentIds) {
+        for (MapNode *point: site->points) {
+            for (long id: point->residentIds) {
                 totalMass += this->individuals[id].mass;
                 totalLength += this->individuals[id].forkLength;
                 totalSpawnTime += this->individuals[id].spawnTime;
@@ -441,7 +458,7 @@ void Model::sampling() {
         float meanLength = totalPop > 0 ? totalLength / ((float) totalPop) : 0.0f;
         float meanSpawnTime = totalPop > 0 ? ((float) totalSpawnTime) / ((float) totalPop) : 0.0f;
         // Create a sample data structure from the statistics
-        Sample s {
+        Sample s{
             site->id,
             this->time,
             totalPop,
@@ -456,10 +473,10 @@ void Model::sampling() {
 
 // Destructor for the model (frees all model resources that aren't automatically freed)
 Model::~Model() {
-    for (MapNode *node : this->map) {
+    for (MapNode *node: this->map) {
         delete node;
     }
-    for (SamplingSite *site : this->samplingSites) {
+    for (SamplingSite *site: this->samplingSites) {
         delete site;
     }
 }
@@ -483,7 +500,8 @@ void Model::saveState(std::string savePath) {
     size_t N = this->individuals.size();
     // Add dimensions
     std::vector<netCDF::NcDim> noDims;
-    netCDF::NcDim populationHistoryLength = targetFile.addDim("populationHistoryLength", this->populationHistory.size());
+    netCDF::NcDim populationHistoryLength = targetFile.
+            addDim("populationHistoryLength", this->populationHistory.size());
     std::vector<netCDF::NcDim> populationHistoryDims;
     populationHistoryDims.push_back(populationHistoryLength);
     netCDF::NcDim sampleHistoryLength = targetFile.addDim("sampleHistoryLength", this->sampleHistory.size());
@@ -616,9 +634,9 @@ void Model::saveState(std::string savePath) {
     for (size_t i = 0; i < this->monitoringPoints.size(); ++i) {
         monitoringPointsOut[i] = this->monitoringPoints[i]->id;
         for (size_t t = 0; t < this->populationHistory.size(); ++t) {
-            monitoringPopulationOut[i*this->populationHistory.size() + t] = this->monitoringHistory[i][t].population;
-            monitoringDepthOut[i*this->populationHistory.size() + t] = this->monitoringHistory[i][t].depth;
-            monitoringTempOut[i*this->populationHistory.size() + t] = this->monitoringHistory[i][t].temp;
+            monitoringPopulationOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].population;
+            monitoringDepthOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].depth;
+            monitoringTempOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].temp;
         }
     }
 
@@ -659,7 +677,7 @@ void Model::loadState(std::string loadPath) {
     netCDF::NcVar lastFlowVelocityU = sourceFile.getVar("lastFlowVelocityU");
     netCDF::NcVar lastFlowVelocityV = sourceFile.getVar("lastFlowVelocityV");
     this->individuals.clear();
-    std::vector<size_t> idxVec {0U};
+    std::vector<size_t> idxVec{0U};
     for (size_t id = 0; id < N; ++id) {
         idxVec[0] = id;
         recruitTime.getVar(idxVec, &recruitTimeDummy);
@@ -711,13 +729,14 @@ void Model::loadState(std::string loadPath) {
         sampleMeanMass.getVar(idxVec, &sampleMeanMassDummy);
         sampleMeanLength.getVar(idxVec, &sampleMeanLengthDummy);
         sampleMeanSpawnTime.getVar(idxVec, &sampleMeanSpawnTimeDummy);
-        this->sampleHistory.emplace_back((size_t) sampleSiteIDDummy, sampleTimeDummy, (size_t) samplePopDummy, sampleMeanMassDummy, sampleMeanLengthDummy, sampleMeanSpawnTimeDummy);
+        this->sampleHistory.emplace_back((size_t) sampleSiteIDDummy, sampleTimeDummy, (size_t) samplePopDummy,
+                                         sampleMeanMassDummy, sampleMeanLengthDummy, sampleMeanSpawnTimeDummy);
     }
 
     this->monitoringHistory.clear();
     this->monitoringPoints.clear();
     size_t numMonitoringPoints = sourceFile.getDim("monitoringPoints").getSize();
-    std::vector<size_t> idxVec2 {0U, 0U};
+    std::vector<size_t> idxVec2{0U, 0U};
     netCDF::NcVar monitoringPointIDs = sourceFile.getVar("monitoringPointIDs");
     netCDF::NcVar monitoringPopulation = sourceFile.getVar("monitoringPopulation");
     netCDF::NcVar monitoringDepth = sourceFile.getVar("monitoringDepth");
@@ -737,7 +756,8 @@ void Model::loadState(std::string loadPath) {
             monitoringPopulation.getVar(idxVec2, &monitoringPopulationDummy);
             monitoringDepth.getVar(idxVec2, &monitoringDepthDummy);
             monitoringTemp.getVar(idxVec2, &monitoringTempDummy);
-            this->monitoringHistory[i].emplace_back((size_t) monitoringPopulationDummy, monitoringDepthDummy, monitoringTempDummy);
+            this->monitoringHistory[i].emplace_back((size_t) monitoringPopulationDummy, monitoringDepthDummy,
+                                                    monitoringTempDummy);
         }
     }
 
@@ -801,9 +821,9 @@ void Model::saveSummary(std::string savePath) {
     for (size_t i = 0; i < this->monitoringPoints.size(); ++i) {
         monitoringPointsOut[i] = this->monitoringPoints[i]->id;
         for (size_t t = 0; t < this->populationHistory.size(); ++t) {
-            monitoringPopulationOut[i*this->populationHistory.size() + t] = this->monitoringHistory[i][t].population;
-            monitoringDepthOut[i*this->populationHistory.size() + t] = this->monitoringHistory[i][t].depth;
-            monitoringTempOut[i*this->populationHistory.size() + t] = this->monitoringHistory[i][t].temp;
+            monitoringPopulationOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].population;
+            monitoringDepthOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].depth;
+            monitoringTempOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].temp;
         }
     }
 
@@ -876,14 +896,13 @@ void Model::saveNodeIdMapping(const std::string &nodeIdMappingPath) {
 
         externalIds.putVar(keys.data());
         internalIds.putVar(values.data());
-
     } catch (netCDF::exceptions::NcException &e) {
         std::cerr << "NetCDF error: " << e.what() << std::endl;
         throw;
     }
 }
 
-void Model::saveHydroMapping(const std::string & hydroMappingCsvPath) const {
+void Model::saveHydroMapping(const std::string &hydroMappingCsvPath) const {
     std::ofstream hydroMapOutFile(hydroMappingCsvPath);
     if (!hydroMapOutFile) {
         std::cerr << "Error opening file for writing: " << hydroMappingCsvPath << std::endl;
@@ -892,7 +911,7 @@ void Model::saveHydroMapping(const std::string & hydroMappingCsvPath) const {
     headerLine << "internal_node_ID" << "," << "hydro_node_ID" << "," << "distance";
     hydroMapOutFile << headerLine.str() << std::endl;
 
-    for (const MapNode *node : map) {
+    for (const MapNode *node: map) {
         std::ostringstream lineStream;
         lineStream << node->id << ", " << node->nearestHydroNodeID << ", " << node->hydroNodeDistance;
         hydroMapOutFile << lineStream.str() << std::endl;
@@ -902,10 +921,10 @@ void Model::saveHydroMapping(const std::string & hydroMappingCsvPath) const {
 }
 
 // Set the proportion of recruits that should be tagged for full life history recording
-void Model::setRecruitTagRate(float rate) {this->recruitTagRate = rate;}
+void Model::setRecruitTagRate(float rate) { this->recruitTagRate = rate; }
 
 // Tag an individual so that its full life history is recorded
-void Model::tagIndividual(const size_t id) {this->individuals[id].tag(*this);}
+void Model::tagIndividual(const size_t id) { this->individuals[id].tag(*this); }
 
 
 // Write the full life histories for tagged individuals to the provided filename
@@ -932,15 +951,15 @@ void Model::saveTaggedHistories(std::string savePath) {
     float *finalForkLengthOut = new float[N];
     float *finalMassOut = new float[N];
     int *finalStatusOut = new int[N];
-    int *locationHistoryOut = new int[N*T];
-    float *growthHistoryOut = new float[N*T];
-    float *pmaxHistoryOut = new float[N*T];
-    float *mortalityHistoryOut = new float[N*T];
-    float *tempHistoryOut = new float[N*T];
-    float *depthHistoryOut = new float[N*T];
-    float *flowSpeedHistoryOut = new float[N*T];
-    float *flowVelocityUHistoryOut = new float[N*T];
-    float *flowVelocityVHistoryOut = new float[N*T];
+    int *locationHistoryOut = new int[N * T];
+    float *growthHistoryOut = new float[N * T];
+    float *pmaxHistoryOut = new float[N * T];
+    float *mortalityHistoryOut = new float[N * T];
+    float *tempHistoryOut = new float[N * T];
+    float *depthHistoryOut = new float[N * T];
+    float *flowSpeedHistoryOut = new float[N * T];
+    float *flowVelocityUHistoryOut = new float[N * T];
+    float *flowVelocityVHistoryOut = new float[N * T];
     std::cout << std::endl << "N: " << N << ",   T: " << T << std::endl;
 
     for (size_t n = 0; n < N; ++n) {
@@ -965,22 +984,24 @@ void Model::saveTaggedHistories(std::string savePath) {
             // std::cout << std::endl << "f.mortalityHistory->size(): " << f.mortalityHistory->size() << std::endl;
             if (t < f.taggedTime || t >= f.taggedTime + (long) f.locationHistory->size()) {
                 // std::cout << std::endl << "Condition 1.1" << std::endl;
-                locationHistoryOut[n*T+t] = -1;
+                locationHistoryOut[n * T + t] = -1;
             } else {
                 // std::cout << std::endl << "Condition 1.2" << std::endl;
-                locationHistoryOut[n*T+t] = (*f.locationHistory)[t - f.taggedTime];
+                locationHistoryOut[n * T + t] = (*f.locationHistory)[t - f.taggedTime];
             }
 
             // std::cout << std::endl << "Condition 2.2" << std::endl;
             bool outsideTaggedRange = t < f.taggedTime || t >= f.taggedTime + (long) f.growthHistory->size();
-            growthHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.growthHistory)[t - f.taggedTime];
-            pmaxHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.pmaxHistory)[t - f.taggedTime];
-            mortalityHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.mortalityHistory)[t - f.taggedTime];
-            tempHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.tempHistory)[t - f.taggedTime];
-            depthHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.depthHistory)[t - f.taggedTime];
-            flowSpeedHistoryOut[n*T+t] = outsideTaggedRange ? 0.0f : (*f.flowSpeedHistory_old)[t - f.taggedTime];
-            flowVelocityUHistoryOut[n*T+t] = outsideTaggedRange ? 0.0: (*f.flowVelocityHistory)[t - f.taggedTime].u;
-            flowVelocityVHistoryOut[n*T+t] = outsideTaggedRange ? 0.0: (*f.flowVelocityHistory)[t - f.taggedTime].v;
+            growthHistoryOut[n * T + t] = outsideTaggedRange ? 0.0f : (*f.growthHistory)[t - f.taggedTime];
+            pmaxHistoryOut[n * T + t] = outsideTaggedRange ? 0.0f : (*f.pmaxHistory)[t - f.taggedTime];
+            mortalityHistoryOut[n * T + t] = outsideTaggedRange ? 0.0f : (*f.mortalityHistory)[t - f.taggedTime];
+            tempHistoryOut[n * T + t] = outsideTaggedRange ? 0.0f : (*f.tempHistory)[t - f.taggedTime];
+            depthHistoryOut[n * T + t] = outsideTaggedRange ? 0.0f : (*f.depthHistory)[t - f.taggedTime];
+            flowSpeedHistoryOut[n * T + t] = outsideTaggedRange ? 0.0f : (*f.flowSpeedHistory_old)[t - f.taggedTime];
+            flowVelocityUHistoryOut[n * T + t] =
+                    outsideTaggedRange ? 0.0 : (*f.flowVelocityHistory)[t - f.taggedTime].u;
+            flowVelocityVHistoryOut[n * T + t] =
+                    outsideTaggedRange ? 0.0 : (*f.flowVelocityHistory)[t - f.taggedTime].v;
         }
         // std::cout << std::endl << "finished loading all T data: " << T << std::endl;
     }
@@ -1113,7 +1134,7 @@ void Model::setHistoryTimestep(long timestep) {
     this->time = timestep;
     this->hydroModel.updateTime(timestep);
     this->livingIndividuals.clear();
-    for (Fish &f : this->individuals) {
+    for (Fish &f: this->individuals) {
         if (timestep >= f.taggedTime && timestep < f.taggedTime + (long) f.locationHistory->size()) {
             f.location = this->map[(*f.locationHistory)[timestep - f.taggedTime]];
             f.lastGrowth = (*f.growthHistory)[timestep - f.taggedTime];
@@ -1232,8 +1253,8 @@ Model *modelFromConfig(std::string configPath) {
             d["mapParams"]["pBlind"].GetFloat()
         );
         int simLength = d["simLength"].GetInt();
-        std::vector<std::vector<float>> depths;
-        std::vector<std::vector<float>> temps;
+        std::vector<std::vector<float> > depths;
+        std::vector<std::vector<float> > temps;
         float distFlow;
         env_sim(
             simLength,
@@ -1243,11 +1264,11 @@ Model *modelFromConfig(std::string configPath) {
             distFlow
         );
         std::vector<int> recCounts;
-        std::vector<std::vector<float>> recSizeDists;
+        std::vector<std::vector<float> > recSizeDists;
         float lambda = d["recruitRate"].GetFloat();
         float meanSize = d["recruitSizeMean"].GetFloat();
         float sizeStd = d["recruitSizeStd"].GetFloat();
-        for (int day = 0; day <= simLength/24; ++day) {
+        for (int day = 0; day <= simLength / 24; ++day) {
             recCounts.push_back(poisson(lambda));
         }
         std::vector<float> recSizeDist;
@@ -1255,7 +1276,7 @@ Model *modelFromConfig(std::string configPath) {
             double bucketSize = 35.0 + 5.0 * (double) bucketIdx;
             recSizeDist.push_back(normal_pdf(bucketSize, meanSize, sizeStd));
         }
-        for (int week = 0; week <= simLength/(24*7); ++week) {
+        for (int week = 0; week <= simLength / (24 * 7); ++week) {
             recSizeDists.push_back(recSizeDist);
         }
         m = new Model(

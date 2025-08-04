@@ -10,6 +10,10 @@ set(MODEL_SOURCES
         ../src/load_utils.cpp
         ../src/util.cpp
         ../src/fish_movement.cpp
+        ../src/model.cpp
+        ../src/map_gen.cpp
+        ../src/fish.cpp
+        ../src/env_sim.cpp
 )
 
 set(TEST_SOURCES

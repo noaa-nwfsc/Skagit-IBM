@@ -45,8 +45,13 @@ class Model {
 public:
     // List of heap-allocated map locations
     std::vector<MapNode *> map;
+
+private:
+    std::unique_ptr<HydroModel> defaultHydroModel;
+
+public:
     // The hydrology model
-    HydroModel hydroModel;
+    HydroModel& hydroModel;
 
     // Loaded daily recruit counts (see CONFIG_README for file format)
     std::vector<int> recCounts;
@@ -125,6 +130,9 @@ public:
         float distFlow
     );
 
+    // for tests
+    Model(HydroModel* hydroModel);
+
     // Call to advance the model state by one timestep
     void masterUpdate();
 
@@ -182,7 +190,6 @@ public:
 
 
 private:
-
     ModelConfigMap configMap;
     unsigned long nextFishID;
     size_t maxThreads;
