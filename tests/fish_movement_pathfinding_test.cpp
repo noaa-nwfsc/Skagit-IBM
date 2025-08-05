@@ -79,8 +79,8 @@ TEST_CASE("getReachableNeighbors basic functionality") {
 
         REQUIRE(result.size() == 4);
 
-        std::vector<MapNode*> resultNodes;
-        for (const auto& [node, cost, fitness] : result) {
+        std::vector<MapNode *> resultNodes;
+        for (const auto &[node, cost, fitness]: result) {
             resultNodes.push_back(node);
             REQUIRE(fitness == Catch::Approx(1.0f));
         }
@@ -100,22 +100,22 @@ TEST_CASE("getReachableNeighbors basic functionality") {
 
         // Connect neighbors with different distances
         connectNodes(startNode.get(), closeOutNeighbor.get(), 3.0f); // Cost: 3.0, reachable
-        connectNodes(startNode.get(), farOutNeighbor.get(), 8.0f);   // Cost: 8.0, unreachable with range 5.0
-        connectNodes(closeInNeighbor.get(), startNode.get(), 2.0f);  // Cost: 2.0, reachable
-        connectNodes(farInNeighbor.get(), startNode.get(), 6.0f);    // Cost: 6.0, unreachable with range 5.0
+        connectNodes(startNode.get(), farOutNeighbor.get(), 8.0f); // Cost: 8.0, unreachable with range 5.0
+        connectNodes(closeInNeighbor.get(), startNode.get(), 2.0f); // Cost: 2.0, reachable
+        connectNodes(farInNeighbor.get(), startNode.get(), 6.0f); // Cost: 6.0, unreachable with range 5.0
 
         const float swimRange = 5.0f;
 
         auto result = fishMover.getReachableNeighbors(
-            startNode.get(), 1.0f, swimRange, 0.0f,  // swimRange = 5.0
+            startNode.get(), 1.0f, swimRange, 0.0f, // swimRange = 5.0
             startNode.get(), fitnessCalculator
         );
 
         REQUIRE(result.size() == 2);
 
         // Check that only close neighbors are present
-        std::vector<MapNode*> resultNodes;
-        for (const auto& [node, cost, fitness] : result) {
+        std::vector<MapNode *> resultNodes;
+        for (const auto &[node, cost, fitness]: result) {
             resultNodes.push_back(node);
             REQUIRE(cost <= swimRange);
         }
@@ -145,4 +145,87 @@ TEST_CASE("getReachableNeighbors basic functionality") {
         REQUIRE(result.empty());
     }
 
+    SECTION("Distributary cost calculation when startPoint == fishLocation") {
+        auto startNode = createMapNode(0.0, 0.0);
+        auto distributaryNeighbor = createMapNode(1.0, 0.0, HabitatType::Distributary);
+        auto nearshoreNeighbor = createMapNode(-1.0, 0.0, HabitatType::Nearshore);
+
+        connectNodes(startNode.get(), distributaryNeighbor.get(), 10.0f);
+        connectNodes(startNode.get(), nearshoreNeighbor.get(), 10.0f);
+
+        const float swimRange = 5.0f;
+        const float currentCost = 0.0f;
+
+        auto result = fishMover.getReachableNeighbors(
+            startNode.get(), 1.0f, swimRange, currentCost,
+            startNode.get(), // fishLocation == startPoint
+            fitnessCalculator
+        );
+
+        REQUIRE(result.size() == 1);
+
+        const auto &[node, cost, fitness] = result[0];
+        REQUIRE(node->type == HabitatType::Distributary);
+        REQUIRE(cost == Catch::Approx(5.0f));
+    }
+
+    SECTION("No distributary cost capping when startPoint != fishLocation") {
+        auto startNode = createMapNode(0.0, 0.0);
+        auto fishLocationNode = createMapNode(5.0, 5.0); // Different from startNode
+        auto distributaryNeighbor = createMapNode(1.0, 0.0, HabitatType::Distributary);
+
+        connectNodes(startNode.get(), distributaryNeighbor.get(), 10.0f);
+
+        const float swimRange = 6.0f;
+        const float currentCost = 0.0f;
+
+        auto result = fishMover.getReachableNeighbors(
+            startNode.get(), 1.0f, swimRange, currentCost,
+            fishLocationNode.get(), // fishLocation != startPoint
+            fitnessCalculator
+        );
+
+        // Normally a Distributary destination would have cost capped and become reachable, but only if the startNode==current location
+        REQUIRE(result.empty());
+    }
+
+    SECTION("Cost capping behavior: min(edgeCost, swimRange - currentCost)") {
+        auto startNode = createMapNode(0.0, 0.0);
+        auto distributaryNeighbor = createMapNode(1.0, 0.0, HabitatType::Distributary);
+
+        connectNodes(startNode.get(), distributaryNeighbor.get(), 8.0f);
+
+        const float swimRange = 10.0f;
+        const float currentCost = 3.0f; // swimRange - currentCost = 7.0
+
+        auto result = fishMover.getReachableNeighbors(
+            startNode.get(), 1.0f, swimRange, currentCost,
+            startNode.get(), // fishLocation == startPoint
+            fitnessCalculator
+        );
+
+        REQUIRE(result.size() == 1);
+
+        auto [node, cost, fitness] = result[0];
+        REQUIRE(node == distributaryNeighbor.get());
+        // edgeCost is 8.0 + currentCost (meaning incoming current total) of 3.0 for a new total of 11
+        // that is too high, so it gets lowered to the swim range
+        REQUIRE(cost == Catch::Approx(10.0f));
+
+        SECTION("Edge cost lower than remaining range") {
+            const float currentCost2 = 1.0f; // swimRange - currentCost = 9.0
+
+            auto result2 = fishMover.getReachableNeighbors(
+                startNode.get(), 1.0f, swimRange, currentCost2,
+                startNode.get(),
+                fitnessCalculator
+            );
+
+            REQUIRE(result2.size() == 1);
+
+            auto [node2, cost2, fitness2] = result2[0];
+            // Cost should be min(8.0, 9.0) + currentCost = 8.0 + 1.0 = 9.0
+            REQUIRE(cost2 == Catch::Approx(9.0f));
+        }
+    }
 }
