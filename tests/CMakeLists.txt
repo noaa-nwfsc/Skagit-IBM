@@ -23,6 +23,7 @@ set(TEST_SOURCES
         util_test.cpp
         is_missing_indicator_test.cpp
         load_test.cpp
+        fish_movement_pathfinding_test.cpp
 )
 
 # These tests can use the Catch2-provided main

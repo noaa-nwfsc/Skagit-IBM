@@ -45,7 +45,7 @@ public:
     // Return the temperature in degrees C at a given location
     float getTemp(MapNode &node);
     // Return the water depth in meters at a given location
-    float getDepth(MapNode &node);
+    virtual float getDepth(MapNode &node);
     // Check if the current timestep is a high tide
     bool isHighTide();
 

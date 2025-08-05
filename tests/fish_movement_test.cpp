@@ -1,32 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
-#include "fish_movement.h"
 #include <memory>
 
-class MockHydroModel : public HydroModel {
-public:
-    MockHydroModel() : HydroModel(empty_nodes_, empty_depths_, empty_temps_, 0.0) {}
-
-    float getCurrentU(const MapNode& node) const override { return uValue; }
-    float getCurrentV(const MapNode& node) const override { return vValue; }
-    
-    // Values to be set in tests
-    float uValue = 0.0f;
-    float vValue = 0.0f;
-
-private:
-    std::vector<MapNode *> empty_nodes_;
-    std::vector<std::vector<float>> empty_depths_;
-    std::vector<std::vector<float>> empty_temps_;
-};
-
-
-auto createMapNode(float x, float y) {
-    auto mapNode = std::make_unique<MapNode>(HabitatType::Distributary, 0.0, 0.0, 0.0);
-    mapNode->x = x;
-    mapNode->y = y;
-    return mapNode;
-}
+#include "test_utilities.h"
+#include "fish_movement.h"
 
 
 TEST_CASE("FishMovement::calculateFishMovement tests", "[fish_movement]") {
