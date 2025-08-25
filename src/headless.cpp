@@ -46,16 +46,39 @@ bool acceptCommand(Model *m) {
 }
 
 struct runListingEntry {
-    int runID;
+    unsigned long runID;
     int status;
     float mortConstA;
     float mortConstC;
-    runListingEntry(int runID, int status, float mortConstA, float mortConstC)
+    runListingEntry(unsigned long runID, int status, float mortConstA, float mortConstC)
         : runID(runID), status(status), mortConstA(mortConstA), mortConstC(mortConstC) {}
 };
 
-void readRunListings(std::string& runListingPath, std::string& header, std::vector<struct runListingEntry>& runListings) {
-    std::ifstream is(runListingPath);
+bool readRunListings(int runListingsFd, std::string& header, std::vector<struct runListingEntry>& runListings) {
+    runListings.clear();
+    header.clear();
+
+    if (lseek(runListingsFd, 0, SEEK_SET) == -1) {
+        std::cerr << "Error seeking to beginning of run listing file: " << strerror(errno) << std::endl;
+        return false;
+    }
+
+    struct stat st;
+    if (fstat(runListingsFd, &st) == -1 || st.st_size == 0) {
+        std::cerr << "Error reading run listing file or file is empty" << std::endl;
+        return false;
+    }
+
+    std::string fileContent(st.st_size, '\0');
+    ssize_t bytesRead = read(runListingsFd, &fileContent[0], st.st_size);
+
+    if (bytesRead != st.st_size) {
+        std::cerr << "Error reading complete run listing file" << std::endl;
+        return false;
+    }
+
+    std::istringstream is(fileContent);
+
     std::string line;
     bool first = true;
     while (std::getline(is, line) && !line.empty()) {
@@ -65,29 +88,74 @@ void readRunListings(std::string& runListingPath, std::string& header, std::vect
             continue;
         }
         std::vector<std::string> chunks = split(line, ',');
-        runListings.emplace_back(std::stoi(chunks[0]), std::stoi(chunks[1]), std::stof(chunks[2]), std::stof(chunks[3]));
+        if (chunks.size() != 4) {
+            std::cerr << "Invalid CSV format in run listing file" << std::endl;
+            return false;
+        }
+
+        try {
+            unsigned long runID = std::stoi(chunks[0]);
+            int status = std::stoi(chunks[1]);
+            float mortConstA = std::stof(chunks[2]);
+            float mortConstC = std::stof(chunks[3]);
+
+            runListings.emplace_back(runID, status, mortConstA, mortConstC);
+        } catch (const std::exception& e) {
+            std::cerr << "Error parsing run listing data: " << e.what() << std::endl;
+            return false;
+        }
     }
+    return true;
 }
 
-void writeRunListings(std::string& runListingPath, std::string& header, std::vector<struct runListingEntry>& runListings) {
-    std::ofstream os(runListingPath);
-    os << header << std::endl;
+bool writeRunListings(int runListingsFd, std::string& header, std::vector<struct runListingEntry>& runListings) {
+    if (ftruncate(runListingsFd, 0) == -1) {
+        std::cerr << "Error truncating run listing file" << std::endl;
+        return false;
+    }
+    lseek(runListingsFd, 0, SEEK_SET);
+
+
+    std::ostringstream ss;
+    ss << header << std::endl;
     for (struct runListingEntry& entry : runListings) {
-        os << entry.runID << ',' << entry.status << ',' << entry.mortConstA << ',' << entry.mortConstC << std::endl;
+        ss << entry.runID << ',' << entry.status << ',' << entry.mortConstA << ',' << entry.mortConstC << std::endl;
     }
+
+    std::string content = ss.str();
+    ssize_t written = write(runListingsFd, content.c_str(), content.length());
+    if (written != (ssize_t)content.length()) {
+        std::cerr << "Error writing run listing file" << std::endl;
+        return false;
+    }
+    return true;
 }
 
-int pickRun(std::string& runListingPath, Model *model) {
+int pickRun(int runListingsFd, Model *model) {
+    lseek(runListingsFd, 0, SEEK_SET);
+
     std::vector<struct runListingEntry> runListings;
     std::string header;
-    readRunListings(runListingPath, header, runListings);
+
+    if (!readRunListings(runListingsFd, header, runListings)) {
+        std::cerr << "Failed to read run listing file" << std::endl;
+        return -1;
+    }
+
     for (struct runListingEntry &entry : runListings) {
         if (entry.status == 0) {
             entry.status = 1;
             model->mortConstA = entry.mortConstA;
             model->mortConstC = entry.mortConstC;
-            writeRunListings(runListingPath, header, runListings);
+            if (!writeRunListings(runListingsFd, header, runListings)) {
+                std::cerr << "Failed to write updated run listing file" << std::endl;
+                entry.status = 0;
+                return -1;
+            }
+
+            std::cout << "Selected run ID: " << entry.runID << std::endl;
             return entry.runID;
+
         }
     }
     return -1;
@@ -106,7 +174,7 @@ int main(int argc, char **argv) {
     }
 
     // Access the run listing file to get this run's parameters
-    int runListingFd = open(argv[1], O_RDONLY);
+    int runListingFd = open(argv[1], O_RDWR);
     if (runListingFd == -1) {
         std::cerr << "Couldn't open run listing file, aborting!" << std::endl;
         exit(1);
@@ -120,13 +188,13 @@ int main(int argc, char **argv) {
     std::cout << "Configuring model..." << std::endl;
     Model *m = modelFromConfig(configPath);
 
-    int runID = pickRun(runListingPath, m);
+    int runID = pickRun(runListingFd, m);
 
     flock(runListingFd, LOCK_UN);
     close(runListingFd);
 
     if (runID == -1) {
-        std::cout << "No runs left in listing file!" << std::endl;
+        std::cout << "No runs left in listing file, or other error encountered!" << std::endl;
         exit(0);
     }
 
