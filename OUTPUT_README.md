@@ -82,6 +82,8 @@ All model outputs are saved as [netCDF 4](https://www.unidata.ucar.edu/software/
 
 - Summary files contain the following dimensions:
     - `n`: Indicates individual
+    - `monitoringPoints` (designated below as `p`): number of monitoring points
+    - `historyLength` (designated as `t` below): population history length, equivalent to number of timesteps
 - Summary files contain the following variables:
     - `recruitTime[n]`: ints, each fish's entry timestep
     - `exitTime[n]`: ints, each fish's exit or death timestep (only valid for a given `n` if `finalStatus[n]` is not 0, since status 0 is Alive)
@@ -90,7 +92,13 @@ All model outputs are saved as [netCDF 4](https://www.unidata.ucar.edu/software/
     - `finalForkLength[n]`: floats, current/final fork length of each fish (mm)
     - `finalMass[n]`: floats, current/final mass of each fish (g)
     - `finalStatus[n]`: ints, current/final status of each fish
-
+- Summary files also contain the following monitoring point metadata:
+    - `monitoringPointIDs[p]`: int, external id of each monitoring point
+    - `monitoringPopulation[p][t]`: int, population at each monitoring point by timestep
+    - `monitoringPopulationDensity[p][t]`: float, population density at each monitoring point by timestep
+    - `monitoringDepth[p][t]`: float, depth at each monitoring point by timestep
+    - `monitoringTemp[p][t]`: float, temperature at each monitoring point by timestep
+  
 ### Tagged Fish Histories
 
 - Tagged fish histories contain the following dimensions:

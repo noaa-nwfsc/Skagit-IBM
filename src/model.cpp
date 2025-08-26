@@ -201,7 +201,7 @@ void Model::update1h() {
     //this->checkMonitoringNodes(); // TODO: GROT
     for (size_t i = 0; i < this->monitoringPoints.size(); ++i) {
         MapNode *n = this->monitoringPoints[i];
-        this->monitoringHistory[i].emplace_back(n->residentIds.size(), hydroModel.getDepth(*n), hydroModel.getTemp(*n));
+        this->monitoringHistory[i].emplace_back(n->residentIds.size(), n->popDensity, hydroModel.getDepth(*n), hydroModel.getTemp(*n));
     }
 }
 
@@ -628,6 +628,7 @@ void Model::saveState(std::string savePath) {
     sampleMeanSpawnTime.putVar(sampleMeanSpawnTimeOut);
 
     int *monitoringPopulationOut = new int[this->monitoringPoints.size() * this->populationHistory.size()];
+    float *monitoringPopulationDensityOut = new float[this->monitoringPoints.size() * this->populationHistory.size()];
     float *monitoringDepthOut = new float[this->monitoringPoints.size() * this->populationHistory.size()];
     float *monitoringTempOut = new float[this->monitoringPoints.size() * this->populationHistory.size()];
     int *monitoringPointsOut = new int[this->monitoringPoints.size()];
@@ -635,6 +636,7 @@ void Model::saveState(std::string savePath) {
         monitoringPointsOut[i] = this->monitoringPoints[i]->id;
         for (size_t t = 0; t < this->populationHistory.size(); ++t) {
             monitoringPopulationOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].population;
+            monitoringPopulationDensityOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].populationDensity;
             monitoringDepthOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].depth;
             monitoringTempOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].temp;
         }
@@ -642,6 +644,8 @@ void Model::saveState(std::string savePath) {
 
     netCDF::NcVar monitoringPopulation = targetFile.addVar("monitoringPopulation", netCDF::ncInt, monitoringDims);
     monitoringPopulation.putVar(monitoringPopulationOut);
+    netCDF::NcVar monitoringPopulationDensity = targetFile.addVar("monitoringPopulationDensity", netCDF::ncFloat, monitoringDims);
+    monitoringPopulationDensity.putVar(monitoringPopulationDensityOut);
     netCDF::NcVar monitoringDepth = targetFile.addVar("monitoringDepth", netCDF::ncFloat, monitoringDims);
     monitoringDepth.putVar(monitoringDepthOut);
     netCDF::NcVar monitoringTemp = targetFile.addVar("monitoringTemp", netCDF::ncFloat, monitoringDims);
@@ -739,10 +743,12 @@ void Model::loadState(std::string loadPath) {
     std::vector<size_t> idxVec2{0U, 0U};
     netCDF::NcVar monitoringPointIDs = sourceFile.getVar("monitoringPointIDs");
     netCDF::NcVar monitoringPopulation = sourceFile.getVar("monitoringPopulation");
+    netCDF::NcVar monitoringPopulationDensity = sourceFile.getVar("monitoringPopulationDensity");
     netCDF::NcVar monitoringDepth = sourceFile.getVar("monitoringDepth");
     netCDF::NcVar monitoringTemp = sourceFile.getVar("monitoringTemp");
     int monitoringPointIDDummy;
     int monitoringPopulationDummy;
+    float monitoringPopulationDensityDummy;
     float monitoringDepthDummy;
     float monitoringTempDummy;
     for (size_t i = 0; i < numMonitoringPoints; ++i) {
@@ -754,10 +760,11 @@ void Model::loadState(std::string loadPath) {
         for (size_t t = 0; t < populationHistoryLength; ++t) {
             idxVec2[1] = t;
             monitoringPopulation.getVar(idxVec2, &monitoringPopulationDummy);
+            monitoringPopulationDensity.getVar(idxVec2, &monitoringPopulationDensityDummy);
             monitoringDepth.getVar(idxVec2, &monitoringDepthDummy);
             monitoringTemp.getVar(idxVec2, &monitoringTempDummy);
-            this->monitoringHistory[i].emplace_back((size_t) monitoringPopulationDummy, monitoringDepthDummy,
-                                                    monitoringTempDummy);
+            this->monitoringHistory[i].emplace_back((size_t)
+                monitoringPopulationDummy, monitoringPopulationDensityDummy, monitoringDepthDummy, monitoringTempDummy);
         }
     }
 
@@ -815,6 +822,7 @@ void Model::saveSummary(std::string savePath) {
     finalStatus.putVar(finalStatusOut);
 
     int *monitoringPopulationOut = new int[this->monitoringPoints.size() * this->populationHistory.size()];
+    float *monitoringPopulationDensityOut = new float[this->monitoringPoints.size() * this->populationHistory.size()];
     float *monitoringDepthOut = new float[this->monitoringPoints.size() * this->populationHistory.size()];
     float *monitoringTempOut = new float[this->monitoringPoints.size() * this->populationHistory.size()];
     int *monitoringPointsOut = new int[this->monitoringPoints.size()];
@@ -822,6 +830,7 @@ void Model::saveSummary(std::string savePath) {
         monitoringPointsOut[i] = this->monitoringPoints[i]->id;
         for (size_t t = 0; t < this->populationHistory.size(); ++t) {
             monitoringPopulationOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].population;
+            monitoringPopulationDensityOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].populationDensity;
             monitoringDepthOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].depth;
             monitoringTempOut[i * this->populationHistory.size() + t] = this->monitoringHistory[i][t].temp;
         }
@@ -829,6 +838,8 @@ void Model::saveSummary(std::string savePath) {
 
     netCDF::NcVar monitoringPopulation = targetFile.addVar("monitoringPopulation", netCDF::ncInt, monitoringDims);
     monitoringPopulation.putVar(monitoringPopulationOut);
+    netCDF::NcVar monitoringPopulationDensity = targetFile.addVar("monitoringPopulationDensity", netCDF::ncFloat, monitoringDims);
+    monitoringPopulationDensity.putVar(monitoringPopulationDensityOut);
     netCDF::NcVar monitoringDepth = targetFile.addVar("monitoringDepth", netCDF::ncFloat, monitoringDims);
     monitoringDepth.putVar(monitoringDepthOut);
     netCDF::NcVar monitoringTemp = targetFile.addVar("monitoringTemp", netCDF::ncFloat, monitoringDims);

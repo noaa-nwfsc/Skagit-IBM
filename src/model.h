@@ -36,9 +36,10 @@ typedef struct Sample {
 
 typedef struct MonitoringRecord {
     size_t population;
+    float populationDensity;
     float depth;
     float temp;
-    MonitoringRecord(size_t population, float depth, float temp) : population(population), depth(depth), temp(temp) {}
+    MonitoringRecord(size_t population, float populationDensity, float depth, float temp) : population(population), populationDensity(populationDensity), depth(depth), temp(temp) {}
 } MonitoringRecord;
 
 class Model {
