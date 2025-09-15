@@ -203,9 +203,9 @@ int main(int argc, char **argv) {
         mkdir(outputPath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
     }
 
-    std::stringstream idMapFile;
-    idMapFile << outputPath << "/id_mapping_" << runID << ".nc";
-    m->saveNodeIdMapping(idMapFile.str());
+    // std::stringstream idMapFile;
+    // idMapFile << outputPath << "/id_mapping_" << runID << ".nc";
+    // m->saveNodeIdMapping(idMapFile.str());
 
     std::stringstream hydroMappingFile;
     hydroMappingFile << outputPath << "/hydro_mapping_" << runID << ".csv";

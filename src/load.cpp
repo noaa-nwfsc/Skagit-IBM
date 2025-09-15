@@ -623,7 +623,7 @@ void outputNodeCounts(const std::vector<MapNode*> &nodes, const std::string &nod
 }
 
 // Elaborate all nearshore edges
-void expandNearshoreLinks(std::vector<MapNode *> &map, unsigned int maxRealID) {
+void expandNearshoreLinks(std::vector<MapNode *> &map) {
     std::unordered_set<MapNode *> toAdd;
 
     for (MapNode *node : map) {
@@ -640,15 +640,23 @@ void expandNearshoreLinks(std::vector<MapNode *> &map, unsigned int maxRealID) {
             }
         }
     }
-    unsigned int newID = maxRealID + 1;
+
+    int smallestExistingID = std::numeric_limits<int>::max();
+    for (MapNode *node : map) {
+        if (node->id < smallestExistingID) {
+            smallestExistingID = node->id;
+        }
+    }
+    int newID = std::min(-1, smallestExistingID - 1);
+
     for (MapNode *newNode : toAdd) {
         newNode->id = newID;
         map.push_back(newNode);
-        ++newID;
+        --newID;
     }
 
     outputNodeCounts(std::vector<MapNode*>(toAdd.begin(), toAdd.end()), "Nearshore connector");
-    std::cout << "Created " << newID - maxRealID - 1 << " new nearshore connector nodes" << std::endl;
+    std::cout << "Created " << toAdd.size() << " new nearshore connector nodes" << std::endl;
 }
 
 // Count all neighbors of a given node that are distributary nodes
@@ -861,19 +869,6 @@ void fixDisjointDistributaries(std::vector<MapNode *> &map, std::vector<MapNode 
     std::cout << "Found " << orphaned_protected << " orphaned protected nodes" << std::endl;
 }
 
-void cleanupRemovedNodeIdMappings(std::unordered_map<unsigned int, unsigned int> &csvToInternalId, const std::vector<MapNode *> &dest) {
-    for (auto csv_it =  csvToInternalId.begin(); csv_it != csvToInternalId.end(); ) {
-        int internalId = static_cast<int>(csv_it->second);
-        auto found_internal = std::find_if(dest.begin(), dest.end(),[internalId](const MapNode *node) -> bool { return (node->id == internalId); });
-        bool unused_mapping = (found_internal == dest.end());
-        if (unused_mapping) {
-            csv_it = csvToInternalId.erase(csv_it);
-        } else {
-            ++csv_it;
-        }
-    }
-}
-
 void identifyProtectedNodes(const std::vector<MapNode *> &monitoringPoints, const std::unordered_map<MapNode *, SamplingSite *> &samplingSitesByNode, const std::vector<MapNode *> &recPoints, std::unordered_set<MapNode *> &protectedNodes) {
     for (MapNode *node : monitoringPoints) {
         protectedNodes.insert(node);
@@ -957,13 +952,14 @@ void removeDisconnectedNodes(const std::unordered_set<MapNode *> &disconnectedNo
 
         auto mapIter = std::find(map.begin(), map.end(), disconnectedNode);
         if (mapIter != map.end()) {
+            std::cout << "Removing disconnected node " << disconnectedNode->id << std::endl;
             map.erase(mapIter);
             delete disconnectedNode;
         }
     }
 }
 
-void checkDuplicateEdges(const std::vector<MapNode *> &nodes) {
+void reportDuplicateEdges(const std::vector<MapNode *> &nodes) {
     int duplicateInEdges = 0;
     int duplicateOutEdges = 0;
     for (const MapNode *node: nodes) {
@@ -1028,10 +1024,9 @@ void checkAndAddEdge(Edge e) {
 // (additionally runs cleanup on the resulting map graph)
 void loadMap(
     std::vector<MapNode *> &dest,
-    std::string locationFilePath,
-    std::string edgeFilePath,
-    std::string geometryFilePath,
-    std::unordered_map<unsigned int, unsigned int> &csvToInternalID,
+    std::string& locationFilePath,
+    std::string& edgeFilePath,
+    std::string& geometryFilePath,
     std::vector<DistribHydroNode> &hydroNodes,
     std::vector<unsigned> &recPointIds,
     std::vector<MapNode *> &recPoints,
@@ -1050,7 +1045,7 @@ void loadMap(
     bool first = true;
     std::unordered_map<std::string, SamplingSite *> samplingSitesByName;
     std::unordered_map<MapNode *, SamplingSite *> samplingSitesByNode;
-    csvToInternalID.clear();
+    std::unordered_map<unsigned int, unsigned int> csvIdToLocalIndex;
     dest.clear();
     // Load node data rom the vertex file
     while (std::getline(locationFile, line)) {
@@ -1063,13 +1058,13 @@ void loadMap(
         // create a MapNodeData struct to temporarily hold the relevant data until we know
         // an ID to make an actual MapNode with
         // Check the MapNodeData definition for field names
-        unsigned int csvId = std::stoi(chunks[0]);
-        unsigned int internalId = dest.size();
-        if (csvToInternalID.count(csvId)) {
+        int csvId = std::stoi(chunks[0]);
+        unsigned int nextLocalIndex = dest.size();
+        if (csvIdToLocalIndex.count(csvId)) {
             std::cerr << "Multiple nodes with ID " << csvId << "!" << std::endl;
             continue;
         }
-        csvToInternalID[csvId] = internalId;
+        csvIdToLocalIndex[csvId] = nextLocalIndex;
         float area = std::stof(chunks[5]);
         float sourceDistance = std::stof(chunks[7]);
         float elev = std::stof(chunks[10]);
@@ -1079,7 +1074,7 @@ void loadMap(
             habType, area, elev, sourceDistance
         ));
         MapNode *node = dest.back();
-        node->id = internalId;
+        node->id = csvId;
 
         if (std::stoi(chunks[12]) == 1) {
             monitoringPoints.push_back(node);
@@ -1102,7 +1097,6 @@ void loadMap(
             samplingSitesByNode[node] = site;
         }
     }
-    unsigned int maxRealID = dest.size() - 1;
     // Load edges from the edge file
     first = true;
     while (std::getline(edgeFile, line)) {
@@ -1122,13 +1116,13 @@ void loadMap(
         }
         unsigned idSource = std::stoi(chunks[14]);
         unsigned idTarget = std::stoi(chunks[15]);
-        if (!(csvToInternalID.count(idSource) && csvToInternalID.count(idTarget))) {
+        if (!(csvIdToLocalIndex.count(idSource) && csvIdToLocalIndex.count(idTarget))) {
             std::cerr << "Edge " << chunks[1] << " has nonexistent source/target!" << std::endl;
             continue;
         }
         float length = std::stof(chunks[18]);
 
-        Edge e(dest[csvToInternalID[idSource]], dest[csvToInternalID[idTarget]], length);
+        Edge e(dest[csvIdToLocalIndex[idSource]], dest[csvIdToLocalIndex[idTarget]], length);
         checkAndAddEdge(e);
     }
     // Load node locations from the geometry file
@@ -1140,38 +1134,37 @@ void loadMap(
         }
         std::vector<std::string> chunks = split(line, ',');
         unsigned id = std::stoi(chunks[2]);
-        if (!csvToInternalID.count(id)) {
+        if (!csvIdToLocalIndex.count(id)) {
             std::cerr << "Geometry file references nonexistent node " << id << std::endl;
             continue;
         }
-        dest[csvToInternalID[id]]->x = std::stof(chunks[0]);
-        dest[csvToInternalID[id]]->y = std::stof(chunks[1]);
+        dest[csvIdToLocalIndex[id]]->x = std::stof(chunks[0]);
+        dest[csvIdToLocalIndex[id]]->y = std::stof(chunks[1]);
     }
     for (unsigned id : recPointIds) {
-        if (!csvToInternalID.count(id)) {
+        if (!csvIdToLocalIndex.count(id)) {
             std::cerr << "Recruitment node " << id << " doesn't exist" << std::endl;
         }
-        recPoints.push_back(dest[csvToInternalID[id]]);
+        recPoints.push_back(dest[csvIdToLocalIndex[id]]);
     }
 
     // Clean up clean up everybody do your share
     //condenseMissingNodes(dest);
-    checkDuplicateEdges(dest);
+    reportDuplicateEdges(dest);
 
     std::unordered_set<MapNode *> disconnectedNodes = identifyDisconnectedNodes(dest, recPoints);
-    removeDisconnectedNodes(disconnectedNodes, dest, recPoints, monitoringPoints, samplingSites, samplingSitesByNode);
+    removeDisconnectedNodes(disconnectedNodes, dest, recPoints, monitoringPoints, samplingSites, samplingSitesByNode); //TODO:GROT removes nodes
 
     std::unordered_set<MapNode *> protectedNodes;
     identifyProtectedNodes(monitoringPoints, samplingSitesByNode, recPoints, protectedNodes);
-    simplifyBlindChannels(dest, blindChannelSimplificationRadius, protectedNodes);
+    simplifyBlindChannels(dest, blindChannelSimplificationRadius, protectedNodes); // TODO:GROT - removes nodes from map. moves some nodes to end of map, preserving ids.
     //fixBrokenEdges(dest);
     if (configMap.getInt(ModelParamKey::VirtualNodes)) {
-        expandNearshoreLinks(dest, maxRealID);
+        expandNearshoreLinks(dest); // TODO:GROT - adds new nodes using negative values for new ids
     };
     //assignCrossChannelEdges(dest); // OBSOLETE
-    fixDisjointDistributaries(dest, recPoints, protectedNodes);
+    fixDisjointDistributaries(dest, recPoints, protectedNodes); //TODO:GROT - deprecate? can change distributaries to blind channels, reports on disconnected and orphaned nodes
     assignNearestHydroNodes(dest, hydroNodes);
     fixElevations(dest, hydroNodes);
-    cleanupRemovedNodeIdMappings(csvToInternalID, dest);
     outputNodeCounts(dest, "Map");
 }

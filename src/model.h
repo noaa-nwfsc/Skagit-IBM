@@ -66,7 +66,7 @@ public:
     std::vector<SamplingSite *> samplingSites;
     // List of locations for which to track population/environmental values per timestep
     std::vector<MapNode *> monitoringPoints;
-    std::unordered_map<unsigned int, unsigned int> externalCsvIdToInternalId;
+    // std::unordered_map<unsigned int, unsigned int> externalCsvIdToInternalId;
 
     // Timesteps between midnight on Jan 1 and the start of the recruitment data
     int recTimeIntercept;
@@ -178,7 +178,7 @@ public:
     // in the currently loaded life histories
     void setHistoryTimestep(long timestep);
 
-    void saveNodeIdMapping(const std::string &nodeIdMappingPath);
+    // void saveNodeIdMapping(const std::string &nodeIdMappingPath);
     void saveHydroMapping(const std::string & hydroMappingCsvPath) const;
 
     int getInt(ModelParamKey key) const;

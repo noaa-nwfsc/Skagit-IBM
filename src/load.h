@@ -40,15 +40,15 @@ void checkAndAddEdge(Edge e);
 // See CONFIG_README for a description of file formats
 void loadMap(
     std::vector<MapNode *> &dest,
-    std::string locationFilePath,
-    std::string edgeFilePath,
-    std::string geometryFilePath,
-    std::unordered_map<unsigned int, unsigned int> &csvToInternalID,
+    std::string& locationFilePath,
+    std::string& edgeFilePath,
+    std::string& geometryFilePath,
     std::vector<DistribHydroNode> &hydroNodes,
     std::vector<unsigned> &recPointIds,
     std::vector<MapNode *> &recPoints,
     std::vector<MapNode *> &monitoringPoints,
     std::vector<SamplingSite *> &samplingSites,
-    float blindChannelSimplificationRadius, const ModelConfigMap& configMap);
+    float blindChannelSimplificationRadius,
+    const ModelConfigMap& configMap);
 
 #endif
