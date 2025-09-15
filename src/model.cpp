@@ -1013,6 +1013,19 @@ void Model::saveTaggedHistories(std::string savePath) {
                     outsideTaggedRange ? 0.0 : (*f.flowVelocityHistory)[t - f.taggedTime].u;
             flowVelocityVHistoryOut[n * T + t] =
                     outsideTaggedRange ? 0.0 : (*f.flowVelocityHistory)[t - f.taggedTime].v;
+
+            // int locationIndex = locationHistoryOut[n*T+t];
+            // float pMax = pmaxHistoryOut[n*T+t];
+            // if (locationIndex != -1 && this->map[locationIndex]->type == HabitatType::Nearshore && pMax != 1.0) {
+            //     std::cout << "Writing nearshore Pmax: " << pMax << " for ID: " << this->map[locationIndex]->id
+            //     << " at step: " << t << std::endl;
+            // }
+            //
+            // if (locationIndex != this->map[locationIndex]->id) {
+            //     std::cout << "Location index from history: " << locationIndex << " is not equal to map ID: " << this->map[locationIndex]->id << std::endl;
+            //     std::cout << std::endl;
+            // }
+
         }
         // std::cout << std::endl << "finished loading all T data: " << T << std::endl;
     }

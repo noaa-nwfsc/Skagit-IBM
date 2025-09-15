@@ -67,7 +67,7 @@ All model outputs are saved as [netCDF 4](https://www.unidata.ucar.edu/software/
 
 ### Sample data
 
-- Snapshot files contain the following dimensions:
+- Sample data files contain the following dimensions:
     - `sampleHistoryLength`: Indicates sample number for sample history entries (not equivalent to time)
 - Sample data files contain the following variables:
     - `sampleSiteID[sampleHistoryLength]`: ints, each sample's site ID

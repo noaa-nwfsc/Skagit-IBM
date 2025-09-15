@@ -13,7 +13,7 @@ Parameters:
 - `habitatMortalityMultiplier`: float; optional; default 2.0; additional mortality multiplier applied in distributaries and nearshore habitats
 - `mortMin`: float; optional; default 0.0005; mort_min_c parameter used in fish mortality equation
 - `mortMax`: float; optional; default 0.002; mort_max_d parameter used in fish mortality equation
-- `growthSlope`: float; optional; default 0.007; growthSlope used in Pmax equation
+- `growthSlope`: float; optional; default 0.0007; growthSlope used in Pmax equation
 - `envDataType`: string, either `file` or `sim`
     - if `envDataType` is `file`, the following entries are expected:
         - `recStartTimestep`: the number of 1-hour timesteps from midnight on January 1 to the start date/time of the recruitment data

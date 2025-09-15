@@ -726,6 +726,10 @@ void Fish::trackHistory() const {
     if (isNotTagged()) {
         return;
     }
+    if (this->location->type == HabitatType::Nearshore && this->lastPmax != 1.0) {
+        std::cout << "Tracking nearshore Pmax: " << this->lastPmax << " for ID: " << this->location->id
+        << " at step: " << this->locationHistory->size() -1 << std::endl;
+    }
     this->locationHistory->push_back(this->location->id);
     this->growthHistory->push_back(this->lastGrowth);
     this->pmaxHistory->push_back(this->lastPmax);
