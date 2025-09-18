@@ -14,32 +14,30 @@
 
 class FishMovement {
 public:
-    explicit FishMovement(Model& model)
-        : model(model), hydroModel(&model.hydroModel) {
-    }
+    explicit FishMovement(Model &model)
+        : model(model), hydroModel(&model.hydroModel) {}
 
-    double calculateTransitSpeed(const Edge& edge, const MapNode* startNode, double stillWaterSwimSpeed) const;
+    double calculateTransitSpeed(const Edge &edge, const MapNode *startNode, double stillWaterSwimSpeed) const;
 
-    std::vector<std::tuple<MapNode*, float, float>> getReachableNeighbors(
-    MapNode* startPoint,
-    float swimSpeed,
-    float swimRange,
-    float currentCost,
-    MapNode* fishLocation,
-    const std::function<float(Model&, MapNode&, float)>& fitnessCalculator
-) const;
-
+    std::vector<std::tuple<MapNode *, float, float> > getReachableNeighbors(
+        MapNode *startPoint,
+        float swimSpeed,
+        float swimRange,
+        float currentCost,
+        MapNode *fishLocation,
+        const std::function<float(Model &, MapNode &, float)> &fitnessCalculator
+    ) const;
 
 private:
-    Model& model;
-    HydroModel* hydroModel;
+    Model &model;
+    HydroModel *hydroModel;
 
-    double calculateEffectiveSwimSpeed(const MapNode& startNode, const MapNode& endNode, double stillWaterSwimSpeed) const;
+    double calculateEffectiveSwimSpeed(const MapNode &startNode, const MapNode &endNode,
+                                       double stillWaterSwimSpeed) const;
 
-    float getCurrentU(const MapNode& node) const;
-    float getCurrentV(const MapNode& node) const;
+    float getCurrentU(const MapNode &node) const;
+    float getCurrentV(const MapNode &node) const;
 };
-
 
 
 #endif //FISHMOVEMENT_H
