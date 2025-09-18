@@ -18,6 +18,7 @@ public:
         : model(model), hydroModel(&model.hydroModel) {}
 
     double calculateTransitSpeed(const Edge &edge, const MapNode *startNode, double stillWaterSwimSpeed) const;
+    bool canMoveInDirectionOfEndNode(float transitSpeed, float swimSpeed) const;
 
     std::vector<std::tuple<MapNode *, float, float> > getReachableNeighbors(
         MapNode *startPoint,

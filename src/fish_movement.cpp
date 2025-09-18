@@ -82,6 +82,10 @@ double FishMovement::calculateTransitSpeed(const Edge& edge, const MapNode* star
     return calculateEffectiveSwimSpeed(*startNode, *endNode, stillWaterSwimSpeed);
 }
 
+bool FishMovement::canMoveInDirectionOfEndNode(float transitSpeed, float swimSpeed) const {
+    return transitSpeed > 0.0f;
+}
+
 std::vector<std::tuple<MapNode*, float, float>> FishMovement::getReachableNeighbors(
     MapNode* startPoint,
     float swimSpeed,
@@ -101,7 +105,7 @@ std::vector<std::tuple<MapNode*, float, float>> FishMovement::getReachableNeighb
         MapNode* endNode = (startNode == edge.source ? edge.target : edge.source);
         if (model.hydroModel.getDepth(*endNode) >= MOVEMENT_DEPTH_CUTOFF) {
             float transitSpeed = (float) calculateTransitSpeed(edge, startNode, swimSpeed);
-            if (transitSpeed > 0.0f) {
+            if (canMoveInDirectionOfEndNode(transitSpeed, swimSpeed)) {
                 float edgeCost = (edge.length / transitSpeed) * swimSpeed;
                 if (isDistributary(endNode->type) && startPoint == fishLocation) {
                     edgeCost = std::min(edgeCost, swimRange - currentCost);
