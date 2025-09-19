@@ -9,10 +9,11 @@
 #include "hydro.h"
 #include "map.h"
 
-float FishMovement::getCurrentU(const MapNode& node) const {
+float FishMovement::getCurrentU(const MapNode &node) const {
     return hydroModel->getCurrentU(node);
 }
-float FishMovement::getCurrentV(const MapNode& node) const {
+
+float FishMovement::getCurrentV(const MapNode &node) const {
     return hydroModel->getCurrentV(node);
 }
 
@@ -26,7 +27,7 @@ double dotProduct(double ax, double ay, double bx, double by) {
 /**
  * Normalize a 2D vector (modifies the input variables)
  */
-void normalizeVector(double& x, double& y) {
+void normalizeVector(double &x, double &y) {
     double magnitude = std::sqrt(x * x + y * y);
     if (magnitude > 0) {
         x /= magnitude;
@@ -42,7 +43,8 @@ void normalizeVector(double& x, double& y) {
  * @param stillWaterSwimSpeed The swim speed of the fish in still water (non-negative)
  * @return The effective swim speed (non-negative, returns 0 if fish cannot make progress)
  */
-double FishMovement::calculateEffectiveSwimSpeed(const MapNode& startNode, const MapNode& endNode, double stillWaterSwimSpeed) const {
+double FishMovement::calculateEffectiveSwimSpeed(const MapNode &startNode, const MapNode &endNode,
+                                                 double stillWaterSwimSpeed) const {
     // Calculate direction vector from start to end
     double dirX = endNode.x - startNode.x;
     double dirY = endNode.y - startNode.y;
@@ -75,9 +77,10 @@ double FishMovement::calculateEffectiveSwimSpeed(const MapNode& startNode, const
  * @param stillWaterSwimSpeed The swim speed of the fish in still water (non-negative)
  * @return The effective swim speed (non-negative, returns 0 if fish cannot make progress)
  */
-double FishMovement::calculateTransitSpeed(const Edge& edge, const MapNode* startNode, double stillWaterSwimSpeed) const {
+double FishMovement::calculateTransitSpeed(const Edge &edge, const MapNode *startNode,
+                                           double stillWaterSwimSpeed) const {
     // Determine the end node based on the start node
-    const MapNode* endNode = (startNode == edge.source) ? edge.target : edge.source;
+    const MapNode *endNode = (startNode == edge.source) ? edge.target : edge.source;
 
     return calculateEffectiveSwimSpeed(*startNode, *endNode, stillWaterSwimSpeed);
 }
@@ -86,20 +89,26 @@ bool FishMovement::canMoveInDirectionOfEndNode(float transitSpeed, float swimSpe
     return transitSpeed > 0.0f;
 }
 
-std::vector<std::tuple<MapNode*, float, float>> FishMovement::getReachableNeighbors(
-    MapNode* startPoint,
+void FishMovement::addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
+                                      float accumulatedCost, float stayCost,
+                                      float currentLocationFitness) {
+    neighbors.emplace_back(point, accumulatedCost + stayCost, currentLocationFitness);
+}
+
+std::vector<std::tuple<MapNode *, float, float> > FishMovement::getReachableNeighbors(
+    MapNode *startPoint,
     float accumulatedCost,
-    MapNode* initialFishLocation
+    MapNode *initialFishLocation
 ) const {
-    std::vector<std::tuple<MapNode*, float, float>> neighbors;
+    std::vector<std::tuple<MapNode *, float, float> > neighbors;
     std::vector<Edge> allEdges;
     allEdges.reserve(startPoint->edgesIn.size() + startPoint->edgesOut.size());
     allEdges.insert(allEdges.end(), startPoint->edgesIn.begin(), startPoint->edgesIn.end());
     allEdges.insert(allEdges.end(), startPoint->edgesOut.begin(), startPoint->edgesOut.end());
 
     for (Edge &edge: allEdges) {
-        MapNode* startNode = startPoint;
-        MapNode* endNode = (startNode == edge.source ? edge.target : edge.source);
+        MapNode *startNode = startPoint;
+        MapNode *endNode = (startNode == edge.source ? edge.target : edge.source);
         if (model.hydroModel.getDepth(*endNode) >= MOVEMENT_DEPTH_CUTOFF) {
             float transitSpeed = (float) calculateTransitSpeed(edge, startNode, swimSpeed);
             if (canMoveInDirectionOfEndNode(transitSpeed, swimSpeed)) {
@@ -115,4 +124,14 @@ std::vector<std::tuple<MapNode*, float, float>> FishMovement::getReachableNeighb
         }
     }
     return neighbors;
+}
+
+void FishMovement::addReachableNeighbors(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
+                                         float accumulated_cost, MapNode *map_node) const {
+    auto reachableNeighbors = getReachableNeighbors(point, accumulated_cost, map_node);
+    neighbors.insert(
+        neighbors.end(),
+        std::make_move_iterator(reachableNeighbors.begin()),
+        std::make_move_iterator(reachableNeighbors.end())
+    );
 }
