@@ -10,16 +10,19 @@
 TEST_CASE("FishMovement::calculateFishMovement tests", "[fish_movement]") {
     auto hydroModel = std::make_unique<MockHydroModel>();
     Model testModel(hydroModel.get());
-    FishMovement fishMover(testModel);
+    auto fitnessCalculator = [](Model &, MapNode &, float) -> float { return 1.0f; };
+    float swimSpeed = 1.0f;
+    float swimRange = 10.0f;
+    FishMovement fishMover(testModel, swimSpeed, swimRange, fitnessCalculator);
 
     SECTION("Fish moving in still water") {
         auto nodeA = createMapNode(0.0, 0.0);
-        auto nodeB = createMapNode(3.0, 4.0);;  // Creates a 3-4-5 triangle
+        auto nodeB = createMapNode(3.0, 4.0);; // Creates a 3-4-5 triangle
         Edge edge(nodeA.get(), nodeB.get(), 0.0);
-        
+
         hydroModel->uValue = 0.0f;
         hydroModel->vValue = 0.0f;
-        
+
         double stillWaterSpeed = 1.0;
         double result = fishMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
 
@@ -42,12 +45,12 @@ TEST_CASE("FishMovement::calculateFishMovement tests", "[fish_movement]") {
             // Create a blind channel mock that inherits the existing hydroModel's values
             class BlindChannelMockHydroModel : public MockHydroModel {
             public:
-                explicit BlindChannelMockHydroModel(const MockHydroModel* baseModel) {
+                explicit BlindChannelMockHydroModel(const MockHydroModel *baseModel) {
                     uValue = baseModel->uValue;
                     vValue = baseModel->vValue;
                 }
 
-                float scaledFlowSpeed(float speed, const MapNode&) override {
+                float scaledFlowSpeed(float speed, const MapNode &) override {
                     return speed * 0.5f; // 50% reduction in blind channels
                 }
 
@@ -59,7 +62,7 @@ TEST_CASE("FishMovement::calculateFishMovement tests", "[fish_movement]") {
             auto blindHydroModel = std::make_unique<BlindChannelMockHydroModel>(hydroModel.get());
             Model testModelBlind(blindHydroModel.get());
 
-            FishMovement blindChannelFishMover(testModelBlind);
+            FishMovement blindChannelFishMover(testModelBlind, swimSpeed, swimRange, fitnessCalculator);
 
             double blindChannelResult = blindChannelFishMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
 
@@ -68,7 +71,6 @@ TEST_CASE("FishMovement::calculateFishMovement tests", "[fish_movement]") {
             REQUIRE(blindChannelResult == Catch::Approx(1.25));
             REQUIRE(blindChannelResult < normalChannelResult);
         }
-
     }
 
     SECTION("Fish moving against strong current") {
@@ -148,7 +150,9 @@ TEST_CASE("FishMovement::calculateFishMovement tests", "[fish_movement]") {
 TEST_CASE("FishMovementDownstream movement restriction tests", "[fish_movement_downstream]") {
     auto hydroModel = std::make_unique<MockHydroModel>();
     Model testModel(hydroModel.get());
-    FishMovementDownstream downstreamMover(testModel);
+    float swimSpeed = 1.0f;
+    float swimRange = 10.0f;
+    FishMovementDownstream downstreamMover(testModel, swimSpeed, swimRange);
 
     SECTION("Fish can move with favorable current (downstream)") {
         auto nodeA = createMapNode(0.0, 0.0);
@@ -159,7 +163,7 @@ TEST_CASE("FishMovementDownstream movement restriction tests", "[fish_movement_d
         hydroModel->vValue = 0.0f;
 
         float stillWaterSpeed = 1.0f;
-        float transitSpeed = (float)downstreamMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
+        float transitSpeed = (float) downstreamMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
 
         // Transit speed should be 1.5 (1.0 swim + 0.5 current)
         REQUIRE(transitSpeed == Catch::Approx(1.5f));
@@ -177,7 +181,7 @@ TEST_CASE("FishMovementDownstream movement restriction tests", "[fish_movement_d
         hydroModel->vValue = 0.0f;
 
         float stillWaterSpeed = 1.0f;
-        float transitSpeed = (float)downstreamMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
+        float transitSpeed = (float) downstreamMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
 
         // Transit speed should be 0.5 (1.0 swim - 0.5 opposing current)
         REQUIRE(transitSpeed == Catch::Approx(0.5f));
@@ -195,7 +199,7 @@ TEST_CASE("FishMovementDownstream movement restriction tests", "[fish_movement_d
         hydroModel->vValue = 0.0f;
 
         float stillWaterSpeed = 1.0f;
-        float transitSpeed = (float)downstreamMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
+        float transitSpeed = (float) downstreamMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
 
         // Transit speed should equal swim speed (1.0)
         REQUIRE(transitSpeed == Catch::Approx(1.0f));
@@ -208,8 +212,11 @@ TEST_CASE("FishMovementDownstream movement restriction tests", "[fish_movement_d
 TEST_CASE("FishMovementDownstream vs FishMovement behavior comparison", "[fish_movement_downstream]") {
     auto hydroModel = std::make_unique<MockHydroModel>();
     Model testModel(hydroModel.get());
-    FishMovement normalMover(testModel);
-    FishMovementDownstream downstreamMover(testModel);
+    auto fitnessCalculator = [](Model &, MapNode &, float) -> float { return 1.0f; };
+    float swimSpeed = 1.0f;
+    float swimRange = 10.0f;
+    FishMovement normalMover(testModel, swimSpeed, swimRange, fitnessCalculator);
+    FishMovementDownstream downstreamMover(testModel, swimSpeed, swimRange);
 
     SECTION("Both movement types behave the same with favorable current") {
         auto nodeA = createMapNode(0.0, 0.0);
@@ -220,7 +227,7 @@ TEST_CASE("FishMovementDownstream vs FishMovement behavior comparison", "[fish_m
         hydroModel->vValue = 0.0f;
 
         float stillWaterSpeed = 1.0f;
-        float transitSpeed = (float)normalMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
+        float transitSpeed = (float) normalMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
 
         // Both should allow movement with strong favorable current
         REQUIRE(normalMover.canMoveInDirectionOfEndNode(transitSpeed, stillWaterSpeed) == true);
@@ -236,7 +243,7 @@ TEST_CASE("FishMovementDownstream vs FishMovement behavior comparison", "[fish_m
         hydroModel->vValue = 0.0f;
 
         float stillWaterSpeed = 1.0f;
-        float transitSpeed = (float)normalMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
+        float transitSpeed = (float) normalMover.calculateTransitSpeed(edge, nodeA.get(), stillWaterSpeed);
 
         // Transit speed should be 0.5 (can still make progress)
         REQUIRE(transitSpeed == Catch::Approx(0.5f));

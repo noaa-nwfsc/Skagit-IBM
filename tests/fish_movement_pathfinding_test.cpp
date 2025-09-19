@@ -10,7 +10,6 @@
 #include "fish_movement_downstream.h"
 #include "test_utilities.h"
 
-
 std::tuple<std::unique_ptr<MapNode>, std::unique_ptr<MapNode>, Edge>
 createConnectedNodes(float distance, HabitatType startType = HabitatType::Distributary) {
     auto nodeA = std::make_unique<MapNode>(startType, 0.0, 0.0, 0.0);
@@ -26,14 +25,18 @@ createConnectedNodes(float distance, HabitatType startType = HabitatType::Distri
 TEST_CASE("getReachableNeighbors basic functionality") {
     auto hydroModel = std::make_unique<MockHydroModel>();
     Model testModel(hydroModel.get());
-    FishMovement fishMover(testModel);
-    auto fitnessCalculator = createMockFitnessCalculator(1.0f);
+
+    // Create a fitness calculator that returns 1.0 for all cases
+    auto fitnessCalculator = [](Model &, MapNode &, float) -> float { return 1.0f; };
+    float swimSpeed = 1.0f;
+    float swimRange = 10.0f;
+    FishMovement fishMover(testModel, swimSpeed, swimRange, fitnessCalculator);
 
     SECTION("Empty graph (no neighbors)") {
         auto startNode = createMapNode(0.0, 0.0);
         auto result = fishMover.getReachableNeighbors(
-            startNode.get(), 1.0f, 10.0f, 0.0f,
-            startNode.get(), createMockFitnessCalculator(1.0f)
+            startNode.get(), 0.0f,
+            startNode.get()
         );
 
         REQUIRE(result.empty());
@@ -46,8 +49,8 @@ TEST_CASE("getReachableNeighbors basic functionality") {
         connectNodes(startNode.get(), neighborNode.get(), 2.0f);
 
         auto result = fishMover.getReachableNeighbors(
-            startNode.get(), 1.0f, 10.0f, 0.0f,
-            startNode.get(), fitnessCalculator
+            startNode.get(), 0.0f,
+            startNode.get()
         );
 
         REQUIRE(result.size() == 1);
@@ -74,8 +77,8 @@ TEST_CASE("getReachableNeighbors basic functionality") {
         connectNodes(inNeighbor2.get(), startNode.get(), 2.5f);
 
         auto result = fishMover.getReachableNeighbors(
-            startNode.get(), 1.0f, 10.0f, 0.0f,
-            startNode.get(), fitnessCalculator
+            startNode.get(), 0.0f,
+            startNode.get()
         );
 
         REQUIRE(result.size() == 4);
@@ -105,11 +108,12 @@ TEST_CASE("getReachableNeighbors basic functionality") {
         connectNodes(closeInNeighbor.get(), startNode.get(), 2.0f); // Cost: 2.0, reachable
         connectNodes(farInNeighbor.get(), startNode.get(), 6.0f); // Cost: 6.0, unreachable with range 5.0
 
-        const float swimRange = 5.0f;
+        const float swimRange2 = 5.0f;
+        FishMovement fishMover2(testModel, swimSpeed, swimRange2, fitnessCalculator);
 
-        auto result = fishMover.getReachableNeighbors(
-            startNode.get(), 1.0f, swimRange, 0.0f, // swimRange = 5.0
-            startNode.get(), fitnessCalculator
+        auto result = fishMover2.getReachableNeighbors(
+            startNode.get(), 0.0f,
+            startNode.get()
         );
 
         REQUIRE(result.size() == 2);
@@ -118,7 +122,7 @@ TEST_CASE("getReachableNeighbors basic functionality") {
         std::vector<MapNode *> resultNodes;
         for (const auto &[node, cost, fitness]: result) {
             resultNodes.push_back(node);
-            REQUIRE(cost <= swimRange);
+            REQUIRE(cost <= swimRange2);
         }
 
         REQUIRE(std::find(resultNodes.begin(), resultNodes.end(), closeOutNeighbor.get()) != resultNodes.end());
@@ -139,8 +143,8 @@ TEST_CASE("getReachableNeighbors basic functionality") {
         hydroModel->depthValue = 0.1f;
 
         auto result = fishMover.getReachableNeighbors(
-            startNode.get(), 1.0f, 10.0f, 0.0f,
-            startNode.get(), fitnessCalculator
+            startNode.get(), 0.0f,
+            startNode.get()
         );
 
         REQUIRE(result.empty());
@@ -154,13 +158,13 @@ TEST_CASE("getReachableNeighbors basic functionality") {
         connectNodes(startNode.get(), distributaryNeighbor.get(), 10.0f);
         connectNodes(startNode.get(), nearshoreNeighbor.get(), 10.0f);
 
-        const float swimRange = 5.0f;
+        const float swimRange2 = 5.0f;
         const float currentCost = 0.0f;
+        FishMovement fishMover2(testModel, swimSpeed, swimRange2, fitnessCalculator);
 
-        auto result = fishMover.getReachableNeighbors(
-            startNode.get(), 1.0f, swimRange, currentCost,
-            startNode.get(), // fishLocation == startPoint
-            fitnessCalculator
+        auto result = fishMover2.getReachableNeighbors(
+            startNode.get(), currentCost,
+            startNode.get() // fishLocation == startPoint
         );
 
         REQUIRE(result.size() == 1);
@@ -177,13 +181,13 @@ TEST_CASE("getReachableNeighbors basic functionality") {
 
         connectNodes(startNode.get(), distributaryNeighbor.get(), 10.0f);
 
-        const float swimRange = 6.0f;
+        const float swimRange2 = 6.0f;
         const float currentCost = 0.0f;
+        FishMovement fishMover2(testModel, swimSpeed, swimRange2, fitnessCalculator);
 
-        auto result = fishMover.getReachableNeighbors(
-            startNode.get(), 1.0f, swimRange, currentCost,
-            fishLocationNode.get(), // fishLocation != startPoint
-            fitnessCalculator
+        auto result = fishMover2.getReachableNeighbors(
+            startNode.get(), currentCost,
+            fishLocationNode.get() // fishLocation != startPoint
         );
 
         // Normally a Distributary destination would have cost capped and become reachable, but only if the startNode==current location
@@ -196,13 +200,13 @@ TEST_CASE("getReachableNeighbors basic functionality") {
 
         connectNodes(startNode.get(), distributaryNeighbor.get(), 8.0f);
 
-        const float swimRange = 10.0f;
+        const float swimRange2 = 10.0f;
         const float currentCost = 3.0f; // swimRange - currentCost = 7.0
+        FishMovement fishMover2(testModel, swimSpeed, swimRange2, fitnessCalculator);
 
-        auto result = fishMover.getReachableNeighbors(
-            startNode.get(), 1.0f, swimRange, currentCost,
-            startNode.get(), // fishLocation == startPoint
-            fitnessCalculator
+        auto result = fishMover2.getReachableNeighbors(
+            startNode.get(), currentCost,
+            startNode.get() // fishLocation == startPoint
         );
 
         REQUIRE(result.size() == 1);
@@ -216,10 +220,9 @@ TEST_CASE("getReachableNeighbors basic functionality") {
         SECTION("Edge cost lower than remaining range") {
             const float currentCost2 = 1.0f; // swimRange - currentCost = 9.0
 
-            auto result2 = fishMover.getReachableNeighbors(
-                startNode.get(), 1.0f, swimRange, currentCost2,
-                startNode.get(),
-                fitnessCalculator
+            auto result2 = fishMover2.getReachableNeighbors(
+                startNode.get(), currentCost2,
+                startNode.get()
             );
 
             REQUIRE(result2.size() == 1);
@@ -234,8 +237,9 @@ TEST_CASE("getReachableNeighbors basic functionality") {
 TEST_CASE("FishMovementDownstream pathfinding restrictions", "[fish_movement_downstream][pathfinding]") {
     auto hydroModel = std::make_unique<MockHydroModel>();
     Model testModel(hydroModel.get());
-    FishMovementDownstream downstreamMover(testModel);
-    auto fitnessCalculator = createMockFitnessCalculator(1.0f);
+    float swimSpeed = 1.0f;
+    float swimRange = 10.0f;
+    FishMovementDownstream downstreamMover(testModel, swimSpeed, swimRange);
 
     SECTION("Downstream movement allows only favorable current neighbors") {
         auto startNode = createMapNode(0.0, 0.0);
@@ -252,10 +256,9 @@ TEST_CASE("FishMovementDownstream pathfinding restrictions", "[fish_movement_dow
         hydroModel->uValue = -0.8f; // Strong westward current
         hydroModel->vValue = 0.0f;
 
-        float swimSpeed = 1.0f;
         auto result = downstreamMover.getReachableNeighbors(
-            startNode.get(), swimSpeed, 10.0f, 0.0f,
-            startNode.get(), fitnessCalculator
+            startNode.get(), 0.0f,
+            startNode.get()
         );
 
         // Check expected transit speeds:
@@ -265,8 +268,8 @@ TEST_CASE("FishMovementDownstream pathfinding restrictions", "[fish_movement_dow
 
         REQUIRE(result.size() == 2); // West and North neighbors should be reachable
 
-        std::vector<MapNode*> resultNodes;
-        for (const auto& [node, cost, fitness] : result) {
+        std::vector<MapNode *> resultNodes;
+        for (const auto &[node, cost, fitness]: result) {
             resultNodes.push_back(node);
         }
 
@@ -287,21 +290,19 @@ TEST_CASE("FishMovementDownstream pathfinding restrictions", "[fish_movement_dow
         hydroModel->uValue = -0.2f; // Weak westward current
         hydroModel->vValue = 0.0f;
 
-        float swimSpeed = 1.0f;
-        float swimRange = 10.0f;
-        auto fitnessCalc = createMockFitnessCalculator(1.0f);
+        auto fitnessCalc = [](Model &, MapNode &, float) -> float { return 1.0f; };
 
         // Test normal movement
-        FishMovement normalMover(testModel);
+        FishMovement normalMover(testModel, swimSpeed, swimRange, fitnessCalc);
         auto normalResult = normalMover.getReachableNeighbors(
-            startNode.get(), swimSpeed, swimRange, 0.0f,
-            startNode.get(), fitnessCalc
+            startNode.get(), 0.0f,
+            startNode.get()
         );
 
         // Test downstream-only movement
         auto downstreamResult = downstreamMover.getReachableNeighbors(
-            startNode.get(), swimSpeed, swimRange, 0.0f,
-            startNode.get(), fitnessCalc
+            startNode.get(), 0.0f,
+            startNode.get()
         );
 
         // Expected transit speeds:

@@ -16,24 +16,24 @@ class FishMovement {
 public:
     virtual ~FishMovement() = default;
 
-    explicit FishMovement(Model &model)
-        : model(model), hydroModel(&model.hydroModel) {}
+    explicit FishMovement(Model &model, float swimSpeed, float swimRange, const std::function<float(Model &, MapNode &, float)> &fitnessCalculator)
+        : model(model), hydroModel(&model.hydroModel), swimSpeed(swimSpeed), swimRange(swimRange), fitnessCalculator(fitnessCalculator) {}
 
     double calculateTransitSpeed(const Edge &edge, const MapNode *startNode, double stillWaterSwimSpeed) const;
     virtual bool canMoveInDirectionOfEndNode(float transitSpeed, float swimSpeed) const;
 
     std::vector<std::tuple<MapNode *, float, float> > getReachableNeighbors(
         MapNode *startPoint,
-        float swimSpeed,
-        float swimRange,
-        float currentCost,
-        MapNode *fishLocation,
-        const std::function<float(Model &, MapNode &, float)> &fitnessCalculator
+        float accumulatedCost,
+        MapNode *initialFishLocation
     ) const;
 
 private:
     Model &model;
     HydroModel *hydroModel;
+    float swimSpeed;
+    float swimRange;
+    const std::function<float(Model &, MapNode &, float)> fitnessCalculator;
 
     double calculateEffectiveSwimSpeed(const MapNode &startNode, const MapNode &endNode,
                                        double stillWaterSwimSpeed) const;

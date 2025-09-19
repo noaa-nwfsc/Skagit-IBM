@@ -88,11 +88,8 @@ bool FishMovement::canMoveInDirectionOfEndNode(float transitSpeed, float swimSpe
 
 std::vector<std::tuple<MapNode*, float, float>> FishMovement::getReachableNeighbors(
     MapNode* startPoint,
-    float swimSpeed,
-    float swimRange,
-    float currentCost,
-    MapNode* fishLocation,
-    const std::function<float(Model&, MapNode&, float)>& fitnessCalculator
+    float accumulatedCost,
+    MapNode* initialFishLocation
 ) const {
     std::vector<std::tuple<MapNode*, float, float>> neighbors;
     std::vector<Edge> allEdges;
@@ -107,12 +104,12 @@ std::vector<std::tuple<MapNode*, float, float>> FishMovement::getReachableNeighb
             float transitSpeed = (float) calculateTransitSpeed(edge, startNode, swimSpeed);
             if (canMoveInDirectionOfEndNode(transitSpeed, swimSpeed)) {
                 float edgeCost = (edge.length / transitSpeed) * swimSpeed;
-                if (isDistributary(endNode->type) && startPoint == fishLocation) {
-                    edgeCost = std::min(edgeCost, swimRange - currentCost);
+                if (isDistributary(endNode->type) && startPoint == initialFishLocation) {
+                    edgeCost = std::min(edgeCost, swimRange - accumulatedCost);
                 }
-                if (currentCost + edgeCost <= swimRange) {
-                    float fitness = fitnessCalculator(model, *endNode, currentCost + edgeCost);
-                    neighbors.emplace_back(endNode, currentCost + edgeCost, fitness);
+                if (accumulatedCost + edgeCost <= swimRange) {
+                    float fitness = fitnessCalculator(model, *endNode, accumulatedCost + edgeCost);
+                    neighbors.emplace_back(endNode, accumulatedCost + edgeCost, fitness);
                 }
             }
         }

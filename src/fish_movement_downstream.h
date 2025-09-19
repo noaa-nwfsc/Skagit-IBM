@@ -10,11 +10,11 @@
 
 class FishMovementDownstream : public FishMovement {
 public:
-    explicit FishMovementDownstream(Model &model) : FishMovement(model) {}
+    explicit FishMovementDownstream(Model &model, float swimSpeed, float swimRange)
+        : FishMovement(model, swimSpeed, swimRange, [](Model &, MapNode &, float) -> float { return 1.0f; }) {}
 
     bool canMoveInDirectionOfEndNode(float transitSpeed, float swimSpeed) const override;
 };
-
 
 
 #endif // FISHMOVEMENTDOWNSTREAM_H

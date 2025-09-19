@@ -250,7 +250,7 @@ int main(int argc, char **argv) {
         }
 
 #define QUICK_DEBUG_HACK
-#undef QUICK_DEBUG_HACK
+// #undef QUICK_DEBUG_HACK
 #if defined(QUICK_DEBUG_HACK) && !defined(NDEBUG)
         if (m->time % 25 == 0) {
 #else

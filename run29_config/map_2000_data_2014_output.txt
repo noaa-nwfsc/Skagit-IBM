@@ -3,7 +3,7 @@ latest debug build
 date; ./bin/Debug/headless "troy_run_listings.csv" "run32/map2000d2014" \
 "run29_config/config_map_2000_data_2014_deterministic.json"; date
 
-Fri Sep 19 12:37:13 PDT 2025
+Fri Sep 19 13:52:17 PDT 2025
 Configuring model...
 8 hardware threads available
 Forcing max threads to 1 due to non-zero RNG seed (42)
@@ -17,11 +17,11 @@ Found 0 duplicate output edges
 Removing disconnected node 22158
 Removing disconnected node 22056
 Removing disconnected node 21724
-Nearshore connector nodes: 1 Impoundment
-Nearshore connector nodes: 5 Distributary edge
 Nearshore connector nodes: 1 Low tide terrace
 Nearshore connector nodes: 5 Distributary
+Nearshore connector nodes: 5 Distributary edge
 Nearshore connector nodes: 31 Blind channel
+Nearshore connector nodes: 1 Impoundment
 Nearshore connector nodes: 377 Nearshore
 Created 420 new nearshore connector nodes
 Made  0 disconnected 'distributary' nodes into blind channels
@@ -37,18 +37,47 @@ Map nodes: 155 Impoundment
 Map nodes: 27661 Blind channel
 Selected run ID: 0
 Sample data will be saved to run32/map2000d2014/output_0.nc
-Step 25: 0.379744s elapsed; 13m34s remaining; 17043 living fish; 0 exited; 4448 dead
-Step 50: 0.777706s elapsed; 27m7s remaining; 34232 living fish; 0 exited; 11863 dead
-Step 75: 1.18035s elapsed; 39m51s remaining; 50533 living fish; 0 exited; 22612 dead
-Step 100: 1.69077s elapsed; 53m12s remaining; 73032 living fish; 0 exited; 37604 dead
-Step 125: 2.32708s elapsed; 1h9m6s remaining; 102287 living fish; 0 exited; 59239 dead
-Step 150: 2.84641s elapsed; 1h26m19s remaining; 125551 living fish; 7 exited; 85176 dead
+Step 25: 0.379184s elapsed; 13m31s remaining; 17043 living fish; 0 exited; 4448 dead
+Step 50: 0.76578s elapsed; 27m14s remaining; 34232 living fish; 0 exited; 11863 dead
+Step 75: 1.18091s elapsed; 40m44s remaining; 50533 living fish; 0 exited; 22612 dead
+Step 100: 1.72895s elapsed; 54m9s remaining; 73032 living fish; 0 exited; 37604 dead
+Step 125: 2.64752s elapsed; 1h10m27s remaining; 102287 living fish; 0 exited; 59239 dead
+Step 150: 2.94893s elapsed; 1h27m54s remaining; 125551 living fish; 7 exited; 85176 dead
+Step 175: 3.27069s elapsed; 1h43m27s remaining; 137308 living fish; 54 exited; 112573 dead
+Step 200: 3.35837s elapsed; 1h55m41s remaining; 145236 living fish; 234 exited; 141195 dead
+Step 225: 4.14135s elapsed; 2h7m15s remaining; 149072 living fish; 713 exited; 171072 dead
+Step 250: 3.10248s elapsed; 2h13m51s remaining; 145113 living fish; 1832 exited; 199434 dead
+Step 275: 2.52772s elapsed; 2h16m34s remaining; 136219 living fish; 4151 exited; 225574 dead
+Step 300: 2.3553s elapsed; 2h17m39s remaining; 128880 living fish; 7863 exited; 250613 dead
+Step 325: 2.39022s elapsed; 2h17m27s remaining; 130374 living fish; 11578 exited; 275942 dead
+Step 350: 2.86895s elapsed; 2h18m21s remaining; 136482 living fish; 14982 exited; 303136 dead
+Step 375: 3.61481s elapsed; 2h20m27s remaining; 153845 living fish; 17845 exited; 334201 dead
+Step 400: 3.82303s elapsed; 2h24m33s remaining; 171551 living fish; 20782 exited; 369329 dead
+Step 425: 4.0943s elapsed; 2h28m50s remaining; 184840 living fish; 22823 exited; 406389 dead
+Step 450: 5.23984s elapsed; 2h34m18s remaining; 228621 living fish; 24644 exited; 453892 dead
+Step 475: 5.78022s elapsed; 2h41m56s remaining; 254172 living fish; 27121 exited; 507469 dead
+Step 500: 5.88397s elapsed; 2h49m16s remaining; 254032 living fish; 29254 exited; 558482 dead
+Step 525: 5.70968s elapsed; 2h55m7s remaining; 256310 living fish; 31530 exited; 609330 dead
+Step 550: 5.90862s elapsed; 3h23s remaining; 261990 living fish; 35002 exited; 661528 dead
+Step 575: 6.15234s elapsed; 3h5m26s remaining; 271756 living fish; 39499 exited; 715764 dead
+Step 600: 6.27604s elapsed; 3h10m34s remaining; 280909 living fish; 43474 exited; 771514 dead
+Step 625: 6.94612s elapsed; 3h16m11s remaining; 312966 living fish; 46774 exited; 836157 dead
+Step 650: 6.10524s elapsed; 3h20m47s remaining; 272577 living fish; 49958 exited; 886271 dead
+Step 675: 5.2906s elapsed; 3h22m59s remaining; 245320 living fish; 52758 exited; 931277 dead
+Step 700: 4.94477s elapsed; 3h23m41s remaining; 219306 living fish; 55698 exited; 969447 dead
+Step 725: 5.80006s elapsed; 3h23m51s remaining; 208662 living fish; 58495 exited; 1005279 dead
+Step 750: 5.23365s elapsed; 3h23m55s remaining; 219654 living fish; 61410 exited; 1043643 dead
+Step 775: 6.52518s elapsed; 3h24m47s remaining; 262745 living fish; 63772 exited; 1090491 dead
+Step 800: 8.04682s elapsed; 3h28m32s remaining; 327888 living fish; 65727 exited; 1152842 dead
+Step 825: 8.40144s elapsed; 3h33m33s remaining; 352600 living fish; 67627 exited; 1217126 dead
+Step 850: 9.21696s elapsed; 3h39m2s remaining; 378118 living fish; 69187 exited; 1287366 dead
+Step 875: 9.95546s elapsed; 3h45m44s remaining; 398904 living fish; 71322 exited; 1362210 dead
 ^C
-Interrupted at step 159; 229.599s elapsed since start
+Interrupted at step 891; 3976.86s elapsed since start
 Enter command: ["exit" to terminate, "save <filename>" to save model state, "resume" to continue]
 > exit
 Really exit? [y/N]: y
-Fri Sep 19 12:41:38 PDT 2025
+Fri Sep 19 14:59:10 PDT 2025
 -------------
 older release build
 Mon Aug  4 10:39:38 PDT 2025

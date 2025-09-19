@@ -391,14 +391,11 @@ bool Fish::move(Model &model) {
         if (remainingTime > 0.0f) {
             if (model.getInt(ModelParamKey::DirectionlessEdges)) {
                 neighbors.emplace_back(point, totalCost+stayCost, currentLocationFitness);
-                auto fishMovement = FishMovement(model);
+                auto fishMovement = FishMovement(model, swimSpeed, swimRange, [this](Model& m, MapNode& node, float cost) { return this->getFitness(m, node, cost); });
                 auto reachableNeighbors = fishMovement.getReachableNeighbors(
                     point,
-                    swimSpeed,
-                    swimRange,
                     totalCost,
-                    this->location,
-                    [this](Model& m, MapNode& node, float cost) { return this->getFitness(m, node, cost); }
+                    this->location
                 );
                 neighbors.insert(
                     neighbors.end(),
