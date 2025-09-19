@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "fish_movement.h"
+#include "fish_movement_downstream.h"
 #include "test_utilities.h"
 
 
@@ -227,5 +228,94 @@ TEST_CASE("getReachableNeighbors basic functionality") {
             // Cost should be min(8.0, 9.0) + currentCost = 8.0 + 1.0 = 9.0
             REQUIRE(cost2 == Catch::Approx(9.0f));
         }
+    }
+}
+
+TEST_CASE("FishMovementDownstream pathfinding restrictions", "[fish_movement_downstream][pathfinding]") {
+    auto hydroModel = std::make_unique<MockHydroModel>();
+    Model testModel(hydroModel.get());
+    FishMovementDownstream downstreamMover(testModel);
+    auto fitnessCalculator = createMockFitnessCalculator(1.0f);
+
+    SECTION("Downstream movement allows only favorable current neighbors") {
+        auto startNode = createMapNode(0.0, 0.0);
+        auto westNeighbor = createMapNode(-1.0, 0.0); // West of start
+        auto eastNeighbor = createMapNode(1.0, 0.0); // East of start
+        auto northNeighbor = createMapNode(0.0, 1.0); // North of start
+
+        // Connect neighbors - note the connection directions matter for flow calculation
+        connectNodes(startNode.get(), westNeighbor.get(), 2.0f); // start -> west (going west)
+        connectNodes(startNode.get(), eastNeighbor.get(), 2.0f); // start -> east (going east)
+        connectNodes(startNode.get(), northNeighbor.get(), 2.0f); // start -> north (going north)
+
+        // Set current flowing westward (negative U)
+        hydroModel->uValue = -0.8f; // Strong westward current
+        hydroModel->vValue = 0.0f;
+
+        float swimSpeed = 1.0f;
+        auto result = downstreamMover.getReachableNeighbors(
+            startNode.get(), swimSpeed, 10.0f, 0.0f,
+            startNode.get(), fitnessCalculator
+        );
+
+        // Check expected transit speeds:
+        // startNode -> westNeighbor: moving west with -0.8 westward current = 1.8 transit speed (ALLOWED)
+        // startNode -> eastNeighbor: moving east against -0.8 westward current = 0.2 transit speed (NOT allowed)
+        // startNode -> northNeighbor: moving north with 0.0 effective current = 1.0 transit speed (ALLOWED)
+
+        REQUIRE(result.size() == 2); // West and North neighbors should be reachable
+
+        std::vector<MapNode*> resultNodes;
+        for (const auto& [node, cost, fitness] : result) {
+            resultNodes.push_back(node);
+        }
+
+        REQUIRE(std::find(resultNodes.begin(), resultNodes.end(), westNeighbor.get()) != resultNodes.end());
+        REQUIRE(std::find(resultNodes.begin(), resultNodes.end(), northNeighbor.get()) != resultNodes.end());
+        REQUIRE(std::find(resultNodes.begin(), resultNodes.end(), eastNeighbor.get()) == resultNodes.end());
+    }
+
+    SECTION("Comparison with normal FishMovement pathfinding behavior") {
+        auto startNode = createMapNode(0.0, 0.0);
+        auto westNeighbor = createMapNode(-1.0, 0.0);
+        auto eastNeighbor = createMapNode(1.0, 0.0);
+
+        connectNodes(startNode.get(), westNeighbor.get(), 3.0f);
+        connectNodes(startNode.get(), eastNeighbor.get(), 3.0f);
+
+        // Set weak westward current
+        hydroModel->uValue = -0.2f; // Weak westward current
+        hydroModel->vValue = 0.0f;
+
+        float swimSpeed = 1.0f;
+        float swimRange = 10.0f;
+        auto fitnessCalc = createMockFitnessCalculator(1.0f);
+
+        // Test normal movement
+        FishMovement normalMover(testModel);
+        auto normalResult = normalMover.getReachableNeighbors(
+            startNode.get(), swimSpeed, swimRange, 0.0f,
+            startNode.get(), fitnessCalc
+        );
+
+        // Test downstream-only movement
+        auto downstreamResult = downstreamMover.getReachableNeighbors(
+            startNode.get(), swimSpeed, swimRange, 0.0f,
+            startNode.get(), fitnessCalc
+        );
+
+        // Expected transit speeds:
+        // West: 1.0 + 0.2 = 1.2 (assisted by current)
+        // East: 1.0 - 0.2 = 0.8 (fighting against current)
+
+        // Normal movement should allow both neighbors (both transit speeds > 0)
+        REQUIRE(normalResult.size() == 2);
+
+        // Downstream movement should only allow the westward neighbor
+        // West: 1.2 >= 1.0 (allowed), East: 0.8 < 1.0 (not allowed)
+        REQUIRE(downstreamResult.size() == 1);
+
+        auto [downstreamNode, cost, fitness] = downstreamResult[0];
+        REQUIRE(downstreamNode == westNeighbor.get());
     }
 }

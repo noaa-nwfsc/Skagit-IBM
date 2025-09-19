@@ -1,7 +1,7 @@
 # examples
 # configure: "cmake -DCMAKE_BUILD_TYPE=Debug -S ~/code/Skagit-IBM -B ~/code/Skagit-IBM/build/debug"
 # build    : "cmake --build ~/code/Skagit-IBM/build/debug"
-# build a target: "cmake --build ~/code/Skagit-IBM/build/debug --target headless"
+# build a target: "cmake --build ~/code/Skagit-IBM/build/debug --target headless --verbose"
 # clean    : "cmake --build ~/code/Skagit-IBM/build/debug --target clean"
 #
 # configure release build with ASAN and debugging info:
@@ -31,7 +31,7 @@ add_compile_options(-Wall -Wextra)
 
 # Build type specific options
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_options(-g -O0 -fno-inline -fstack-protector-all)
+  add_compile_options(-g -O0 -fno-inline -fstack-protector-all -ffp-contract=off)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
   add_compile_options(-O2 -ffast-math -fno-finite-math-only -DNDEBUG -march=native)
 endif()
@@ -85,6 +85,7 @@ set(COMMON_SOURCES
   src/env_sim.cpp
   src/fish.cpp
   src/fish_movement.cpp
+  src/fish_movement_downstream.cpp
   src/hydro.cpp
   src/load.cpp
   src/load_utils.cpp

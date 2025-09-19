@@ -10,6 +10,7 @@ set(MODEL_SOURCES
         ../src/load_utils.cpp
         ../src/util.cpp
         ../src/fish_movement.cpp
+        ../src/fish_movement_downstream.cpp
         ../src/model.cpp
         ../src/map_gen.cpp
         ../src/fish.cpp

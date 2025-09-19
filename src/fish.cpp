@@ -374,7 +374,7 @@ bool Fish::move(Model &model) {
     float totalCost = 0.0f;
     float swimSpeed = swimSpeedFromForkLength(this->forkLength);
     float swimRange = swimSpeed*SECONDS_PER_TIMESTEP;
-    float currentFitness = this->getFitness(model, *this->location, 0.0f);
+    float currentLocationFitness = this->getFitness(model, *this->location, 0.0f);
     MapNode *point = this->location;
     float lastFlowSpeed_node_old = model.hydroModel.getUnsignedFlowSpeedAt(*point);
     FlowVelocity lastFlowVelocity;
@@ -389,8 +389,8 @@ bool Fish::move(Model &model) {
         float pointFlowSpeed = model.hydroModel.getUnsignedFlowSpeedAt(*point);
         float stayCost = remainingTime * pointFlowSpeed;
         if (remainingTime > 0.0f) {
-            neighbors.emplace_back(point, totalCost+stayCost, currentFitness);
             if (model.getInt(ModelParamKey::DirectionlessEdges)) {
+                neighbors.emplace_back(point, totalCost+stayCost, currentLocationFitness);
                 auto fishMovement = FishMovement(model);
                 auto reachableNeighbors = fishMovement.getReachableNeighbors(
                     point,
@@ -406,54 +406,55 @@ bool Fish::move(Model &model) {
                     std::make_move_iterator(reachableNeighbors.end())
                 );
             }
-            else {
-                neighbors.emplace_back(point, totalCost+stayCost, currentFitness);
-                // Check all channels flowing into this node
-                for (Edge &edge: point->edgesIn) {
-                    if (model.hydroModel.getDepth(*edge.source) >= MOVEMENT_DEPTH_CUTOFF) {
-                        float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
-                        // Effective movement speed along channel (swim speed adjusted by flow speed)
-                        float transitSpeed = swimSpeed - edgeFlowSpeed;
-                        // Check to make sure the fish can even make progress
-                        if (transitSpeed > 0.0f) {
-                            // Calculate effective distance swum
-                            float edgeCost = (edge.length / transitSpeed) * swimSpeed;
-                            if (isDistributary(edge.source->type) && point == this->location) {
-                                // || (this->forkLength >= 75)){
-                                // Artificially discount the cost to make at least 1 distributary channel passable
-                                // (since they are widely spaced)
-                                edgeCost = std::min(edgeCost, swimRange - totalCost);
-                            }
-                            // Check if connected node is reachable
-                            if (totalCost + edgeCost <= swimRange) {
-                                // Add it to the neighbor list with its fitness value
-                                float fitness = this->getFitness(model, *edge.source, totalCost + edgeCost);
-                                neighbors.emplace_back(edge.source, totalCost + edgeCost, fitness);
-                            }
-                        }
-                    }
-                }
+            // else {
+                // neighbors.emplace_back(point, totalCost+stayCost, currentLocationFitness);
+                //
+                // // Check all channels flowing into this node
+                // for (Edge &edge: point->edgesIn) {
+                //     if (model.hydroModel.getDepth(*edge.source) >= MOVEMENT_DEPTH_CUTOFF) {
+                //         float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
+                //         // Effective movement speed along channel (swim speed adjusted by flow speed)
+                //         float transitSpeed = swimSpeed - edgeFlowSpeed;
+                //         // Check to make sure the fish can even make progress
+                //         if (transitSpeed > 0.0f) {
+                //             // Calculate effective distance swum
+                //             float edgeCost = (edge.length / transitSpeed) * swimSpeed;
+                //             if (isDistributary(edge.source->type) && point == this->location) {
+                //                 // || (this->forkLength >= 75)){
+                //                 // Artificially discount the cost to make at least 1 distributary channel passable
+                //                 // (since they are widely spaced)
+                //                 edgeCost = std::min(edgeCost, swimRange - totalCost);
+                //             }
+                //             // Check if connected node is reachable
+                //             if (totalCost + edgeCost <= swimRange) {
+                //                 // Add it to the neighbor list with its fitness value
+                //                 float fitness = this->getFitness(model, *edge.source, totalCost + edgeCost);
+                //                 neighbors.emplace_back(edge.source, totalCost + edgeCost, fitness);
+                //             }
+                //         }
+                //     }
+                // }
                 // Check all channels flowing out of this node
                 // Same as above (except flow directions are reversed)
-                for (Edge &edge: point->edgesOut) {
-                    if (model.hydroModel.getDepth(*edge.target) >= MOVEMENT_DEPTH_CUTOFF) {
-                        float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
-                        float transitSpeed = swimSpeed + edgeFlowSpeed;
-                        if (transitSpeed > 0.0f) {
-                            float edgeCost = (edge.length / transitSpeed) * swimSpeed;
-                            // if (isDistributary(edge.target->type) && point == this->location) {
-                            if (isDistributary(point->type) && point == this->location) {
-                                //|| (this->forkLength >= 75)){
-                                edgeCost = std::min(edgeCost, swimRange - totalCost);
-                            }
-                            if (totalCost + edgeCost <= swimRange) {
-                                float fitness = this->getFitness(model, *edge.target, totalCost + edgeCost);
-                                neighbors.emplace_back(edge.target, totalCost + edgeCost, fitness);
-                            }
-                        }
-                    }
-                }
-            }
+                // for (Edge &edge: point->edgesOut) {
+                //     if (model.hydroModel.getDepth(*edge.target) >= MOVEMENT_DEPTH_CUTOFF) {
+                //         float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
+                //         float transitSpeed = swimSpeed + edgeFlowSpeed;
+                //         if (transitSpeed > 0.0f) {
+                //             float edgeCost = (edge.length / transitSpeed) * swimSpeed;
+                //             // if (isDistributary(edge.target->type) && point == this->location) {
+                //             if (isDistributary(point->type) && point == this->location) {
+                //                 //|| (this->forkLength >= 75)){
+                //                 edgeCost = std::min(edgeCost, swimRange - totalCost);
+                //             }
+                //             if (totalCost + edgeCost <= swimRange) {
+                //                 float fitness = this->getFitness(model, *edge.target, totalCost + edgeCost);
+                //                 neighbors.emplace_back(edge.target, totalCost + edgeCost, fitness);
+                //             }
+                //         }
+                //     }
+                // }
+            // }
         }
         if (!neighbors.empty()) {
             weights.clear();
@@ -468,7 +469,7 @@ bool Fish::move(Model &model) {
             MapNode *lastPoint = point;
             point = std::get<0>(neighbors[idx]);
             totalCost = std::get<1>(neighbors[idx]);
-            currentFitness = std::get<2>(neighbors[idx]);
+            currentLocationFitness = std::get<2>(neighbors[idx]);
             lastFlowVelocity = model.hydroModel.getScaledFlowVelocityAt(*point);
 
             if (point == lastPoint) {

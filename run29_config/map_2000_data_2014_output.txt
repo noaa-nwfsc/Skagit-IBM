@@ -1,4 +1,56 @@
-latest
+latest debug build
+% cmake --build ./build/debug --target headless --verbose; cp troy_run_listings_template.csv troy_run_listings.csv; \
+date; ./bin/Debug/headless "troy_run_listings.csv" "run32/map2000d2014" \
+"run29_config/config_map_2000_data_2014_deterministic.json"; date
+
+Fri Sep 19 12:37:13 PDT 2025
+Configuring model...
+8 hardware threads available
+Forcing max threads to 1 due to non-zero RNG seed (42)
+1 thread(s) enabled
+
+loading distributary hydrology data: 341/341
+done loading hydro
+directionless edges!
+Found 0 duplicate input edges
+Found 0 duplicate output edges
+Removing disconnected node 22158
+Removing disconnected node 22056
+Removing disconnected node 21724
+Nearshore connector nodes: 1 Impoundment
+Nearshore connector nodes: 5 Distributary edge
+Nearshore connector nodes: 1 Low tide terrace
+Nearshore connector nodes: 5 Distributary
+Nearshore connector nodes: 31 Blind channel
+Nearshore connector nodes: 377 Nearshore
+Created 420 new nearshore connector nodes
+Made  0 disconnected 'distributary' nodes into blind channels
+Found 0 disconnected nodes
+Found 0 orphaned nodes
+Found 0 orphaned protected nodes
+Map nodes: 6 Boat harbor
+Map nodes: 150 Low tide terrace
+Map nodes: 1322 Distributary edge
+Map nodes: 2126 Distributary
+Map nodes: 688 Nearshore
+Map nodes: 155 Impoundment
+Map nodes: 27661 Blind channel
+Selected run ID: 0
+Sample data will be saved to run32/map2000d2014/output_0.nc
+Step 25: 0.379744s elapsed; 13m34s remaining; 17043 living fish; 0 exited; 4448 dead
+Step 50: 0.777706s elapsed; 27m7s remaining; 34232 living fish; 0 exited; 11863 dead
+Step 75: 1.18035s elapsed; 39m51s remaining; 50533 living fish; 0 exited; 22612 dead
+Step 100: 1.69077s elapsed; 53m12s remaining; 73032 living fish; 0 exited; 37604 dead
+Step 125: 2.32708s elapsed; 1h9m6s remaining; 102287 living fish; 0 exited; 59239 dead
+Step 150: 2.84641s elapsed; 1h26m19s remaining; 125551 living fish; 7 exited; 85176 dead
+^C
+Interrupted at step 159; 229.599s elapsed since start
+Enter command: ["exit" to terminate, "save <filename>" to save model state, "resume" to continue]
+> exit
+Really exit? [y/N]: y
+Fri Sep 19 12:41:38 PDT 2025
+-------------
+older release build
 Mon Aug  4 10:39:38 PDT 2025
 Configuring model...
 8 hardware threads available

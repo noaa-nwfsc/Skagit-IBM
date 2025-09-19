@@ -248,13 +248,23 @@ int main(int argc, char **argv) {
                 return 0;
             }
         }
+
+#define QUICK_DEBUG_HACK
+#undef QUICK_DEBUG_HACK
+#if defined(QUICK_DEBUG_HACK) && !defined(NDEBUG)
+        if (m->time % 25 == 0) {
+#else
         if (m->time % 330 == 0) {
-            std::cout << "\rStep " << m->time << ": " << elapsed << "s elapsed; " << remainingStr << " remaining; " << m->livingIndividuals.size() << " living fish; " << m->exitedCount << " exited; " << m->deadCount << " dead";
+#endif
+            std::cout << "\rStep " << m->time << ": " << elapsed << "s elapsed; " << remainingStr << " remaining; " << m->livingIndividuals.size() << " living fish; " << m->exitedCount << " exited; " << m->deadCount << " dead" << std::endl;
             std::cout.flush();
-            std::cout << std::endl << "Writing intermediary file at step: " << m->time << std::endl;
+
+#if !defined(QUICK_DEBUG_HACK) || defined(NDEBUG)
+            std::cout << "Writing intermediary file at step: " << m->time << std::endl;
             std::stringstream interruptfile;
             interruptfile << outputPath << "/run_" << runID <<"_step_" << m->time << ".nc";
             m->saveState(interruptfile.str());
+#endif
         }
     }
 
