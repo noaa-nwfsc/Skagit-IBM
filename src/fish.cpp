@@ -6,6 +6,8 @@
 #include <iostream>
 #include <unordered_set>
 #include <utility>
+
+#include "fish_movement_downstream.h"
 #include "util.h"
 
 const float CA = 0.303;
@@ -392,6 +394,7 @@ bool Fish::move(Model &model) {
         if (remainingTime > 0.0f) {
             if (model.getInt(ModelParamKey::DirectionlessEdges)) {
                 auto fitness_calculator = [this](Model& model, MapNode& node, float cost) { return this->getFitness(model, node, cost); };
+                // auto fishMovement = FishMovementDownstream(model, swimSpeed, swimRange);
                 auto fishMovement = FishMovement(model, swimSpeed, swimRange, fitness_calculator);
                 fishMovement.addCurrentLocation(neighbors, point, accumulatedCost, stayCost, currentLocationFitness);
                 fishMovement.addReachableNeighbors(neighbors, point, accumulatedCost, originalLocation);

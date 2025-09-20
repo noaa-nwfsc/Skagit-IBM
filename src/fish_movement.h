@@ -22,7 +22,7 @@ public:
     double calculateTransitSpeed(const Edge &edge, const MapNode *startNode, double stillWaterSwimSpeed) const;
     virtual bool canMoveInDirectionOfEndNode(float transitSpeed, float swimSpeed) const;
 
-    void addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode * point, float accumulated_cost, float stay_cost, float current_location_fitness);
+    virtual void addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode * point, float accumulated_cost, float stay_cost, float current_location_fitness);
     void addReachableNeighbors(std::vector<std::tuple<MapNode *, float, float>> &neighbors, MapNode * point, float accumulated_cost, MapNode * map_node) const;
     std::vector<std::tuple<MapNode *, float, float> > getReachableNeighbors(
         MapNode *startPoint,
