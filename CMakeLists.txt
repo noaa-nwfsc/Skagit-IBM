@@ -86,6 +86,7 @@ set(COMMON_SOURCES
   src/fish.cpp
   src/fish_movement.cpp
   src/fish_movement_downstream.cpp
+  src/fish_movement_factory.cpp
   src/hydro.cpp
   src/load.cpp
   src/load_utils.cpp

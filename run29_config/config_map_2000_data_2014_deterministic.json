@@ -22,6 +22,6 @@
   "habitatTypeExitConditionHours": 48,
   "mortMin": 0.0005,
   "mortMax": 0.002,
-  "growthSlope": 0.0007
-
+  "growthSlope": 0.0007,
+  "agentAwareness": "medium"
 }

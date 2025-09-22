@@ -11,6 +11,7 @@ set(MODEL_SOURCES
         ../src/util.cpp
         ../src/fish_movement.cpp
         ../src/fish_movement_downstream.cpp
+        ../src/fish_movement_factory.cpp
         ../src/model.cpp
         ../src/map_gen.cpp
         ../src/fish.cpp
@@ -25,6 +26,7 @@ set(TEST_SOURCES
         is_missing_indicator_test.cpp
         load_test.cpp
         fish_movement_pathfinding_test.cpp
+        fish_movement_factory_test.cpp
 )
 
 # These tests can use the Catch2-provided main

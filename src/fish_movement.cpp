@@ -9,6 +9,23 @@
 #include "hydro.h"
 #include "map.h"
 
+
+void FishMovement::addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
+                                      float accumulatedCost, float stayCost,
+                                      float currentLocationFitness) {
+    neighbors.emplace_back(point, accumulatedCost + stayCost, currentLocationFitness);
+}
+
+void FishMovement::addReachableNeighbors(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
+                                         float accumulated_cost, MapNode *map_node) const {
+    auto reachableNeighbors = getReachableNeighbors(point, accumulated_cost, map_node);
+    neighbors.insert(
+        neighbors.end(),
+        std::make_move_iterator(reachableNeighbors.begin()),
+        std::make_move_iterator(reachableNeighbors.end())
+    );
+}
+
 float FishMovement::getCurrentU(const MapNode &node) const {
     return hydroModel->getCurrentU(node);
 }
@@ -89,12 +106,6 @@ bool FishMovement::canMoveInDirectionOfEndNode(float transitSpeed, float swimSpe
     return transitSpeed > 0.0f;
 }
 
-void FishMovement::addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
-                                      float accumulatedCost, float stayCost,
-                                      float currentLocationFitness) {
-    neighbors.emplace_back(point, accumulatedCost + stayCost, currentLocationFitness);
-}
-
 std::vector<std::tuple<MapNode *, float, float> > FishMovement::getReachableNeighbors(
     MapNode *startPoint,
     float accumulatedCost,
@@ -124,14 +135,4 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovement::getReachableNeig
         }
     }
     return neighbors;
-}
-
-void FishMovement::addReachableNeighbors(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
-                                         float accumulated_cost, MapNode *map_node) const {
-    auto reachableNeighbors = getReachableNeighbors(point, accumulated_cost, map_node);
-    neighbors.insert(
-        neighbors.end(),
-        std::make_move_iterator(reachableNeighbors.begin()),
-        std::make_move_iterator(reachableNeighbors.end())
-    );
 }

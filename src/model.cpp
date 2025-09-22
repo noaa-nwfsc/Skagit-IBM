@@ -1190,6 +1190,10 @@ std::string Model::getString(ModelParamKey key) const {
     return configMap.getString(key);
 }
 
+const ModelConfigMap& Model::getConfigMap() const {
+    return configMap;
+}
+
 // Initialize a model instance from a JSON config file
 Model *modelFromConfig(std::string configPath) {
     FILE *fp = fopen(configPath.c_str(), "r");

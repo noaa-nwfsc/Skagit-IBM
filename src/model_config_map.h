@@ -19,7 +19,8 @@ enum class ModelParamKey {
     HabitatMortalityMultiplier,
     MortMin,
     MortMax,
-    GrowthSlope
+    GrowthSlope,
+    AgentAwareness
 };
 
 class ModelConfigMap {
@@ -39,4 +40,5 @@ public:
     void set(ModelParamKey key, const ConfigValue& value);
     void loadFromJson(const rapidjson::Document& d);
     std::string getFileKey(ModelParamKey key) const;
+    void validate() const;
 };

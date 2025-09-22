@@ -184,6 +184,7 @@ public:
     int getInt(ModelParamKey key) const;
     float getFloat(ModelParamKey key) const;
     std::string getString(ModelParamKey key) const;
+    const ModelConfigMap& getConfigMap() const;
 
     // add addhistory from fish???
     // void addHistoryBuffers();

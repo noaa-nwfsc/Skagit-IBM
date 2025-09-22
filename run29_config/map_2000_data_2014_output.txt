@@ -79,6 +79,19 @@ Enter command: ["exit" to terminate, "save <filename>" to save model state, "res
 Really exit? [y/N]: y
 Fri Sep 19 14:59:10 PDT 2025
 -------------
+low awareness output
+Sample data will be saved to run32/map2000d2014/output_0.nc
+Step 25: 0.283103s elapsed; 10m54s remaining; 17018 living fish; 0 exited; 4554 dead
+Step 50: 0.546332s elapsed; 20m2s remaining; 33546 living fish; 0 exited; 12575 dead
+Step 75: 0.787547s elapsed; 27m40s remaining; 49555 living fish; 0 exited; 23838 dead
+Step 100: 1.13887s elapsed; 35m17s remaining; 71248 living fish; 0 exited; 39649 dead
+Step 125: 1.45819s elapsed; 44m48s remaining; 99756 living fish; 0 exited; 62016 dead
+Step 150: 1.68793s elapsed; 54m51s remaining; 122590 living fish; 18 exited; 88610 dead
+Step 175: 1.68744s elapsed; 1h2m46s remaining; 134507 living fish; 81 exited; 116017 dead
+Step 200: 1.66059s elapsed; 1h8m49s remaining; 142628 living fish; 164 exited; 144468 dead
+Step 225: 1.94153s elapsed; 1h13m4s remaining; 147849 living fish; 300 exited; 173383 dead
+Step 250: 1.53219s elapsed; 1h15m42s remaining; 145866 living fish; 563 exited; 200670 dead
+---------------
 older release build
 Mon Aug  4 10:39:38 PDT 2025
 Configuring model...

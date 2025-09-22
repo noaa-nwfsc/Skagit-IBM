@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "fish_movement_downstream.h"
+#include "fish_movement_factory.h"
 #include "util.h"
 
 const float CA = 0.303;
@@ -394,10 +395,11 @@ bool Fish::move(Model &model) {
         if (remainingTime > 0.0f) {
             if (model.getInt(ModelParamKey::DirectionlessEdges)) {
                 auto fitness_calculator = [this](Model& model, MapNode& node, float cost) { return this->getFitness(model, node, cost); };
+                auto fishMovement = FishMovementFactory::createFishMovement(model, swimSpeed, swimRange, fitness_calculator, model.getConfigMap());
                 // auto fishMovement = FishMovementDownstream(model, swimSpeed, swimRange);
-                auto fishMovement = FishMovement(model, swimSpeed, swimRange, fitness_calculator);
-                fishMovement.addCurrentLocation(neighbors, point, accumulatedCost, stayCost, currentLocationFitness);
-                fishMovement.addReachableNeighbors(neighbors, point, accumulatedCost, originalLocation);
+                // auto fishMovement = FishMovement(model, swimSpeed, swimRange, fitness_calculator);
+                fishMovement->addCurrentLocation(neighbors, point, accumulatedCost, stayCost, currentLocationFitness);
+                fishMovement->addReachableNeighbors(neighbors, point, accumulatedCost, originalLocation);
             }
             // else {
                 // neighbors.emplace_back(point, totalCost+stayCost, currentLocationFitness);

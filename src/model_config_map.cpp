@@ -1,4 +1,7 @@
 #include "model_config_map.h"
+
+#include <iostream>
+#include <ostream>
 #include <stdexcept>
 
 std::unordered_map<ModelParamKey, ConfigDefinition> ModelConfigMap::createDefaultDefinitions() {
@@ -10,6 +13,7 @@ std::unordered_map<ModelParamKey, ConfigDefinition> ModelConfigMap::createDefaul
         {ModelParamKey::MortMin, {"mortMin", 0.0005f}},
         {ModelParamKey::MortMax, {"mortMax", 0.002f}},
         {ModelParamKey::GrowthSlope, {"growthSlope", 0.0007f}},
+        {ModelParamKey::AgentAwareness, {"agentAwareness", "medium"}}, // options are "low", "medium", and "high"
     };
 }
 
@@ -65,9 +69,18 @@ void ModelConfigMap::loadFromJson(const rapidjson::Document& d) {
             }
         }
     }
+    validate();
 }
 
 std::string ModelConfigMap::getFileKey(ModelParamKey key) const {
     auto it = fileKeyMap_.find(key);
     return (it != fileKeyMap_.end()) ? it->second : "unknown";
+}
+
+void ModelConfigMap::validate() const {
+    std::string agentAwareness = getString(ModelParamKey::AgentAwareness);
+    if (agentAwareness != "low" && agentAwareness != "medium" && agentAwareness != "high") {
+        std::cerr << "Invalid value for AgentAwareness: " << agentAwareness << std::endl;
+        throw std::runtime_error("Invalid value for AgentAwareness");
+    }
 }
