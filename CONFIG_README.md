@@ -14,6 +14,8 @@ Parameters:
 - `mortMin`: float; optional; default 0.0005; mort_min_c parameter used in fish mortality equation
 - `mortMax`: float; optional; default 0.002; mort_max_d parameter used in fish mortality equation
 - `growthSlope`: float; optional; default 0.0007; growthSlope used in Pmax equation
+- `agentAwareness`: string; optional; default "medium"; the agent awareness level (aka movement omniscience) to use in 
+  the model. Options are "low", "medium", and "high".
 - `envDataType`: string, either `file` or `sim`
     - if `envDataType` is `file`, the following entries are expected:
         - `recStartTimestep`: the number of 1-hour timesteps from midnight on January 1 to the start date/time of the recruitment data
@@ -82,7 +84,7 @@ Parameters:
             Distributary nodes retrieve flow speed, depth, and temperature from their nearest hydro node, so these nodes should be relatively dense spatially in distributary regions
 
         - `blindChannelSimplificationRadius`: float; the maximum distance between blind channel nodes that will result in them being merged when the map data is loaded (to speed up model prediction).
-        - `directionlessEdges`: int; optional, default 0; treated as boolean determining whether or not to use directionless edges
+        - `directionlessEdges`: int; optional, default 1; treated as boolean determining whether or not to use directionless edges
         - `virtualNodes`: int; optional; default 1; boolean determining whether to allow the creation of virtual nearshore nodes 
     - if `envDataType` is "sim", the following entries are expected:
         - `mapParams`: A subgroup of parameters containing the following keys:
