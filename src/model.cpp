@@ -164,7 +164,7 @@ void Model::masterUpdate() {
     if (this->time % 24 == 0) {
         this->update24h();
     }
-    if ((this->time / 24) % 14 == 0) {
+    if ((this->time / 24) % 14 == 0) { // GROT changed to 7
         // On a sampling day
         // TODO add sampling parameters to config
         if (this->time % 24 == 12) {
@@ -389,7 +389,7 @@ void Model::countAll(bool updateTracking) {
 // Generates a single recruit and adds it to a random recruit start node
 void Model::recruitSingle() {
     // Get the current slice of the recruit size distribution data
-    std::vector<float> &recSizeDist = this->recSizeDists[(this->time + this->recTimeIntercept) / (24 * 14)];
+    std::vector<float> &recSizeDist = this->recSizeDists[(this->time + this->recTimeIntercept) / (24 * 14)]; // GROT check this
     // Sample the fork length bucket index from the distribution
     unsigned flIdx = sample(recSizeDist.data(), recSizeDist.size());
     // Calculate the fork length from the bucket index

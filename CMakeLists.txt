@@ -10,6 +10,9 @@
 # a good set of ASAN options to run that build with (note the suppression of leak detection):
 # "export ASAN_OPTIONS=detect_odr_violation=0:alloc_dealloc_mismatch=0:halt_on_error=0:print_stacktrace=1:quarantine_size_mb=256:verbosity=0:sleep_before_dying=30:detect_leaks=0"
 #
+# configure debug build with QUICK_DEBUG_HACK defined. note: this puts the build in a different directory, "debug-hack"
+#    "cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -DQUICK_DEBUG_HACK" -S ~/code/Skagit-IBM -B ~/code/Skagit-IBM/build/debug-hack"
+#
 # executables show up in {Skagit-IBM-ROOT}/bin under a subdirectory (e.g. /Debug or /Release)
 
 cmake_minimum_required(VERSION 3.10)

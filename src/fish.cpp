@@ -396,59 +396,8 @@ bool Fish::move(Model &model) {
         float pointFlowSpeed = model.hydroModel.getUnsignedFlowSpeedAt(*point);
         float stayCost = remainingTime * pointFlowSpeed;
         if (remainingTime > 0.0f) {
-            if (model.getInt(ModelParamKey::DirectionlessEdges)) {
-                fishMovement->addCurrentLocation(neighbors, point, accumulatedCost, stayCost, currentLocationFitness);
-                fishMovement->addReachableNeighbors(neighbors, point, accumulatedCost, originalLocation);
-            }
-            else {
-                neighbors.emplace_back(point, accumulatedCost+stayCost, currentLocationFitness);
-
-                // Check all channels flowing into this node
-                for (Edge &edge: point->edgesIn) {
-                    if (model.hydroModel.getDepth(*edge.source) >= MOVEMENT_DEPTH_CUTOFF) {
-                        float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
-                        // Effective movement speed along channel (swim speed adjusted by flow speed)
-                        float transitSpeed = swimSpeed - edgeFlowSpeed;
-                        // Check to make sure the fish can even make progress
-                        if (transitSpeed > 0.0f) {
-                            // Calculate effective distance swum
-                            float edgeCost = (edge.length / transitSpeed) * swimSpeed;
-                            if (isDistributary(edge.source->type) && point == this->location) {
-                                // || (this->forkLength >= 75)){
-                                // Artificially discount the cost to make at least 1 distributary channel passable
-                                // (since they are widely spaced)
-                                edgeCost = std::min(edgeCost, swimRange - accumulatedCost);
-                            }
-                            // Check if connected node is reachable
-                            if (accumulatedCost + edgeCost <= swimRange) {
-                                // Add it to the neighbor list with its fitness value
-                                float fitness = this->getFitness(model, *edge.source, accumulatedCost + edgeCost);
-                                neighbors.emplace_back(edge.source, accumulatedCost + edgeCost, fitness);
-                            }
-                        }
-                    }
-                }
-                // Check all channels flowing out of this node
-                // Same as above (except flow directions are reversed)
-                for (Edge &edge: point->edgesOut) {
-                    if (model.hydroModel.getDepth(*edge.target) >= MOVEMENT_DEPTH_CUTOFF) {
-                        float edgeFlowSpeed = model.hydroModel.getFlowSpeedAlong(edge);
-                        float transitSpeed = swimSpeed + edgeFlowSpeed;
-                        if (transitSpeed > 0.0f) {
-                            float edgeCost = (edge.length / transitSpeed) * swimSpeed;
-                            // if (isDistributary(edge.target->type) && point == this->location) {
-                            if (isDistributary(point->type) && point == this->location) {
-                                //|| (this->forkLength >= 75)){
-                                edgeCost = std::min(edgeCost, swimRange - accumulatedCost);
-                            }
-                            if (accumulatedCost + edgeCost <= swimRange) {
-                                float fitness = this->getFitness(model, *edge.target, accumulatedCost + edgeCost);
-                                neighbors.emplace_back(edge.target, accumulatedCost + edgeCost, fitness);
-                            }
-                        }
-                    }
-                }
-            }
+            fishMovement->addCurrentLocation(neighbors, point, accumulatedCost, stayCost, currentLocationFitness);
+            fishMovement->addReachableNeighbors(neighbors, point, accumulatedCost, originalLocation);
         }
         if (!neighbors.empty()) {
             weights.clear();
