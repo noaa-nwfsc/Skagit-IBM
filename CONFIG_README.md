@@ -13,6 +13,7 @@ Parameters:
 - `habitatMortalityMultiplier`: float; optional; default 2.0; additional mortality multiplier applied in distributaries and nearshore habitats
 - `mortMin`: float; optional; default 0.0005; mort_min_c parameter used in fish mortality equation
 - `mortMax`: float; optional; default 0.002; mort_max_d parameter used in fish mortality equation
+- `mortalityInflectionPoint`: float; optional; default 500.0; mortalityInflectionPoint (e) used in fish mortality equation 
 - `growthSlope`: float; optional; default 0.0007; growthSlope used in Pmax equation
 - `agentAwareness`: string; optional; default "medium"; the agent awareness level (aka movement omniscience) to use in 
   the model. Options are "low", "medium", and "high".

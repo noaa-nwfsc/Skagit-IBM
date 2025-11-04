@@ -14,6 +14,7 @@ std::unordered_map<ModelParamKey, ConfigDefinition> ModelConfigMap::createDefaul
         {ModelParamKey::MortMax, {"mortMax", 0.002f}},
         {ModelParamKey::GrowthSlope, {"growthSlope", 0.0007f}},
         {ModelParamKey::AgentAwareness, {"agentAwareness", "medium"}}, // options are "low", "medium", and "high"
+        {ModelParamKey::MortalityInflectionPoint, {"mortalityInflectionPoint", 500.0f}},
     };
 }
 

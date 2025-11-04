@@ -596,7 +596,7 @@ float Fish::getMortality(Model &model, MapNode &loc) const {
     const double a = 1.849; // slope
     const double b_m = -0.8; //slope at inflection
     const double b_s = -2.395; // intercept
-    const double e = 500; // inflection point on x
+    const double e = model.getFloat(ModelParamKey::MortalityInflectionPoint); // inflection point on x
     const double L = this->forkLength;
     const double X = loc.popDensity; // * 1000; // convert m^2 to ha
     const double S = 250; // scaling factor numerator

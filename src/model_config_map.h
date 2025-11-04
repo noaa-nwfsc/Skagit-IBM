@@ -20,7 +20,8 @@ enum class ModelParamKey {
     MortMin,
     MortMax,
     GrowthSlope,
-    AgentAwareness
+    AgentAwareness,
+    MortalityInflectionPoint
 };
 
 class ModelConfigMap {
