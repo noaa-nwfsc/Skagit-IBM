@@ -5,7 +5,7 @@ This repository is a C++ implementation of an individual-based model of the beha
 
 ## Authors
 
-This software is in development by [Abby Bratt](https://github.com/aebratt) and [Kaj Bostrom](https://github.com/alephic).
+This software is in development by [Troy Frever](https://github.com/troyfrever-NOAA) and [Seth Urion](https://github.com/seth-noaa). They have built on previous work by [Abby Bratt](https://github.com/aebratt) and [Kaj Bostrom](https://github.com/alephic).
 
 ## About the model
 
