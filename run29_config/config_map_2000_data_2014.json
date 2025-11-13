@@ -1,6 +1,6 @@
 {
   "envDataType": "file",
-  "recStartTimestep": 0,
+  "recStartTimestep": 744,
   "hydroStartTimestep": 0,
   "recruitEntryNodes": [29331,29346,29401],
   "recruitCountsFile": "data/skagit_migrants_2014_feb_start.csv",

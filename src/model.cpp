@@ -389,7 +389,11 @@ void Model::countAll(bool updateTracking) {
 // Generates a single recruit and adds it to a random recruit start node
 void Model::recruitSingle() {
     // Get the current slice of the recruit size distribution data
-    std::vector<float> &recSizeDist = this->recSizeDists[(this->time + this->recTimeIntercept) / (24 * 14)]; // GROT check this
+    constexpr unsigned TIMESTEPS_IN_DAY = 24;
+    constexpr unsigned DAYS_IN_WEEK = 7;
+    constexpr unsigned TIMESTEPS_IN_WEEK = TIMESTEPS_IN_DAY * DAYS_IN_WEEK;
+    const unsigned recruitWeekIndex = (this->time + this->recTimeIntercept) / (TIMESTEPS_IN_WEEK);
+    std::vector<float> &recSizeDist = this->recSizeDists[recruitWeekIndex];
     // Sample the fork length bucket index from the distribution
     unsigned flIdx = sample(recSizeDist.data(), recSizeDist.size());
     // Calculate the fork length from the bucket index

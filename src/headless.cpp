@@ -258,10 +258,10 @@ int main(int argc, char **argv) {
             std::cout.flush();
 
 #if !defined(QUICK_DEBUG_HACK) || defined(NDEBUG)
-            std::cout << "Writing intermediary file at step: " << m->time << std::endl;
-            std::stringstream interruptfile;
-            interruptfile << outputPath << "/run_" << runID <<"_step_" << m->time << ".nc";
-            m->saveState(interruptfile.str());
+            // std::cout << "Writing intermediary file at step: " << m->time << std::endl;
+            // std::stringstream interruptfile;
+            // interruptfile << outputPath << "/run_" << runID <<"_step_" << m->time << ".nc";
+            // m->saveState(interruptfile.str());
 #endif
         }
     }
