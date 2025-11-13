@@ -4,8 +4,11 @@ This file records major feature changes. It goes back in time to 11.19.2024. "Re
 when the completed feature was merged to the main branch. Functional parts of a feature may have been merged earlier.
 Minor updates are not recorded.
 
+## 11.13.2025
+- indexing into the `recruitSizesFile` is corrected to be weekly instead of bi-weekly.
+
 ## 04.07.2025
-- `rng_seed` is now available as a parameter in the config json for specifying a fixed seed to the random number 
+- `rng_seed` is now available as a parameter in the config json for specifying a fixed seed to the random number
   generator. See [CONFIG_README.md](CONFIG_README.md) for further details.
 - new automated unit test framework.
 

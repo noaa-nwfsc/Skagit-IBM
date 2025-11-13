@@ -392,8 +392,10 @@ void Model::recruitSingle() {
     constexpr unsigned TIMESTEPS_IN_DAY = 24;
     constexpr unsigned DAYS_IN_WEEK = 7;
     constexpr unsigned TIMESTEPS_IN_WEEK = TIMESTEPS_IN_DAY * DAYS_IN_WEEK;
-    const unsigned recruitWeekIndex = (this->time + this->recTimeIntercept) / (TIMESTEPS_IN_WEEK);
+    const size_t recruitWeek = (this->time + this->recTimeIntercept) / (TIMESTEPS_IN_WEEK);
+    const size_t recruitWeekIndex = std::min(recruitWeek, this->recSizeDists.size() - 1);
     std::vector<float> &recSizeDist = this->recSizeDists[recruitWeekIndex];
+
     // Sample the fork length bucket index from the distribution
     unsigned flIdx = sample(recSizeDist.data(), recSizeDist.size());
     // Calculate the fork length from the bucket index
