@@ -4,8 +4,37 @@ This file records major feature changes. It goes back in time to 11.19.2024. "Re
 when the completed feature was merged to the main branch. Functional parts of a feature may have been merged earlier.
 Minor updates are not recorded.
 
-## 11.13.2025
-- indexing into the `recruitSizesFile` is corrected to be weekly instead of bi-weekly.
+## 11.17.2025
+- indexing into the `recruitSizesFile` is corrected to be weekly instead of bi-weekly. This includes changes to how 
+  the indexing into hydro data is done.
+
+## 11.03.2025
+- `mortalityInflectionPoint` is now configurable in the config json file.
+
+## 09.22.2025
+- `agentAwareness` model of fish movement implemented. Values of `low` and `medium` are now supported. Directionless 
+  edges are now required.
+
+## 09.15.2025
+- the `id` field of a node (found in some output files) matches the external node id found in csv input files.
+
+## 07.28.2025
+- `mortMin`, `mortMax`, growthSlope`, and `virtualNodes` are now configurable in the config json file.
+
+## 07.28.2025
+- use the `habitatMortalityMultiplier` in DistributaryEdge nodes in addition to the previous Distributary and Nearshore nodes
+
+## 06.30.2025
+- duplicate edges are no longer added
+
+## 06.16.2025
+- blind channel flow scaling now functioning
+
+## 05.30.2025
+- directionless edges are now supported
+
+## 04.29.2025
+- catch various input file parsing errors and recover if possible, else abort
 
 ## 04.07.2025
 - `rng_seed` is now available as a parameter in the config json for specifying a fixed seed to the random number

@@ -85,7 +85,7 @@ Parameters:
             Distributary nodes retrieve flow speed, depth, and temperature from their nearest hydro node, so these nodes should be relatively dense spatially in distributary regions
 
         - `blindChannelSimplificationRadius`: float; the maximum distance between blind channel nodes that will result in them being merged when the map data is loaded (to speed up model prediction).
-        - `directionlessEdges`: int; optional, default 1; treated as boolean determining whether or not to use directionless edges
+        - `directionlessEdges`: *deprecated*; directionless edges are always enabled
         - `virtualNodes`: int; optional; default 1; boolean determining whether to allow the creation of virtual nearshore nodes 
     - if `envDataType` is "sim", the following entries are expected:
         - `mapParams`: A subgroup of parameters containing the following keys:
