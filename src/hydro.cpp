@@ -67,7 +67,7 @@ HydroModel::HydroModel(
     std::vector<std::vector<float>> &temps,
     float distFlow
 ) :
-    useSimData(true), simDepths(), simTemps(), simDistFlow(distFlow)
+    useSimData(true), simDepths(), simTemps(), simDistFlow(distFlow), hydroTimeIntercept(0)
 {
     this->updateTime(0L);
     for (size_t i = 0; i < map.size(); ++i) {
@@ -77,22 +77,22 @@ HydroModel::HydroModel(
 }
 
 long HydroModel::getTime() const {
-    return currTimestep;
+    return currTimestep + hydroTimeIntercept;
 }
 
 void HydroModel::updateTime(long newTime) {
-    if (!this->useSimData) {
-        this->currCresTide = this->cresTideData[newTime + hydroTimeIntercept];
-        this->currFlowVol = this->flowVolData[newTime + hydroTimeIntercept];
-        this->currAirTemp = this->airTempData[newTime + hydroTimeIntercept];
-    }
     this->currTimestep = newTime;
+    if (!this->useSimData) {
+        this->currCresTide = this->cresTideData[getTime()];
+        this->currFlowVol = this->flowVolData[getTime()];
+        this->currAirTemp = this->airTempData[getTime()];
+    }
 }
 
 bool HydroModel::isHighTide() {
-    return this->currTimestep + hydroTimeIntercept - 1 > 0 && this->currTimestep + hydroTimeIntercept + 1 < (long) this->cresTideData.size()
-        && this->currCresTide > this->cresTideData[this->currTimestep + hydroTimeIntercept - 1]
-        && this->currCresTide > this->cresTideData[this->currTimestep + hydroTimeIntercept + 1];
+    return this->getTime() - 1 > 0 && this->getTime() + 1 < (long) this->cresTideData.size()
+        && this->currCresTide > this->cresTideData[this->getTime() - 1]
+        && this->currCresTide > this->cresTideData[this->getTime() + 1];
 }
 
 // Calculate flow speed along the provided edge
@@ -117,7 +117,7 @@ float HydroModel::getCurrentU(const MapNode &node) const {
     return this->getCurrentU(this->hydroNodes[node.nearestHydroNodeID]);
 }
 float HydroModel::getCurrentU(const DistribHydroNode &hydroNode) const {
-    return hydroNode.us[currTimestep];
+    return hydroNode.us[this->getTime()];
 }
 
 // Get the current vertical (N/S) flow velocity in m/s at the given node
@@ -125,7 +125,7 @@ float HydroModel::getCurrentV(const MapNode &node) const {
     return this->getCurrentV(this->hydroNodes[node.nearestHydroNodeID]);
 }
 float HydroModel::getCurrentV(const DistribHydroNode &hydroNode) const {
-    return hydroNode.vs[currTimestep];
+    return hydroNode.vs[this->getTime()];
 }
 
 // Get the total flow velocity in m/s at the given node
@@ -190,10 +190,10 @@ float limitWaterTemp(float waterTemp, HabitatType nodeType) {
 // Get the current temperature (C) at the given node
 float HydroModel::getTemp(MapNode &node) {
     if (this->useSimData) {
-        return this->simTemps[&node][this->currTimestep];
+        return this->simTemps[&node][this->getTime()];
     }
 
-    const float hydroTemp = this->hydroNodes[node.nearestHydroNodeID].temps[currTimestep];
+    const float hydroTemp = this->hydroNodes[node.nearestHydroNodeID].temps[this->getTime()];
     return limitWaterTemp(hydroTemp, node.type);
 }
 
@@ -207,9 +207,9 @@ float limitDepth(const float depth, const HabitatType nodeType) {
 // (based on blind channel model everywhere else)
 float HydroModel::getDepth(MapNode &node) {
     if (this->useSimData) {
-        return this->simDepths[&node][this->currTimestep];
+        return this->simDepths[&node][this->getTime()];
     }
 
-    const float depth = this->hydroNodes[node.nearestHydroNodeID].wses[currTimestep] - node.elev;
+    const float depth = this->hydroNodes[node.nearestHydroNodeID].wses[this->getTime()] - node.elev;
     return limitDepth(depth, node.type);
 }

@@ -91,8 +91,67 @@ Step 175: 1.68744s elapsed; 1h2m46s remaining; 134507 living fish; 81 exited; 11
 Step 200: 1.66059s elapsed; 1h8m49s remaining; 142628 living fish; 164 exited; 144468 dead
 Step 225: 1.94153s elapsed; 1h13m4s remaining; 147849 living fish; 300 exited; 173383 dead
 Step 250: 1.53219s elapsed; 1h15m42s remaining; 145866 living fish; 563 exited; 200670 dead
+
 ---------------
-older release build
+recent release build
+Thu Nov 13 13:19:02 PST 2025
+Configuring model...
+8 hardware threads available
+8 thread(s) enabled
+
+loading distributary hydrology data: 341/341
+done loading hydro
+directionless edges!
+Found 0 duplicate input edges
+Found 0 duplicate output edges
+Removing disconnected node 22158
+Removing disconnected node 22056
+Removing disconnected node 21724
+Nearshore connector nodes: 1 Low tide terrace
+Nearshore connector nodes: 5 Distributary edge
+Nearshore connector nodes: 5 Distributary
+Nearshore connector nodes: 31 Blind channel
+Nearshore connector nodes: 1 Impoundment
+Nearshore connector nodes: 377 Nearshore
+Created 420 new nearshore connector nodes
+Made  0 disconnected 'distributary' nodes into blind channels
+Found 0 disconnected nodes
+Found 0 orphaned nodes
+Found 0 orphaned protected nodes
+Map nodes: 6 Boat harbor
+Map nodes: 150 Low tide terrace
+Map nodes: 1322 Distributary edge
+Map nodes: 2126 Distributary
+Map nodes: 688 Nearshore
+Map nodes: 155 Impoundment
+Map nodes: 27661 Blind channel
+Selected run ID: 0
+Sample data will be saved to run32/map2000d2014/output_0.nc
+Step 330: 0.0798955s elapsed; 3m55s remaining; 124980 living fish; 11337 exited; 288907 dead
+Step 660: 0.190506s elapsed; 6m2s remaining; 260568 living fish; 47943 exited; 908890 dead
+Step 990: 0.275931s elapsed; 7m27s remaining; 417901 living fish; 85597 exited; 1731355 dead
+Step 1320: 0.150796s elapsed; 7m1s remaining; 169789 living fish; 122300 exited; 2324877 dead
+Step 1650: 0.0680998s elapsed; 5m40s remaining; 99412 living fish; 152052 exited; 2638664 dead
+Step 1980: 0.0729562s elapsed; 4m26s remaining; 99616 living fish; 179965 exited; 2857714 dead
+Step 2310: 0.079121s elapsed; 3m24s remaining; 96901 living fish; 195481 exited; 3014423 dead
+Step 2640: 0.0778648s elapsed; 2m34s remaining; 109418 living fish; 217419 exited; 3124532 dead
+Step 2970: 0.0450795s elapsed; 1m50s remaining; 62778 living fish; 242090 exited; 3213501 dead
+Step 3300: 0.0189282s elapsed; 1m9s remaining; 30102 living fish; 256589 exited; 3249406 dead
+Step 3630: 0.0201889s elapsed; 33s remaining; 24692 living fish; 260549 exited; 3265626 dead
+Step 3960: 0.0123618s elapsed; 2s remaining; 16756 living fish; 263162 exited; 3276837 dead
+
+Finished at step 3984; 345.928s elapsed since start
+In saveTaggedHistories
+
+Values for N: 1427, and T: 3985
+
+N: 1427,   T: 3985
+
+Finished loading all tracks
+Thu Nov 13 13:25:20 PST 2025
+
+----
+older
 Mon Aug  4 10:39:38 PDT 2025
 Configuring model...
 8 hardware threads available
@@ -158,71 +217,3 @@ N: 1427,   T: 3985
 Finished loading all tracks
 Mon Aug  4 10:53:08 PDT 2025
 
-
-=================
-older
-
-Tue Jul  1 11:38:43 PDT 2025
-Configuring model...
-8 hardware threads available
-Forcing max threads to 1 due to non-zero RNG seed (42)
-1 thread(s) enabled
-
-loading distributary hydrology data: 341/341
-done loading hydro
-directionless edges!
-Found 0 duplicate input edges
-Found 0 duplicate output edges
-Nearshore connector nodes: 5 Distributary
-Nearshore connector nodes: 1 Low tide terrace
-Nearshore connector nodes: 5 Distributary edge
-Nearshore connector nodes: 31 Blind channel
-Nearshore connector nodes: 1 Impoundment
-Nearshore connector nodes: 377 Nearshore
-Created 420 new nearshore connector nodes
-Made  0 disconnected 'distributary' nodes into blind channels
-Found 0 disconnected nodes
-Found 0 orphaned nodes
-Found 0 orphaned protected nodes
-Map nodes: 6 Boat harbor
-Map nodes: 150 Low tide terrace
-Map nodes: 1322 Distributary edge
-Map nodes: 2126 Distributary
-Map nodes: 688 Nearshore
-Map nodes: 155 Impoundment
-Map nodes: 27661 Blind channel
-Sample data will be saved to run32/map2000d2014/output_0.nc
-Step 330: 0.387274s elapsed; 19m37s remaining; 131400 living fish; 12267 exited; 281602 dead
-Writing intermediary file at step: 330
-Step 660: 0.868312s elapsed; 29m30s remaining; 261459 living fish; 51454 exited; 904471 dead
-Writing intermediary file at step: 660
-Step 990: 1.49495s elapsed; 37m8s remaining; 413806 living fish; 91880 exited; 1729070 dead
-Writing intermediary file at step: 990
-Step 1320: 0.596807s elapsed; 35m45s remaining; 169667 living fish; 128079 exited; 2319273 dead
-Writing intermediary file at step: 1320
-Step 1650: 0.238974s elapsed; 28m34s remaining; 99064 living fish; 158387 exited; 2632810 dead
-Writing intermediary file at step: 1650
-Step 1980: 0.266926s elapsed; 21m57s remaining; 99482 living fish; 186841 exited; 2851080 dead
-Writing intermediary file at step: 1980
-Step 2310: 0.20758s elapsed; 16m35s remaining; 87426 living fish; 201317 exited; 3018371 dead
-Writing intermediary file at step: 2310
-Step 2640: 0.219365s elapsed; 12m8s remaining; 79047 living fish; 218706 exited; 3154131 dead
-Writing intermediary file at step: 2640
-Step 2970: 0.0998034s elapsed; 8m25s remaining; 35944 living fish; 229740 exited; 3253367 dead
-Writing intermediary file at step: 2970
-Step 3300: 0.0338691s elapsed; 5m10s remaining; 13317 living fish; 237845 exited; 3285662 dead
-Writing intermediary file at step: 3300
-Step 3630: 0.0357727s elapsed; 2m27s remaining; 12698 living fish; 239713 exited; 3299294 dead
-Writing intermediary file at step: 3630
-Step 3960: 0.0182086s elapsed; 9s remaining; 7115 living fish; 241472 exited; 3309048 dead
-Writing intermediary file at step: 3960
-
-Finished at step 3984; 1517.34s elapsed since start
-In saveTaggedHistories
-
-Values for N: 1427, and T: 3985
-
-N: 1427,   T: 3985
-
-Finished loading all tracks
-Tue Jul  1 12:05:08 PDT 2025
