@@ -27,6 +27,7 @@ set(TEST_SOURCES
         load_test.cpp
         fish_movement_pathfinding_test.cpp
         fish_movement_factory_test.cpp
+        fish_move_test.cpp
 )
 
 # These tests can use the Catch2-provided main

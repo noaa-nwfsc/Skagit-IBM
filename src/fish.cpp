@@ -63,19 +63,6 @@ inline float forkLengthFromMass(float mass) {
     return fmax(20.0f, 47.828851f*pow(mass, 0.292476f) + unit_normal_rand()*2.07895f);
 }
 
-// Haefner et al. 2002
-// This is a sustained swim speed
-const float SWIM_SPEED_BODY_LENGTHS_PER_SEC = 2.0f;
-
-constexpr  float HOURS_PER_TIMESTEP = 1.0f;
-constexpr  float SECONDS_PER_TIMESTEP = HOURS_PER_TIMESTEP * 60.0f*60.0f;
-
-// Calculate a sustained-movement swim range (in m) from a fork length (in mm)
-inline float swimSpeedFromForkLength(float forkLength) {
-    // body lengths per sec (s^-1) * (s/m) * (m/h) * body length (mm) * (m/mm);
-    return SWIM_SPEED_BODY_LENGTHS_PER_SEC * forkLength * 0.001f;
-}
-
 // Fish constructor
 // Initializes a fish from a starting location, timestep, and fork length
 // (mass is calculated from fork length)

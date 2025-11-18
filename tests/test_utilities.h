@@ -18,12 +18,14 @@ public:
 
     float getCurrentU(const MapNode& node) const override { return uValue; }
     float getCurrentV(const MapNode& node) const override { return vValue; }
-    float getDepth(MapNode& node) override { return depthValue; };
+    float getDepth(MapNode& node) override { return depthValue; }
+    float getTemp(MapNode& node) override { return tempValue; }
 
     // Values to be set in tests
     float uValue = 0.0f;
     float vValue = 0.0f;
     float depthValue = 1.0f;
+    float tempValue = 10.0f;
 
 private:
     std::vector<MapNode *> empty_nodes_;

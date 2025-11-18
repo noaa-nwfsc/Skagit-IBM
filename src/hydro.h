@@ -43,7 +43,7 @@ public:
 
     virtual float scaledFlowSpeed(float flowSpeed, const MapNode &node);
     // Return the temperature in degrees C at a given location
-    float getTemp(MapNode &node);
+    virtual float getTemp(MapNode &node);
     // Return the water depth in meters at a given location
     virtual float getDepth(MapNode &node);
     // Check if the current timestep is a high tide

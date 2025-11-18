@@ -23,6 +23,19 @@ enum class FishStatus {Alive, DeadMortality, DeadStranding, DeadStarvation, Exit
 class Model;
 #endif
 
+constexpr  float HOURS_PER_TIMESTEP = 1.0f;
+constexpr  float SECONDS_PER_TIMESTEP = HOURS_PER_TIMESTEP * 60.0f*60.0f;
+
+// Haefner et al. 2002
+// This is a sustained swim speed
+const float SWIM_SPEED_BODY_LENGTHS_PER_SEC = 2.0f;
+
+// Calculate a sustained-movement swim range (in m) from a fork length (in mm)
+inline float swimSpeedFromForkLength(float forkLength) {
+    // body lengths per sec (s^-1) * (s/m) * (m/h) * body length (mm) * (m/mm);
+    return SWIM_SPEED_BODY_LENGTHS_PER_SEC * forkLength * 0.001f;
+}
+
 class Fish {
 public:
     // index in Model::individuals
@@ -128,7 +141,7 @@ public:
     // Compute the expected mortality risk for a given location
     float getMortality(Model &model, MapNode &loc) const;
     // Compute the ratio of growth to mortality for a given location and movement cost
-    float getFitness(Model &model, MapNode &loc, float cost);
+    virtual float getFitness(Model &model, MapNode &loc, float cost);
     /*
     * Run this fish's growth update:
     *   Get the growth (g) and mortality risk for the current location

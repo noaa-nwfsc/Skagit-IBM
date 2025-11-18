@@ -42,7 +42,14 @@ float unit_normal_rand() {
     return GlobalRand::unit_normal_rand();
 }
 
+// Optional test hook; defaults to nullptr in production.
+SampleFunction sampleOverrideForTesting = nullptr;
+
 unsigned sample(float *weights, unsigned weightsLen) {
+    if (sampleOverrideForTesting != nullptr) {
+        return sampleOverrideForTesting(weights, weightsLen);
+    }
+
     unsigned i = 0;
     float acc = 0;
     float r = unit_rand();

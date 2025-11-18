@@ -23,6 +23,11 @@ private:
 float unit_rand();
 float unit_normal_rand();
 
+// Hook to allow tests to override the sampling behavior.
+// In production code, this should be left as nullptr.
+using SampleFunction = unsigned(*)(float *weights, unsigned weightsLen);
+extern SampleFunction sampleOverrideForTesting;
+
 unsigned sample(float *weights, unsigned weightsLen);
 
 int poisson(double lambda);
