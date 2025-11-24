@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "fish.h"
+#include "fish_movement.h"
 #include "model.h"
 #include "test_utilities.h"
 #include "catch2/catch_approx.hpp"
@@ -33,6 +34,13 @@ struct MoveTestFixture {
         hydroModel = std::make_unique<MockHydroModel>();
         model = std::make_unique<Model>(hydroModel.get());
         node = createMapNode(0.0f, 0.0f, type);
+    }
+
+    void setAgentAwareness(const std::string& awareness) {
+        // Nasty cast to modify private/const member for testing without changing production code interface
+        const ModelConfigMap& config = model->getConfigMap();
+        ModelConfigMap& mutableConfig = const_cast<ModelConfigMap&>(config);
+        mutableConfig.set(ModelParamKey::AgentAwareness, awareness);
     }
 };
 
@@ -385,3 +393,67 @@ TEST_CASE("Fish::move calculates weights correctly for one dominant fitness neig
     bool result = fish.move(*fixture.model);
     REQUIRE(result == true);
 }
+
+TEST_CASE("Fish::move uses different movement strategies based on configuration", "[fish][move][strategy]") {
+    MoveTestFixture fixture;
+    fixture.hydroModel->depthValue = 1.0f;
+
+    auto nodeA = fixture.node.get();
+    auto nodeB = createMapNode(10.0f, 0.0f);
+    auto nodeC = createMapNode(-10.0f, 0.0f);
+
+    // Connect A -> B (Outgoing from A)
+    Edge edgeOut(nodeA, nodeB.get(), 1.0f);
+    nodeA->edgesOut.push_back(edgeOut);
+    nodeB->edgesIn.push_back(edgeOut);
+
+    // Connect C -> A (Incoming to A)
+    Edge edgeIn(nodeC.get(), nodeA, 1.0f);
+    nodeC->edgesOut.push_back(edgeIn);
+    nodeA->edgesIn.push_back(edgeIn);
+
+    // Set flow to move from Left to Right (+x)
+    // This makes moving to C (left) "upstream" and moving to B (right) "downstream"
+    fixture.hydroModel->uValue = 0.1f;
+
+    TestFish fish(
+        /*id*/        200UL,
+        /*spawnTime*/ 0L,
+        /*forkLength*/200.0f, // choose a long enough fork length to make swim speed exceed downstream flow
+        /*location*/  nodeA
+    );
+
+    SECTION("Medium Awareness (Default) considers upstream and downstream") {
+        fixture.setAgentAwareness("medium");
+
+        static unsigned optionCount = 0;
+        optionCount = 0;
+        auto sampler = [](float *, unsigned weightsLen) -> unsigned {
+            optionCount = weightsLen;
+            return 0; // Stay
+        };
+        SampleOverrideHelper override(sampler);
+
+        fish.move(*fixture.model);
+
+        // medium awareness considers incoming edges (C) as reachable:
+        REQUIRE(optionCount == 3);
+    }
+
+    SECTION("Low Awareness considers only downstream") {
+        fixture.setAgentAwareness("low");
+
+        static unsigned optionCount = 0;
+        optionCount = 0;
+        auto sampler = [](float *, unsigned weightsLen) -> unsigned {
+            optionCount = weightsLen;
+            return 0; // Stay
+        };
+        SampleOverrideHelper override(sampler);
+
+        fish.move(*fixture.model);
+
+        // low awareness does NOT consider incoming edge (C) as reachable:
+        REQUIRE(optionCount == 2);
+    }
+};
