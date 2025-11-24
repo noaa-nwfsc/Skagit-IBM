@@ -8,12 +8,18 @@
 #include "fish.h"
 #include "model.h"
 #include "test_utilities.h"
+#include "catch2/catch_approx.hpp"
 
 class TestFish : public Fish {
 public:
     using Fish::Fish;
 
-    float getFitness(Model &, MapNode &, float) override {
+    std::function<float(MapNode &)> fitnessFn;
+
+    float getFitness(Model &, MapNode &node, float) override {
+        if (fitnessFn) {
+            return fitnessFn(node);
+        }
         return 1.0f; // simple, deterministic fitness
     }
 };
@@ -34,14 +40,14 @@ TEST_CASE("Fish::move stays at current location when there are no neighbors", "[
     MoveTestFixture fixture; // default Distributary node, no edges
 
     TestFish fish(
-        /*id*/        0UL,
-        /*spawnTime*/ 0L,
-        /*forkLength*/50.0f,
-        /*location*/  fixture.node.get()
+        /*id*/ 0UL,
+               /*spawnTime*/ 0L,
+               /*forkLength*/50.0f,
+               /*location*/ fixture.node.get()
     );
 
     // Non-fatal environment
-    fixture.hydroModel->depthValue = 1.0f;  // positive depth → no stranding
+    fixture.hydroModel->depthValue = 1.0f; // positive depth → no stranding
     fixture.hydroModel->uValue = 0.0f;
     fixture.hydroModel->vValue = 0.0f;
 
@@ -56,6 +62,7 @@ public:
     explicit SampleOverrideHelper(SampleFunction fn) : previous_(::sampleOverrideForTesting) {
         ::sampleOverrideForTesting = fn;
     }
+
     ~SampleOverrideHelper() {
         ::sampleOverrideForTesting = previous_;
     }
@@ -76,10 +83,10 @@ TEST_CASE("Fish::move terminates immediately when stay option is selected", "[fi
     connectNodes(nodeA.get(), nodeB.get(), 1.0f);
 
     TestFish fish(
-        /*id*/        1UL,
-        /*spawnTime*/ 0L,
-        /*forkLength*/50.0f,
-        /*location*/  nodeA.get()
+        /*id*/ 1UL,
+               /*spawnTime*/ 0L,
+               /*forkLength*/50.0f,
+               /*location*/ nodeA.get()
     );
 
     hydroModel->depthValue = 1.0f;
@@ -88,8 +95,8 @@ TEST_CASE("Fish::move terminates immediately when stay option is selected", "[fi
 
     // Neighbor list is [stay at A, neighbor B, ...]; index 0 is always "stay".
     auto staySampler = [](float *weights, unsigned weightsLen) -> unsigned {
-        (void)weights;
-        (void)weightsLen;
+        (void) weights;
+        (void) weightsLen;
         return 0U; // Always choose "stay"
     };
     SampleOverrideHelper override(staySampler);
@@ -115,10 +122,10 @@ TEST_CASE("Fish::move terminates when selecting the same location in a later ite
     connectNodes(nodeB.get(), nodeA.get(), 1.0f);
 
     TestFish fish(
-        /*id*/        2UL,
-        /*spawnTime*/ 0L,
-        /*forkLength*/50.0f,
-        /*location*/  nodeA.get()
+        /*id*/ 2UL,
+               /*spawnTime*/ 0L,
+               /*forkLength*/50.0f,
+               /*location*/ nodeA.get()
     );
 
     hydroModel->depthValue = 1.0f;
@@ -161,10 +168,10 @@ TEST_CASE("Fish::move terminates when remaining time is exhausted", "[fish][move
 
     float forkLength = 50.0f;
     TestFish fish(
-        /*id*/        3UL,
-        /*spawnTime*/ 0L,
-        /*forkLength*/forkLength,
-        /*location*/  nodeA.get()
+        /*id*/ 3UL,
+               /*spawnTime*/ 0L,
+               /*forkLength*/forkLength,
+               /*location*/ nodeA.get()
     );
 
     // Compute swimRange exactly as Fish::move does, but locally for the test.
@@ -192,4 +199,189 @@ TEST_CASE("Fish::move terminates when remaining time is exhausted", "[fish][move
 
     REQUIRE(result == true);
     REQUIRE(fish.location == nodeB.get());
+}
+
+TEST_CASE("Fish::move selects neighbors based on normalized fitness weights", "[fish][move][selection]") {
+    MoveTestFixture fixture;
+    // Ensure environment is safe so fish doesn't die/strand
+    fixture.hydroModel->depthValue = 1.0f;
+    fixture.hydroModel->uValue = 0.0f;
+    fixture.hydroModel->vValue = 0.0f;
+
+    auto nodeA = fixture.node.get();
+    auto nodeB = createMapNode(1.0f, 0.0f);
+    auto nodeC = createMapNode(2.0f, 0.0f);
+
+    // Connect neighbors. Order: A->B (index 1), A->C (index 2)
+    // Index 0 is always "stay" at A
+    connectNodes(nodeA, nodeB.get(), 1.0f);
+    connectNodes(nodeA, nodeC.get(), 1.0f);
+
+    TestFish fish(
+        /*id*/ 100UL,
+               /*spawnTime*/ 0L,
+               /*forkLength*/50.0f,
+               /*location*/ nodeA
+    );
+
+    // Setup: 3 neighbors with fitnesses [1.0, 2.0, 3.0]
+    // Fitness mapping: Stay(A)=1.0, B=2.0, C=3.0
+    fish.fitnessFn = [&](MapNode &n) {
+        if (&n == nodeA) return 1.0f;
+        if (&n == nodeB.get()) return 2.0f;
+        if (&n == nodeC.get()) return 3.0f;
+        return 0.0f;
+    };
+
+    // Shared static call counter for the non-capturing lambdas below
+    static int sampleCallCount = 0;
+    sampleCallCount = 0;
+
+    SECTION("Verify weights and select index 0 (Stay)") {
+        // Expect weights [1/6, 2/6, 3/6]
+        auto sampler = [](float *weights, unsigned weightsLen) -> unsigned {
+            sampleCallCount++;
+            if (sampleCallCount == 1) {
+                CHECK(weightsLen == 3);
+                if (weightsLen >= 3) {
+                    REQUIRE(weights[0] == Catch::Approx(1.0f / 6.0f).margin(0.0001f));
+                    REQUIRE(weights[1] == Catch::Approx(2.0f / 6.0f).margin(0.0001f));
+                    REQUIRE(weights[2] == Catch::Approx(3.0f / 6.0f).margin(0.0001f));
+                }
+                return 0; // Stay -> loop terminates
+            }
+            return 0;
+        };
+        SampleOverrideHelper override(sampler);
+
+        bool result = fish.move(*fixture.model);
+        REQUIRE(result == true);
+        REQUIRE(fish.location == nodeA);
+    }
+
+    SECTION("Verify weights and select index 1 (Node B)") {
+        // Move to B, then stay
+        auto sampler = [](float *weights, unsigned weightsLen) -> unsigned {
+            sampleCallCount++;
+            if (sampleCallCount == 1) {
+                CHECK(weightsLen == 3);
+                if (weightsLen >= 3) {
+                    REQUIRE(weights[0] == Catch::Approx(1.0f / 6.0f).margin(0.0001f));
+                    REQUIRE(weights[1] == Catch::Approx(2.0f / 6.0f).margin(0.0001f));
+                    REQUIRE(weights[2] == Catch::Approx(3.0f / 6.0f).margin(0.0001f));
+                }
+                return 1; // Move to B
+            }
+            return 0; // Stay at B -> loop terminates
+        };
+        SampleOverrideHelper override(sampler);
+
+        bool result = fish.move(*fixture.model);
+        REQUIRE(result == true);
+        REQUIRE(fish.location == nodeB.get());
+    }
+
+    SECTION("Verify weights and select index 2 (Node C)") {
+        // Move to C, then stay
+        auto sampler = [](float *weights, unsigned weightsLen) -> unsigned {
+            sampleCallCount++;
+            if (sampleCallCount == 1) {
+                CHECK(weightsLen == 3);
+                if (weightsLen >= 3) {
+                    REQUIRE(weights[0] == Catch::Approx(1.0f / 6.0f).margin(0.0001f));
+                    REQUIRE(weights[1] == Catch::Approx(2.0f / 6.0f).margin(0.0001f));
+                    REQUIRE(weights[2] == Catch::Approx(3.0f / 6.0f).margin(0.0001f));
+                }
+                return 2; // Move to C
+            }
+            return 0; // Stay at C -> loop terminates
+        };
+        SampleOverrideHelper override(sampler);
+
+        bool result = fish.move(*fixture.model);
+        REQUIRE(result == true);
+        REQUIRE(fish.location == nodeC.get());
+    }
+}
+
+TEST_CASE("Fish::move calculates weights correctly for equal fitness neighbors", "[fish][move][selection]") {
+    MoveTestFixture fixture;
+    fixture.hydroModel->depthValue = 1.0f;
+
+    auto nodeA = fixture.node.get();
+    auto nodeB = createMapNode(1.0f, 0.0f);
+    auto nodeC = createMapNode(2.0f, 0.0f);
+
+    // Connect neighbors. Order: A->B (index 1), A->C (index 2)
+    connectNodes(nodeA, nodeB.get(), 1.0f);
+    connectNodes(nodeA, nodeC.get(), 1.0f);
+
+    TestFish fish(
+        /*id*/ 101UL,
+               /*spawnTime*/ 0L,
+               /*forkLength*/50.0f,
+               /*location*/ nodeA
+    );
+
+    // Setup: 3 neighbors with equal fitness (Stay=1.0, B=1.0, C=1.0)
+    fish.fitnessFn = [&](MapNode &n) { return 1.0f; };
+
+    // Expect weights [1/3, 1/3, 1/3]
+    auto sampler = [](float *weights, unsigned weightsLen) -> unsigned {
+        CHECK(weightsLen == 3);
+
+        REQUIRE(weights[0] == Catch::Approx(1.0f / 3.0f).margin(0.0001f));
+        REQUIRE(weights[1] == Catch::Approx(1.0f / 3.0f).margin(0.0001f));
+        REQUIRE(weights[2] == Catch::Approx(1.0f / 3.0f).margin(0.0001f));
+        return 0;
+    };
+    SampleOverrideHelper override(sampler);
+
+    bool result = fish.move(*fixture.model);
+    REQUIRE(result == true);
+}
+
+TEST_CASE("Fish::move calculates weights correctly for one dominant fitness neighbor", "[fish][move][selection]") {
+    MoveTestFixture fixture;
+    fixture.hydroModel->depthValue = 1.0f;
+
+    auto nodeA = fixture.node.get();
+    auto nodeB = createMapNode(1.0f, 0.0f);
+    auto nodeC = createMapNode(2.0f, 0.0f);
+
+    // Connect neighbors. Order: A->B (index 1), A->C (index 2)
+    connectNodes(nodeA, nodeB.get(), 1.0f);
+    connectNodes(nodeA, nodeC.get(), 1.0f);
+
+    TestFish fish(
+        /*id*/ 102UL,
+               /*spawnTime*/ 0L,
+               /*forkLength*/50.0f,
+               /*location*/ nodeA
+    );
+
+    // Setup: Fitnesses [10.0, 0.1, 0.1]
+    // Stay(A)=10.0, B=0.1, C=0.1
+    // Total fitness = 10.2
+    // Weight A = 10.0 / 10.2 ≈ 0.98039
+    // Weight B = 0.1 / 10.2 ≈ 0.00980
+    // Weight C = 0.1 / 10.2 ≈ 0.00980
+    fish.fitnessFn = [&](MapNode &n) {
+        if (&n == nodeA) return 10.0f;
+        return 0.1f;
+    };
+
+    auto sampler = [](float *weights, unsigned weightsLen) -> unsigned {
+        CHECK(weightsLen == 3);
+
+        float totalFitness = 10.2f;
+        REQUIRE(weights[0] == Catch::Approx(10.0f / totalFitness).margin(0.0001f));
+        REQUIRE(weights[1] == Catch::Approx(0.1f / totalFitness).margin(0.0001f));
+        REQUIRE(weights[2] == Catch::Approx(0.1f / totalFitness).margin(0.0001f));
+        return 0;
+    };
+    SampleOverrideHelper override(sampler);
+
+    bool result = fish.move(*fixture.model);
+    REQUIRE(result == true);
 }
