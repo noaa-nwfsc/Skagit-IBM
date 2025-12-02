@@ -423,16 +423,16 @@ TEST_CASE("Fish::move uses different movement strategies based on configuration"
         /*location*/  nodeA
     );
 
+    static unsigned optionCount = 0;
+    auto sampler = [](float *, unsigned weightsLen) -> unsigned {
+        optionCount = weightsLen;
+        return 0; // Stay
+    };
+    SampleOverrideHelper override(sampler);
+
     SECTION("Medium Awareness (Default) considers upstream and downstream") {
         fixture.setAgentAwareness("medium");
-
-        static unsigned optionCount = 0;
         optionCount = 0;
-        auto sampler = [](float *, unsigned weightsLen) -> unsigned {
-            optionCount = weightsLen;
-            return 0; // Stay
-        };
-        SampleOverrideHelper override(sampler);
 
         fish.move(*fixture.model);
 
@@ -442,14 +442,7 @@ TEST_CASE("Fish::move uses different movement strategies based on configuration"
 
     SECTION("Low Awareness considers only downstream") {
         fixture.setAgentAwareness("low");
-
-        static unsigned optionCount = 0;
         optionCount = 0;
-        auto sampler = [](float *, unsigned weightsLen) -> unsigned {
-            optionCount = weightsLen;
-            return 0; // Stay
-        };
-        SampleOverrideHelper override(sampler);
 
         fish.move(*fixture.model);
 
