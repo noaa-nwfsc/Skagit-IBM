@@ -15,18 +15,18 @@ std::unique_ptr<FishMovement> FishMovementFactory::createFishMovement(
     const std::function<float(Model&, MapNode&, float)>& fitnessCalculator,
     const ModelConfigMap& config
 ) {
-    std::string omniscience = config.getString(ModelParamKey::AgentAwareness);
+    std::string awareness = config.getString(ModelParamKey::AgentAwareness);
 
-    if (omniscience == "low") {
+    if (awareness == "low") {
         return std::make_unique<FishMovementDownstream>(model, swimSpeed, swimRange);
     }
-    else if (omniscience == "medium") {
+    else if (awareness == "medium") {
         return std::make_unique<FishMovement>(model, swimSpeed, swimRange, fitnessCalculator);
     }
-    else if (omniscience == "high") {
+    else if (awareness == "high") {
         throw std::runtime_error("AgentAwareness 'high' is not yet supported");
     }
     else {
-        throw std::runtime_error("Unknown AgentAwareness value: " + omniscience);
+        throw std::runtime_error("Unknown AgentAwareness value: " + awareness);
     }
 }

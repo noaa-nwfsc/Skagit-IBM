@@ -368,7 +368,7 @@ bool Fish::move(Model &model) {
     MapNode *point = originalLocation;
     float currentLocationFitness = this->getFitness(model, *point, 0.0f);
     float lastFlowSpeed_node_old = model.hydroModel.getUnsignedFlowSpeedAt(*point);
-    FlowVelocity mostRecentFlowVelocity;
+    // FlowVelocity mostRecentFlowVelocity;
     std::vector<std::tuple<MapNode *, float, float>> neighbors;
     std::vector<float> weights;
 
@@ -378,7 +378,7 @@ bool Fish::move(Model &model) {
         neighbors.clear();
         float elapsedTime = accumulatedCost / swimSpeed;
         float remainingTime = SECONDS_PER_TIMESTEP - elapsedTime;
-        mostRecentFlowVelocity = model.hydroModel.getScaledFlowVelocityAt(*point);
+        // mostRecentFlowVelocity = model.hydroModel.getScaledFlowVelocityAt(*point);
 
         float pointFlowSpeed = model.hydroModel.getUnsignedFlowSpeedAt(*point);
         float stayCost = remainingTime * pointFlowSpeed;
@@ -400,7 +400,7 @@ bool Fish::move(Model &model) {
             point = std::get<0>(neighbors[idx]);
             accumulatedCost = std::get<1>(neighbors[idx]);
             currentLocationFitness = std::get<2>(neighbors[idx]);
-            mostRecentFlowVelocity = model.hydroModel.getScaledFlowVelocityAt(*point);
+            // mostRecentFlowVelocity = model.hydroModel.getScaledFlowVelocityAt(*point);
 
             if (point == lastPoint) {
                 break;
@@ -415,7 +415,7 @@ bool Fish::move(Model &model) {
     this->lastTemp = this->getBoundedTempForGrowth(model, *point);
     this->lastDepth = model.hydroModel.getDepth(*point);
     this->lastFlowSpeed_old = lastFlowSpeed_node_old;
-    this->lastFlowVelocity = mostRecentFlowVelocity;
+    this->lastFlowVelocity = model.hydroModel.getScaledFlowVelocityAt(*point);;
     if (this->location->type == HabitatType::Nearshore) {
         this->incrementExitHabitatHoursByOneTimestep();
     } else {

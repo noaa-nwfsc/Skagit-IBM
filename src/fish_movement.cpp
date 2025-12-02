@@ -127,9 +127,10 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovement::getReachableNeig
                 if (isDistributary(endNode->type) && startPoint == initialFishLocation) {
                     edgeCost = std::min(edgeCost, swimRange - accumulatedCost);
                 }
-                if (accumulatedCost + edgeCost <= swimRange) {
-                    float fitness = fitnessCalculator(model, *endNode, accumulatedCost + edgeCost);
-                    neighbors.emplace_back(endNode, accumulatedCost + edgeCost, fitness);
+                float totalCost = accumulatedCost + edgeCost;
+                if (totalCost <= swimRange) {
+                    float fitness = fitnessCalculator(model, *endNode, totalCost);
+                    neighbors.emplace_back(endNode, totalCost, fitness);
                 }
             }
         }
