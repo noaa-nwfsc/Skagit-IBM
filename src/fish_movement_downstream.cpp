@@ -14,7 +14,7 @@ bool FishMovementDownstream::canMoveInDirectionOfEndNode(float transitSpeed, flo
 }
 
 void FishMovementDownstream::addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors,
-                                                MapNode *point, float accumulated_cost, float stay_cost,
-                                                float current_location_fitness) {
-    FishMovement::addCurrentLocation(neighbors, point, accumulated_cost, stay_cost, fixedFitness);
+                                                MapNode *point, float spentCost, float stay_cost,
+                                                [[maybe_unused]] float current_location_fitness) {
+    FishMovement::addCurrentLocation(neighbors, point, spentCost, stay_cost, fixedFitness);
 }

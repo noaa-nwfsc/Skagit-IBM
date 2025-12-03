@@ -361,54 +361,17 @@ void Fish::incrementExitHabitatHoursByOneTimestep() {
  */
 
 bool Fish::move(Model &model) {
-    float accumulatedCost = 0.0f;
     float swimSpeed = swimSpeedFromForkLength(this->forkLength);
     float swimRange = swimSpeed*SECONDS_PER_TIMESTEP;
-    MapNode *originalLocation= this->location;
-    MapNode *point = originalLocation;
-    float currentLocationFitness = this->getFitness(model, *point, 0.0f);
-    float lastFlowSpeed_node_old = model.hydroModel.getUnsignedFlowSpeedAt(*point);
-    // FlowVelocity mostRecentFlowVelocity;
-    std::vector<std::tuple<MapNode *, float, float>> neighbors;
-    std::vector<float> weights;
+    float lastFlowSpeed_node_old = model.hydroModel.getUnsignedFlowSpeedAt(*(this->location));
 
     auto fitness_calculator = [this](Model& model, MapNode& node, float cost) { return this->getFitness(model, node, cost); };
     auto fishMovement = FishMovementFactory::createFishMovement(model, swimSpeed, swimRange, fitness_calculator, model.getConfigMap());
-    while (true) {
-        neighbors.clear();
-        float elapsedTime = accumulatedCost / swimSpeed;
-        float remainingTime = SECONDS_PER_TIMESTEP - elapsedTime;
-        // mostRecentFlowVelocity = model.hydroModel.getScaledFlowVelocityAt(*point);
 
-        float pointFlowSpeed = model.hydroModel.getUnsignedFlowSpeedAt(*point);
-        float stayCost = remainingTime * pointFlowSpeed;
-        if (remainingTime > 0.0f) {
-            fishMovement->addCurrentLocation(neighbors, point, accumulatedCost, stayCost, currentLocationFitness);
-            fishMovement->addReachableNeighbors(neighbors, point, accumulatedCost, originalLocation);
-        }
-        if (!neighbors.empty()) {
-            weights.clear();
-            float totalFitness = 0.0f;
-            for (size_t i = 0; i < neighbors.size(); ++i) {
-                totalFitness += std::get<2>(neighbors[i]);
-            }
-            for (size_t i = 0; i < neighbors.size(); ++i) {
-                weights.emplace_back(std::get<2>(neighbors[i])/totalFitness);
-            }
-            size_t idx = sample(weights.data(), neighbors.size());
-            MapNode *lastPoint = point;
-            point = std::get<0>(neighbors[idx]);
-            accumulatedCost = std::get<1>(neighbors[idx]);
-            currentLocationFitness = std::get<2>(neighbors[idx]);
-            // mostRecentFlowVelocity = model.hydroModel.getScaledFlowVelocityAt(*point);
+    std::pair<MapNode *, float> result = fishMovement->determineNextLocation(this->location);
+    MapNode *point = result.first;
+    float accumulatedCost = result.second;
 
-            if (point == lastPoint) {
-                break;
-            }
-        } else {
-            break;
-        }
-    }
     this->location = point;
     this->travel = accumulatedCost;
 
