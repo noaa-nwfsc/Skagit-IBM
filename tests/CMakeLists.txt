@@ -16,6 +16,7 @@ set(MODEL_SOURCES
         ../src/map_gen.cpp
         ../src/fish.cpp
         ../src/env_sim.cpp
+        ../src/fish_movement_high_awareness.cpp
 )
 
 set(TEST_SOURCES

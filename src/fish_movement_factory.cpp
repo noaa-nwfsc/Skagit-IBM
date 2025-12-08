@@ -5,28 +5,31 @@
 #include "fish_movement_factory.h"
 #include "fish_movement.h"
 #include "fish_movement_downstream.h"
+#include "fish_movement_high_awareness.h"
 #include "model.h"
 #include <stdexcept>
 
+
 std::unique_ptr<FishMovement> FishMovementFactory::createFishMovement(
-    Model& model,
+    Model &model,
     float swimSpeed,
     float swimRange,
-    const std::function<float(Model&, MapNode&, float)>& fitnessCalculator,
-    const ModelConfigMap& config
+    const std::function<float(Model &, MapNode &, float)> &fitnessCalculator,
+    const ModelConfigMap &config
 ) {
     std::string awareness = config.getString(ModelParamKey::AgentAwareness);
 
     if (awareness == "low") {
         return std::make_unique<FishMovementDownstream>(model, swimSpeed, swimRange);
     }
-    else if (awareness == "medium") {
+
+    if (awareness == "medium") {
         return std::make_unique<FishMovement>(model, swimSpeed, swimRange, fitnessCalculator);
     }
-    else if (awareness == "high") {
-        throw std::runtime_error("AgentAwareness 'high' is not yet supported");
+
+    if (awareness == "high") {
+        return std::make_unique<FishMovementHighAwareness>(model, swimSpeed, swimRange, fitnessCalculator);
     }
-    else {
-        throw std::runtime_error("Unknown AgentAwareness value: " + awareness);
-    }
+
+    throw std::runtime_error("Unknown AgentAwareness value: " + awareness);
 }

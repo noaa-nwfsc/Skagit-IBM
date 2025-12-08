@@ -11,6 +11,7 @@
 #include "fish_movement_factory.h"
 #include "fish_movement.h"
 #include "fish_movement_downstream.h"
+#include "fish_movement_high_awareness.h"
 #include "model_config_map.h"
 
 TEST_CASE("FishMovementFactory creates correct movement types based on AgentAwareness", "[fish_movement_factory]") {
@@ -28,7 +29,7 @@ TEST_CASE("FishMovementFactory creates correct movement types based on AgentAwar
             testModel, swimSpeed, swimRange, fitnessCalculator, config
         );
 
-        auto downstreamMovement = dynamic_cast<FishMovementDownstream*>(movement.get());
+        auto downstreamMovement = dynamic_cast<FishMovementDownstream *>(movement.get());
         REQUIRE(downstreamMovement != nullptr);
     }
 
@@ -39,21 +40,21 @@ TEST_CASE("FishMovementFactory creates correct movement types based on AgentAwar
             testModel, swimSpeed, swimRange, fitnessCalculator, config
         );
 
-        auto baseMovement = dynamic_cast<FishMovement*>(movement.get());
-        auto downstreamMovement = dynamic_cast<FishMovementDownstream*>(movement.get());
+        auto baseMovement = dynamic_cast<FishMovement *>(movement.get());
+        auto downstreamMovement = dynamic_cast<FishMovementDownstream *>(movement.get());
         REQUIRE(baseMovement != nullptr);
         REQUIRE(downstreamMovement == nullptr);
     }
 
-    SECTION("Throws exception for 'high' awareness (not yet supported)") {
+    SECTION("Creates FishMovementHighAwareness for 'high' awareness") {
         config.set(ModelParamKey::AgentAwareness, std::string("high"));
 
-        REQUIRE_THROWS_WITH(
-            FishMovementFactory::createFishMovement(
-                testModel, swimSpeed, swimRange, fitnessCalculator, config
-            ),
-            "AgentAwareness 'high' is not yet supported"
+        auto movement = FishMovementFactory::createFishMovement(
+            testModel, swimSpeed, swimRange, fitnessCalculator, config
         );
+
+        auto highAwarenessMovement = dynamic_cast<FishMovementHighAwareness *>(movement.get());
+        REQUIRE(highAwarenessMovement != nullptr);
     }
 
     SECTION("Throws exception for unknown awareness value") {

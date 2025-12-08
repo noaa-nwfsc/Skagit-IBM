@@ -98,6 +98,7 @@ set(COMMON_SOURCES
   src/model.cpp
   src/model_config_map.cpp
   src/util.cpp
+  src/fish_movement_high_awareness.cpp
 )
 
 # Get absolute paths for rpath
