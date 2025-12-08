@@ -16,6 +16,8 @@ public:
     void addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode * point, float spentCost, float stay_cost, float current_location_fitness) override;
 
 private:
+    bool isTravelDirectionDownstream(float transitSpeed, float swimSpeed) const;
+
     float fixedFitness = 1.0f;
 };
 

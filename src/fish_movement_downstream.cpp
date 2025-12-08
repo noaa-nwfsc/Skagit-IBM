@@ -9,8 +9,12 @@ FishMovementDownstream::FishMovementDownstream(Model &model, float swimSpeed, fl
     fixedFitness = 1.0f;
 }
 
-bool FishMovementDownstream::canMoveInDirectionOfEndNode(float transitSpeed, float swimSpeed) const {
+bool FishMovementDownstream::isTravelDirectionDownstream(float transitSpeed, float swimSpeed) const {
     return transitSpeed >= swimSpeed;
+}
+
+bool FishMovementDownstream::canMoveInDirectionOfEndNode(float transitSpeed, float swimSpeed) const {
+    return isTravelDirectionDownstream(transitSpeed, swimSpeed);
 }
 
 void FishMovementDownstream::addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors,
