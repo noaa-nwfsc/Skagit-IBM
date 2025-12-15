@@ -13,7 +13,7 @@ public:
     explicit FishMovementDownstream(Model &model, float swimSpeed, float swimRange);
 
     bool canMoveInDirectionOfEndNode(float transitSpeed, float swimSpeed) const override;
-    void addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode * point, float spentCost, float stay_cost, float current_location_fitness) override;
+    void addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode * point, float spentCost, float stay_cost, float current_location_fitness) const override;
 
 private:
     bool isTravelDirectionDownstream(float transitSpeed, float swimSpeed) const;

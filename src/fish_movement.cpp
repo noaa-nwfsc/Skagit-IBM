@@ -12,7 +12,7 @@
 
 void FishMovement::addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
                                       float spentCost, float stayCost,
-                                      float currentLocationFitness) {
+                                      float currentLocationFitness) const {
     neighbors.emplace_back(point, spentCost + stayCost, currentLocationFitness);
 }
 
@@ -138,7 +138,7 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovement::getReachableNeig
     return neighbors;
 }
 
-std::pair<MapNode *, float> FishMovement::determineNextLocation(MapNode *originalLocation) {
+std::pair<MapNode *, float> FishMovement::determineNextLocation(MapNode *originalLocation) const {
     MapNode *point = originalLocation;
     float accumulatedCost = 0.0f;
     std::vector<std::tuple<MapNode *, float, float> > neighbors;
