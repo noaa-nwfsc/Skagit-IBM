@@ -12,6 +12,8 @@ public:
     explicit FishMovementHighAwareness(Model &model, float swimSpeed, float swimRange,
                           const std::function<float(Model &, MapNode &, float)> &fitnessCalculator)
     : FishMovement(model, swimSpeed, swimRange, fitnessCalculator) {}
+
+    std::pair<MapNode *, float> determineNextLocation(MapNode *originalLocation) const override;
 };
 
 

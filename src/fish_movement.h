@@ -35,13 +35,14 @@ public:
     ) const;
     virtual std::pair<MapNode *, float> determineNextLocation(MapNode *originalLocation) const;
 
-private:
+protected:
     Model &model;
     HydroModel *hydroModel;
     float swimSpeed;
     float swimRange;
     const std::function<float(Model &, MapNode &, float)> fitnessCalculator;
 
+private:
     double calculateEffectiveSwimSpeed(const MapNode &startNode, const MapNode &endNode,
                                        double stillWaterSwimSpeed) const;
 
