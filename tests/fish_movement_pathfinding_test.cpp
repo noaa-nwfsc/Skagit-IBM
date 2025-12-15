@@ -8,6 +8,7 @@
 
 #include "fish_movement.h"
 #include "fish_movement_downstream.h"
+#include "fish_movement_high_awareness.h"
 #include "test_utilities.h"
 
 std::tuple<std::unique_ptr<MapNode>, std::unique_ptr<MapNode>, Edge>
@@ -231,6 +232,29 @@ TEST_CASE("getReachableNeighbors basic functionality") {
             // Cost should be min(8.0, 9.0) + currentCost = 8.0 + 1.0 = 9.0
             REQUIRE(cost2 == Catch::Approx(9.0f));
         }
+    }
+    SECTION("determineNextLocation() adds current node") {
+        auto startNode = createMapNode(0.0, 0.0);
+        auto result = fishMover.determineNextLocation(startNode.get());
+        REQUIRE(result.first == startNode.get());
+    }
+
+    SECTION("low awareness determineNextLocation() adds current node") {
+        FishMovementDownstream lowAwarenessMovement(testModel, swimSpeed, swimRange);
+        auto startNode = createMapNode(0.0, 0.0);
+
+        auto result = lowAwarenessMovement.determineNextLocation(startNode.get());
+
+        REQUIRE(result.first == startNode.get());
+    }
+
+    SECTION("high awareness determineNextLocation() adds current node") {
+        FishMovementHighAwareness highAwarenessMovement(testModel, swimSpeed, swimRange, fitnessCalculator);
+        auto startNode = createMapNode(0.0, 0.0);
+
+        auto result = highAwarenessMovement.determineNextLocation(startNode.get());
+
+        REQUIRE(result.first == startNode.get());
     }
 }
 
