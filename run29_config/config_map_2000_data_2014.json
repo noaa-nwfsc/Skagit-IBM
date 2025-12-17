@@ -18,5 +18,6 @@
   "habitatTypeExitConditionHours": 48,
   "threadCount": 96,
   "rng_seed" : 0,
-  "directionlessEdges": 1
+  "directionlessEdges": 1,
+  "agentAwareness": "medium"
 }

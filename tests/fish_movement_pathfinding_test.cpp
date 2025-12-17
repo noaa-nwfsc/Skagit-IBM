@@ -255,6 +255,7 @@ TEST_CASE("getReachableNeighbors basic functionality") {
         auto result = highAwarenessMovement.determineNextLocation(startNode.get());
 
         REQUIRE(result.first == startNode.get());
+        // todo grot: check correct cost
     }
 }
 

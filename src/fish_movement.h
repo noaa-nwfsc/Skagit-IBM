@@ -28,7 +28,7 @@ public:
                                     float spentCost, float stay_cost, float current_location_fitness) const;
     void addReachableNeighbors(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
                                float spentCost, MapNode *map_node) const;
-    std::vector<std::tuple<MapNode *, float, float> > getReachableNeighbors(
+    virtual std::vector<std::tuple<MapNode *, float, float> > getReachableNeighbors(
         MapNode *startPoint,
         float spentCost,
         MapNode *initialFishLocation

@@ -501,6 +501,7 @@ TEST_CASE("FishMovement getReachableNeighbors respects agentAwareness", "[fish_m
             neighborNodes.push_back(std::get<0>(n));
         }
 
+        REQUIRE(neighborNodes.size() == 3);
         // Verify A, C, and D are present (upstream and downstream)
         REQUIRE_THAT(neighborNodes, Catch::Matchers::VectorContains(nodeA.get()));
         REQUIRE_THAT(neighborNodes, Catch::Matchers::VectorContains(nodeC.get()));
@@ -527,6 +528,7 @@ TEST_CASE("FishMovement getReachableNeighbors respects agentAwareness", "[fish_m
             neighborNodes.push_back(std::get<0>(n));
         }
 
+        REQUIRE(neighborNodes.size() == 2);
         // Verify C and D are present (downstream)
         REQUIRE_THAT(neighborNodes, Catch::Matchers::VectorContains(nodeC.get()));
         REQUIRE_THAT(neighborNodes, Catch::Matchers::VectorContains(nodeD.get()));
@@ -555,13 +557,13 @@ TEST_CASE("FishMovement getReachableNeighbors respects agentAwareness", "[fish_m
             neighborNodes.push_back(std::get<0>(n));
         }
 
+        REQUIRE(neighborNodes.size() == 4);
         // Verify A, C, and D are present (upstream and downstream)
         REQUIRE_THAT(neighborNodes, Catch::Matchers::VectorContains(nodeA.get()));
         REQUIRE_THAT(neighborNodes, Catch::Matchers::VectorContains(nodeC.get()));
         REQUIRE_THAT(neighborNodes, Catch::Matchers::VectorContains(nodeD.get()));
 
-        // TODO: this should fail until the code is implemented
         // Node E should also be in the results because "high awareness" finds it even when it is two steps away
-        // REQUIRE_THAT(neighborNodes, Catch::Matchers::VectorContains(nodeE.get()));
+        REQUIRE_THAT(neighborNodes, Catch::Matchers::VectorContains(nodeE.get()));
     }
 }
