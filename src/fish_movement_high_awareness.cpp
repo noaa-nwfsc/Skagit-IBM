@@ -3,7 +3,7 @@
 //
 
 #include "fish_movement_high_awareness.h"
-
+#include <queue>
 #include <map>
 
 class MinPriorityTupleComparator {
