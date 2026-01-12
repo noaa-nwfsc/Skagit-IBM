@@ -20,6 +20,10 @@ enum class ModelParamKey {
     MortMin,
     MortMax,
     GrowthSlope,
+    GrowthSlopeNearshore,
+    PmaxUpperLimit,
+    PmaxUpperLimitNearshore,
+    PmaxLowerLimit,
     AgentAwareness,
     MortalityInflectionPoint
 };

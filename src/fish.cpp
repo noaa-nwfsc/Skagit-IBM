@@ -477,19 +477,24 @@ void Fish::dieStarvation(Model &model) {
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
 float Fish::getPmax(const Model &model, const MapNode &loc) { // NOLINT(*-convert-member-functions-to-static)
+    const bool isNearshoreHabitat = isNearshore(loc.type);
+    const float growthSlope = (isNearshoreHabitat)
+                                  ? model.getFloat(ModelParamKey::GrowthSlopeNearshore)
+                                  : model.getFloat(ModelParamKey::GrowthSlope);
+    const float upperLimit = (isNearshoreHabitat)
+                           ? model.getFloat(ModelParamKey::PmaxUpperLimitNearshore)
+                           : model.getFloat(ModelParamKey::PmaxUpperLimit);
+    const float lowerLimit = model.getFloat(ModelParamKey::PmaxLowerLimit);
+
     constexpr float SQ_METER_TO_HECTARE_CONVERSION = 10000.0;
-    const float growthSlope = model.getFloat(ModelParamKey::GrowthSlope);
+    const float populationDensity = loc.popDensity * SQ_METER_TO_HECTARE_CONVERSION;
 
-    float Pmax = 0.8f - ((loc.popDensity * SQ_METER_TO_HECTARE_CONVERSION) * growthSlope);
+    float Pmax = upperLimit - (populationDensity * growthSlope);
 
-    constexpr float PMAX_MIN = 0.2;
-    if (Pmax < PMAX_MIN) {
-        Pmax = PMAX_MIN;
+    if (Pmax < lowerLimit) {
+        return lowerLimit;
     }
-    if (isNearshore(loc.type)) {
-        constexpr float PMAX_NEARSHORE = 1.0;
-        Pmax = PMAX_NEARSHORE;
-    }
+
     return Pmax;
 }
 

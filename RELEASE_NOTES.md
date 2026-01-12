@@ -4,6 +4,12 @@ This file records major feature changes. It goes back in time to 11.19.2024. "Re
 when the completed feature was merged to the main branch. Functional parts of a feature may have been merged earlier.
 Minor updates are not recorded.
 
+## 01.12.2026
+- new configurable float input parameters for `growthSlopeNearshore`, `pmaxUpperLimit`, `pmaxUpperLimitNearshore`, and `pmaxLowerLimit`
+
+## 01.01.2026
+- "high" now available as a value for `agentAwareness`.
+
 ## 11.17.2025
 - indexing into the `recruitSizesFile` is corrected to be weekly instead of bi-weekly. This includes changes to how 
   the indexing into hydro data is done.
