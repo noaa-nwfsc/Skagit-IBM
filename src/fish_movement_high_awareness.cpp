@@ -14,7 +14,6 @@ public:
     }
 };
 
-
 using DijkstraMinQueue = std::priority_queue<
     std::tuple<float, MapNode *>,
     std::vector<std::tuple<float, MapNode *> >,
