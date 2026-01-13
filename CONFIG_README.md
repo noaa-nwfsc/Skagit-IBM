@@ -17,7 +17,7 @@ Parameters:
 - `growthSlope`: float; optional; default 0.0007; growthSlope used in Pmax equation
 - `growthSlopeNearshore`: float; optional; default 0.0; nearshore habitat growthSlope used in Pmax equation
 - `pmaxUpperLimit`: float; optional; default 0.8; upperLimit used in the Pmax equation 
-- `pmaxUpperLimitNearshore`: float; optional; default 0.0; nearshore habitat upperLimit used in the Pmax equation 
+- `pmaxUpperLimitNearshore`: float; optional; default 1.0; nearshore habitat upperLimit used in the Pmax equation 
 - `pmaxLowerLimit`: float; optional; default 0.2; lowerLimit used in the Pmax equation 
 - `agentAwareness`: string; optional; default "medium"; the agent awareness level (aka movement omniscience) to use in 
   the model. Options are "low", "medium", and "high".
