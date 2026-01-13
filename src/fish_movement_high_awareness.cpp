@@ -26,20 +26,14 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovementHighAwareness::get
     // Dijkstra walk to find all nodes within swim range for this timestep, regardless of how many hops away.
     // include shortest distance (cost) for each
 
-    // 1. Setup containers
-    // Priority queue stores {cost, node}, ordered by min cost
     DijkstraMinQueue dijkstraMinQueue{MinPriorityTupleComparator()};
+    dijkstraMinQueue.emplace(0.0f, startPoint);
 
-    // Map to track lowest cost to reach a node to avoid cycles/suboptimal paths
     std::map<MapNode *, float> minCosts;
+    minCosts[startPoint] = 0.0f;
 
-    // Store all valid reachable nodes to sample from later
     //struct Destination { MapNode* node; float cost; float fitness; };
     std::vector<std::tuple<MapNode *, float, float> > candidates;
-
-    // 2. Initialize with start node
-    minCosts[startPoint] = 0.0f;
-    dijkstraMinQueue.emplace(0.0f, startPoint); // maybe start with all the neighbors instead?
 
     // 3. Dijkstra Walk
     while (!dijkstraMinQueue.empty()) {
@@ -54,38 +48,18 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovementHighAwareness::get
             candidates.emplace_back(node, currentCost, 0.0);
         }
 
-        // todo GROT: remove duplication with FishMovement::getReachableNeighbors()
-        std::vector<Edge> allEdges;
-        allEdges.reserve(node->edgesIn.size() + node->edgesOut.size());
-        allEdges.insert(allEdges.end(), node->edgesIn.begin(), node->edgesIn.end());
-        allEdges.insert(allEdges.end(), node->edgesOut.begin(), node->edgesOut.end());
+        auto directNeighbors = FishMovement::getReachableNeighbors(node, currentCost, startPoint);
+        for (const auto &neighborTuple: directNeighbors) {
+            MapNode *nextDest = std::get<0>(neighborTuple);
+            float totalCost = std::get<1>(neighborTuple);
 
-        // Explore neighbors (combining edgesIn and edgesOut)
-        for (Edge &edge: allEdges) {
-            MapNode *nextDest = (edge.source == node) ? edge.target : edge.source;
+            const auto nextCostFinder = minCosts.find(nextDest);
+            const bool isNewNode = (nextCostFinder == minCosts.end());
+            const bool isCheaperPath = (!isNewNode && totalCost < nextCostFinder->second);
 
-            if (model.hydroModel.getDepth(*nextDest) < MOVEMENT_DEPTH_CUTOFF) continue;
-
-            // todo grot: remove duplication with FishMovement::getReachableNeighbors()
-            // maybe rename this method and call parent getReachableNeighbors here, then
-            // process the result into the Dijkstra queue
-            float transitSpeed = calculateTransitSpeed(edge, node, swimSpeed);
-            if (canMoveInDirectionOfEndNode(transitSpeed, swimSpeed)) {
-                float edgeCost = (edge.length / transitSpeed) * swimSpeed;
-                if (isDistributary(nextDest->type) && node == startPoint) {
-                    edgeCost = std::min(edgeCost, swimRange - currentCost);
-                }
-                float totalCost = currentCost + edgeCost;
-                if (totalCost <= swimRange) {
-                    const auto nextCostIter = minCosts.find(nextDest);
-                    const bool isNewNode = (nextCostIter == minCosts.end());
-                    const bool isCheaperPath = (!isNewNode && totalCost < nextCostIter->second);
-
-                    if (isNewNode || isCheaperPath) {
-                        minCosts[nextDest] = totalCost;
-                        dijkstraMinQueue.emplace(totalCost, nextDest);
-                    }
-                }
+            if (isNewNode || isCheaperPath) {
+                minCosts[nextDest] = totalCost;
+                dijkstraMinQueue.emplace(totalCost, nextDest);
             }
         }
     }
