@@ -50,8 +50,6 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovementHighAwareness::get
         auto it = minCosts.find(node);
         if (it != minCosts.end() && currentCost > it->second) continue;
 
-        // Add 'node' as a potential destination
-        // todo grot: maybe don't add the startNode to the candidates list?
         if (node != startPoint) {
             candidates.emplace_back(node, currentCost, 0.0);
         }
@@ -116,7 +114,7 @@ std::pair<MapNode *, float> FishMovementHighAwareness::determineNextLocation(Map
     // TODO: GROT: remove duplication above this line
 
     addCurrentLocation(neighbors, originalLocation, startingCost, stayCost, currentLocationFitness);
-    addReachableNeighbors(neighbors, originalLocation, startingCost, originalLocation);
+    addReachableNeighbors(neighbors, originalLocation, startingCost, nullptr);
 
     MapNode *point = originalLocation;
     float cost = stayCost;
