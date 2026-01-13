@@ -68,20 +68,6 @@ TEST_CASE("Fish::move stays at current location when there are no neighbors", "[
     REQUIRE(fish.location == fixture.node.get());
 }
 
-class SampleOverrideHelper {
-public:
-    explicit SampleOverrideHelper(SampleFunction fn) : previous_(::sampleOverrideForTesting) {
-        ::sampleOverrideForTesting = fn;
-    }
-
-    ~SampleOverrideHelper() {
-        ::sampleOverrideForTesting = previous_;
-    }
-
-private:
-    SampleFunction previous_;
-};
-
 // Test 1.2: Termination - staying is optimal
 // Setup: Node with a neighbor, but sample() always selects the "stay" option (index 0).
 // Expect: Loop exits on first iteration, fish stays at current location.

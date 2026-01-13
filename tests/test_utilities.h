@@ -11,6 +11,7 @@
 #include "hydro.h"
 #include "map.h"
 #include "model.h"
+#include "util.h"
 
 class MockHydroModel : public HydroModel {
 public:
@@ -58,5 +59,19 @@ inline void connectNodes(MapNode* nodeA, MapNode* nodeB, float length) {
 inline void setNodeDepth(MockHydroModel* hydroModel, float depth) {
     hydroModel->depthValue = depth;
 }
+
+class SampleOverrideHelper {
+public:
+    explicit SampleOverrideHelper(SampleFunction fn) : previous_(::sampleOverrideForTesting) {
+        ::sampleOverrideForTesting = fn;
+    }
+
+    ~SampleOverrideHelper() {
+        ::sampleOverrideForTesting = previous_;
+    }
+
+private:
+    SampleFunction previous_;
+};
 
 #endif // TEST_UTILITIES_H
