@@ -143,18 +143,19 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovement::getReachableNeig
     for (Edge &edge: allEdges) {
         MapNode *startNode = startPoint;
         MapNode *endNode = (startNode == edge.source ? edge.target : edge.source);
-        if (model.hydroModel.getDepth(*endNode) >= MOVEMENT_DEPTH_CUTOFF) {
-            float transitSpeed = (float) calculateTransitSpeed(edge, startNode, swimSpeed);
-            if (canMoveInDirectionOfEndNode(transitSpeed, swimSpeed)) {
-                float edgeCost = (edge.length / transitSpeed) * swimSpeed;
-                if (isDistributary(endNode->type) && startPoint == initialFishLocation) {
-                    edgeCost = std::min(edgeCost, swimRange - spentCost);
-                }
-                float totalCost = spentCost + edgeCost;
-                if (totalCost <= swimRange) {
-                    float fitness = fitnessCalculator(model, *endNode, totalCost);
-                    neighbors.emplace_back(endNode, totalCost, fitness);
-                }
+
+        if (model.hydroModel.getDepth(*endNode) < MOVEMENT_DEPTH_CUTOFF) continue;
+
+        float transitSpeed = (float) calculateTransitSpeed(edge, startNode, swimSpeed);
+        if (canMoveInDirectionOfEndNode(transitSpeed, swimSpeed)) {
+            float edgeCost = (edge.length / transitSpeed) * swimSpeed;
+            if (isDistributary(endNode->type) && startPoint == initialFishLocation) {
+                edgeCost = std::min(edgeCost, swimRange - spentCost);
+            }
+            float totalCost = spentCost + edgeCost;
+            if (totalCost <= swimRange) {
+                float fitness = fitnessCalculator(model, *endNode, totalCost);
+                neighbors.emplace_back(endNode, totalCost, fitness);
             }
         }
     }

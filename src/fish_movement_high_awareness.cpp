@@ -64,7 +64,6 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovementHighAwareness::get
         for (Edge &edge: allEdges) {
             MapNode *nextDest = (edge.source == node) ? edge.target : edge.source;
 
-            // todo grot: change FishMovement::getReachableNeighbors() to match this idiom
             if (model.hydroModel.getDepth(*nextDest) < MOVEMENT_DEPTH_CUTOFF) continue;
 
             // todo grot: remove duplication with FishMovement::getReachableNeighbors()
