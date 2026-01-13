@@ -42,6 +42,10 @@ protected:
     float swimRange;
     const std::function<float(Model &, MapNode &, float)> fitnessCalculator;
 
+    float getRemainingTime(float spentCost) const;
+    float calculateStayCost(MapNode *point, float spentCost) const;
+    size_t selectNeighborIndex(const std::vector<std::tuple<MapNode *, float, float> > &neighbors) const;
+
 private:
     double calculateEffectiveSwimSpeed(const MapNode &startNode, const MapNode &endNode,
                                        double stillWaterSwimSpeed) const;

@@ -107,28 +107,16 @@ std::pair<MapNode *, float> FishMovementHighAwareness::determineNextLocation(Map
     std::vector<std::tuple<MapNode *, float, float> > neighbors;
     std::vector<float> weights;
     float currentLocationFitness = fitnessCalculator(model, *originalLocation, startingCost);
-
-    float remainingTime = SECONDS_PER_TIMESTEP;
-    float pointFlowSpeed = model.hydroModel.getUnsignedFlowSpeedAt(*originalLocation);
-    float stayCost = remainingTime * pointFlowSpeed;
-    // TODO: GROT: remove duplication above this line
+    float stayCost = calculateStayCost(originalLocation, startingCost);
 
     addCurrentLocation(neighbors, originalLocation, startingCost, stayCost, currentLocationFitness);
     addReachableNeighbors(neighbors, originalLocation, startingCost, nullptr);
 
     MapNode *point = originalLocation;
     float cost = stayCost;
-    // todo grot: remove duplication with parent class sampling
+
     if (!neighbors.empty()) {
-        weights.clear();
-        float totalFitness = 0.0f;
-        for (size_t i = 0; i < neighbors.size(); ++i) {
-            totalFitness += std::get<2>(neighbors[i]);
-        }
-        for (size_t i = 0; i < neighbors.size(); ++i) {
-            weights.emplace_back(std::get<2>(neighbors[i]) / totalFitness);
-        }
-        size_t idx = sample(weights.data(), neighbors.size());
+        size_t idx = selectNeighborIndex(neighbors);
         point = std::get<0>(neighbors[idx]);
         cost = std::get<1>(neighbors[idx]);
     }

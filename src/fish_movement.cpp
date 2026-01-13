@@ -106,6 +106,29 @@ bool FishMovement::canMoveInDirectionOfEndNode(float transitSpeed, float swimSpe
     return transitSpeed > 0.0f;
 }
 
+float FishMovement::getRemainingTime(float spentCost) const {
+    float elapsedTime = spentCost / swimSpeed;
+    return SECONDS_PER_TIMESTEP - elapsedTime;
+}
+
+float FishMovement::calculateStayCost(MapNode *point, float spentCost) const {
+    float remainingTime = getRemainingTime(spentCost);
+    float pointFlowSpeed = model.hydroModel.getUnsignedFlowSpeedAt(*point);
+    return remainingTime > 0.0f ? remainingTime * pointFlowSpeed : 0.0f;
+}
+
+size_t FishMovement::selectNeighborIndex(const std::vector<std::tuple<MapNode *, float, float> > &neighbors) const {
+    std::vector<float> weights;
+    float totalFitness = 0.0f;
+    for (const auto &neighbor : neighbors) {
+        totalFitness += std::get<2>(neighbor);
+    }
+    for (const auto &neighbor : neighbors) {
+        weights.emplace_back(std::get<2>(neighbor) / totalFitness);
+    }
+    return sample(weights.data(), neighbors.size());
+}
+
 std::vector<std::tuple<MapNode *, float, float> > FishMovement::getReachableNeighbors(
     MapNode *startPoint,
     float spentCost,
@@ -146,25 +169,15 @@ std::pair<MapNode *, float> FishMovement::determineNextLocation(MapNode *origina
     float currentLocationFitness = fitnessCalculator(model, *point, 0.0f);
     while (true) {
         neighbors.clear();
-        float elapsedTime = accumulatedCost / swimSpeed;
-        float remainingTime = SECONDS_PER_TIMESTEP - elapsedTime;
+        float remainingTime = getRemainingTime(accumulatedCost);
 
-        float pointFlowSpeed = model.hydroModel.getUnsignedFlowSpeedAt(*point);
-        float stayCost = remainingTime * pointFlowSpeed;
         if (remainingTime > 0.0f) {
+            float stayCost = calculateStayCost(point, accumulatedCost);
             addCurrentLocation(neighbors, point, accumulatedCost, stayCost, currentLocationFitness);
             addReachableNeighbors(neighbors, point, accumulatedCost, originalLocation);
         }
         if (!neighbors.empty()) {
-            weights.clear();
-            float totalFitness = 0.0f;
-            for (size_t i = 0; i < neighbors.size(); ++i) {
-                totalFitness += std::get<2>(neighbors[i]);
-            }
-            for (size_t i = 0; i < neighbors.size(); ++i) {
-                weights.emplace_back(std::get<2>(neighbors[i]) / totalFitness);
-            }
-            size_t idx = sample(weights.data(), neighbors.size());
+            size_t idx = selectNeighborIndex(neighbors);
             MapNode *lastPoint = point;
             point = std::get<0>(neighbors[idx]);
             accumulatedCost = std::get<1>(neighbors[idx]);
