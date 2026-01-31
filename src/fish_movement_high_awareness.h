@@ -19,7 +19,7 @@ public:
         MapNode *initialFishLocation
     ) const override;
 
-    std::pair<MapNode *, float> determineNextLocation(MapNode *originalLocation) const override;
+    std::pair<MapNode *, float> determineNextLocation(MapNode *originalLocation) override;
 };
 
 

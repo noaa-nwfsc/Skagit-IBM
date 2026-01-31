@@ -21,19 +21,22 @@ public:
         : model(model), hydroModel(&model.hydroModel), swimSpeed(swimSpeed), swimRange(swimRange),
           fitnessCalculator(fitnessCalculator) {}
 
+    std::vector<std::tuple<MapNode *, float, float> > getAllReachableNeighborsInTimestep() const {
+        return allReachableNeighborsInTimestep;
+    }
     double calculateTransitSpeed(const Edge &edge, const MapNode *startNode, double stillWaterSwimSpeed) const;
     virtual bool canMoveInDirectionOfEndNode(float transitSpeed, float swimSpeed) const;
 
     virtual void addCurrentLocation(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
                                     float spentCost, float stay_cost, float current_location_fitness) const;
     void addReachableNeighbors(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
-                               float spentCost, MapNode *map_node) const;
+                               float spentCost, MapNode *map_node);
     virtual std::vector<std::tuple<MapNode *, float, float> > getReachableNeighbors(
         MapNode *startPoint,
         float spentCost,
         MapNode *initialFishLocation
     ) const;
-    virtual std::pair<MapNode *, float> determineNextLocation(MapNode *originalLocation) const;
+    virtual std::pair<MapNode *, float> determineNextLocation(MapNode *originalLocation);
 
 protected:
     Model &model;
@@ -41,6 +44,7 @@ protected:
     float swimSpeed;
     float swimRange;
     const std::function<float(Model &, MapNode &, float)> fitnessCalculator;
+    std::vector<std::tuple<MapNode *, float, float> > allReachableNeighborsInTimestep;
 
     float getRemainingTime(float spentCost) const;
     float calculateStayCost(MapNode *point, float spentCost) const;

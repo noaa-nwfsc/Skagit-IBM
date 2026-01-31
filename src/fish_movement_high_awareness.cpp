@@ -74,7 +74,7 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovementHighAwareness::get
     return candidates;
 }
 
-std::pair<MapNode *, float> FishMovementHighAwareness::determineNextLocation(MapNode *originalLocation) const {
+std::pair<MapNode *, float> FishMovementHighAwareness::determineNextLocation(MapNode *originalLocation) {
     float startingCost = 0.0f;
     std::vector<std::tuple<MapNode *, float, float> > neighbors;
     std::vector<float> weights;

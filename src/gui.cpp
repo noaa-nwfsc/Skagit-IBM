@@ -616,13 +616,13 @@ void MapView::updateSelectedFishRange() {
     std::unordered_map<MapNode *, float> destinationProbs;
     Fish &selectedFish = this->model->individuals[this->selectedFishId];
     selectedFish.getReachableNodes(*this->model, reachable);
-    selectedFish.getDestinationProbs(*this->model, destinationProbs);
+    // selectedFish.getDestinationProbs(*this->model, destinationProbs);
     this->selectedFishRange.clear();
     for (auto it = reachable.begin(); it != reachable.end(); ++it) {
         this->selectedFishRange[it->first] = 0.0;
-        if (destinationProbs.count(it->first)) {
-            this->selectedFishRange[it->first] = destinationProbs[it->first];
-        }
+        // if (destinationProbs.count(it->first)) {
+        //     this->selectedFishRange[it->first] = destinationProbs[it->first];
+        // }
     }
 }
 

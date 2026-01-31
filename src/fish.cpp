@@ -103,249 +103,263 @@ Fish::Fish(
 
 
 /*
-    Movement notes:
-        - Correlated random walk
-        - Until local maximum fitness/max range reached
-*/
-/* OLD
-void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> &out)
-{
-    //TODO: use (correlated) random walk instead of dijkstra for exploration
-
-    // This set contains all nodes that have already been traversed and shouldn't
-    // be re-evaluated
-    std::unordered_set<MapNode *> visited;
-    // This is a list of candidate nodes (and their swim costs) accessible from explored nodes
-    std::deque<std::pair<MapNode *, float>> fringe;
-    // Add the starting node (this fish's current location)
-    fringe.emplace_back(this->location, 0.0f);
-    // Calculate swim range & speed once
-    float swimRange = rangeFromForkLength(this->forkLength);
-    float swimSpeed = swimSpeedFromRange(swimRange);
-    // Loop until there are no new candidate nodes
-    while (fringe.size() > 0) {
-        // Pick a node off the fringe to evaluate
-        std::pair<MapNode *, float> popped = fringe.front();
-        MapNode *point = popped.first;
-        float cost = popped.second;
-        // (remove the selected node)
-        fringe.pop_front();
-        // Check if the node has already been evaluated
-        if (visited.count(point) == 0) {
-            // Mark it as evaluated
-            visited.insert(point);
-            // This variable keeps track of whether any adjacent nodes are
-            // within range (if not, this node should be marked as accessible even if it's outside the swimmable range,
-            // to make sure there's at least 1 accessible node)
-            bool hasChildren = false;
-            // Check all channels flowing into this node
-            for (Edge &edge : point->edgesIn) {
-                if (!visited.count(edge.source) && model.hydroModel.getDepth(*edge.source) >= DEPTH_CUTOFF) {
-                    // Effective movement speed along channel (swim speed adjusted by flow speed)
-                    float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
-                    // Check to make sure the fish can even make progress
-                    if (transitSpeed > 0.0f) {
-                        // Calculate effective distance swum
-                        float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                        if (isDistributary(edge.source->type) && point == this->location) {
-                            // Artificially discount the cost to make distributary nodes easier to access
-                            // (since they are widely spaced)
-                            edgeCost = std::min(edgeCost, swimRange - cost);
-                        }
-                        // Check if connected node is reachable
-                        if (cost + edgeCost <= swimRange) {
-                            hasChildren = true;
-                            // Add it to the fringe with the new total cost
-                            fringe.emplace_back(edge.source, cost + edgeCost);
-                        }
-                    }
-                }
-            }
-            // Check all channels flowing out of this node
-            // Same as above (except flow directions are reversed)
-            for (Edge &edge : point->edgesOut) {
-                if (!visited.count(edge.target) && model.hydroModel.getDepth(*edge.target) >= DEPTH_CUTOFF) {
-                    float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
-                    if (transitSpeed > 0.0f) {
-                        float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                        if (isDistributary(edge.target->type) && point == this->location) {
-                            edgeCost = std::min(edgeCost, swimRange - cost);
-                        }
-                        if (cost + edgeCost <= swimRange) {
-                            hasChildren = true;
-                            fringe.emplace_back(edge.target, cost + edgeCost);
-                        }
-                    }
-                }
-            }
-            // Calculate the swim cost of remaining at this node for the rest of the timestep
-            float stayCost = cost + model.hydroModel.getFlowSpeedAt(*point)*(60.0f*60.0f - cost / swimSpeed);
-            if (stayCost <= swimRange || !hasChildren) {
-                // If this node is reachable (either naturally or because of the no-children safeguard)
-                // add it to the "out" map
-                out[point] = std::min(swimRange, stayCost);
-            }
-        }
-    }
-}
-*/
-
-/*
  * Fill the "out" map with a mapping from nodes to effective distance swum to reach that node.
  * If a node is present in the resulting map, it means that node is reachable in the current timestep.
  * The "effective distance swum" value associated with that node indicates how far this fish would
  *   have to swim to reach it (including any extra distance added by swimming against the flow,
  *   or any distance removed by swimming with the flow)
  */
+// void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> &out)
+// {
+//     // This is a list of candidate nodes (and their swim costs) accessible from explored nodes
+//     std::deque<std::tuple<MapNode *, float>> fringe;
+//     // Add the starting node (this fish's current location)
+//     fringe.emplace_back(this->location,  0.0f);
+//     // Calculate swim range & speed once
+//     float swimSpeed = swimSpeedFromForkLength(this->forkLength);
+//     float swimRange = swimSpeed*SECONDS_PER_TIMESTEP;
+//     // Loop until there are no new candidate nodes
+//     while (fringe.size() > 0) {
+//         // Pick a node off the fringe to evaluate
+//         std::tuple<MapNode *, float> popped = fringe.front();
+//         MapNode *point = std::get<0>(popped);
+//         float cost = std::get<1>(popped);
+//         out[point] = cost;
+//         // (remove the selected node)
+//         fringe.pop_front();
+//         // Check all channels flowing into this node
+//         for (Edge &edge : point->edgesIn) {
+//             if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) >= MOVEMENT_DEPTH_CUTOFF) {
+//                 // Effective movement speed along channel (swim speed adjusted by flow speed)
+//                 float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
+//                 // Check to make sure the fish can even make progress
+//                 if (transitSpeed > 0.0f) {
+//                     // Calculate effective distance swum
+//                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
+//                     if (isDistributary(edge.source->type) && point == this->location){ //  || (this->forkLength >= 75)){
+//                         // Artificially discount the cost to make distributary nodes easier to access
+//                         // (since they are widely spaced)
+//                         edgeCost = std::min(edgeCost, swimRange - cost);
+//                     }
+//                     // Check if connected node is reachable
+//                     if (cost + edgeCost <= swimRange) {
+//                         // Add it to the fringe with the new total cost
+//                         fringe.emplace_back(edge.source, cost + edgeCost);
+//                     }
+//                 }
+//             }
+//         }
+//         // Check all channels flowing out of this node
+//         // Same as above (except flow directions are reversed)
+//         for (Edge &edge : point->edgesOut) {
+//             if (!out.count(edge.target) && model.hydroModel.getDepth(*edge.target) >= MOVEMENT_DEPTH_CUTOFF) {
+//                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
+//                 if (transitSpeed > 0.0f) {
+//                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
+//                     if (isDistributary(point->type) && point == this->location){ // || (this->forkLength >= 75)){
+//                         edgeCost = std::min(edgeCost, swimRange - cost);
+//                     }
+//                     if (cost + edgeCost <= swimRange) {
+//                         fringe.emplace_back(edge.target, cost + edgeCost);
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
 void Fish::getReachableNodes(Model &model, std::unordered_map<MapNode *, float> &out)
 {
-    // This is a list of candidate nodes (and their swim costs) accessible from explored nodes
-    std::deque<std::tuple<MapNode *, float>> fringe;
-    // Add the starting node (this fish's current location)
-    fringe.emplace_back(this->location,  0.0f);
-    // Calculate swim range & speed once
     float swimSpeed = swimSpeedFromForkLength(this->forkLength);
     float swimRange = swimSpeed*SECONDS_PER_TIMESTEP;
-    // Loop until there are no new candidate nodes
-    while (fringe.size() > 0) {
-        // Pick a node off the fringe to evaluate
-        std::tuple<MapNode *, float> popped = fringe.front();
-        MapNode *point = std::get<0>(popped);
-        float cost = std::get<1>(popped);
-        out[point] = cost;
-        // (remove the selected node)
-        fringe.pop_front();
-        // Check all channels flowing into this node
-        for (Edge &edge : point->edgesIn) {
-            if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) >= MOVEMENT_DEPTH_CUTOFF) {
-                // Effective movement speed along channel (swim speed adjusted by flow speed)
-                float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
-                // Check to make sure the fish can even make progress
-                if (transitSpeed > 0.0f) {
-                    // Calculate effective distance swum
-                    float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.source->type) && point == this->location){ //  || (this->forkLength >= 75)){
-                        // Artificially discount the cost to make distributary nodes easier to access
-                        // (since they are widely spaced)
-                        edgeCost = std::min(edgeCost, swimRange - cost);
-                    }
-                    // Check if connected node is reachable
-                    if (cost + edgeCost <= swimRange) {
-                        // Add it to the fringe with the new total cost
-                        fringe.emplace_back(edge.source, cost + edgeCost);
-                    }
-                }
-            }
-        }
-        // Check all channels flowing out of this node
-        // Same as above (except flow directions are reversed)
-        for (Edge &edge : point->edgesOut) {
-            if (!out.count(edge.target) && model.hydroModel.getDepth(*edge.target) >= MOVEMENT_DEPTH_CUTOFF) {
-                float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
-                if (transitSpeed > 0.0f) {
-                    float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(point->type) && point == this->location){ // || (this->forkLength >= 75)){
-                        edgeCost = std::min(edgeCost, swimRange - cost);
-                    }
-                    if (cost + edgeCost <= swimRange) {
-                        fringe.emplace_back(edge.target, cost + edgeCost);
-                    }
-                }
-            }
-        }
+
+    auto fitness_calculator = [this](Model& model, MapNode& node, float cost) { return this->getFitness(model, node, cost); };
+    auto fishMovement = FishMovementFactory::createFishMovement(model, swimSpeed, swimRange, fitness_calculator, model.getConfigMap());
+
+    fishMovement->determineNextLocation(this->location);
+    auto reachables = fishMovement->getAllReachableNeighborsInTimestep();
+    for (auto [node, cost, fitness] : reachables) {
+        out[node] = fitness;
     }
 }
 
 /*
  * Fill the "out" map with a mapping from nodes to probabilities that this fish will arrive at that node.
  */
-void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float> &out)
-{
-    // This is a list of candidate nodes (and their swim costs) accessible from explored nodes
-    std::deque<std::tuple<MapNode *, float, float, float>> fringe;
-    // Add the starting node (this fish's current location)
-    fringe.emplace_back(this->location,  0.0f, this->getFitness(model, *this->location, 0.0f), 1.0f);
-    // Calculate swim range & speed once
-    float swimSpeed = swimSpeedFromForkLength(this->forkLength);
-    float swimRange = swimSpeed*SECONDS_PER_TIMESTEP;
-    // Loop until there are no new candidate nodes
-    while (fringe.size() > 0) {
-        // Pick a node off the fringe to evaluate
-        std::tuple<MapNode *, float, float, float> popped = fringe.front();
-        MapNode *point = std::get<0>(popped);
-        float cost = std::get<1>(popped);
-        float fitness = std::get<2>(popped);
-        float probMass = std::get<3>(popped);
-        // (remove the selected node)
-        fringe.pop_front();
-        // Check all channels flowing into this node
-        std::vector<std::tuple<MapNode *, float, float>> neighbors;
-        float elapsedTime = cost / swimSpeed;
-        float remainingTime = SECONDS_PER_TIMESTEP - elapsedTime;
-        float stayCost = remainingTime * model.hydroModel.getUnsignedFlowSpeedAt(*point);
-        neighbors.emplace_back(point, cost+stayCost, fitness);
-        for (Edge &edge : point->edgesIn) {
-            if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) >= MOVEMENT_DEPTH_CUTOFF) {
-                // Effective movement speed along channel (swim speed adjusted by flow speed)
-                float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
-                // Check to make sure the fish can even make progress
-                if (transitSpeed > 0.0f) {
-                    // Calculate effective distance swum
-                    float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(edge.source->type) && point == this->location){ // }  || (this->forkLength >= 75)) {
-                        // Artificially discount the cost to make distributary nodes easier to access
-                        // (since they are widely spaced)
-                        // change to include discount if fork length > 75mm for exiting
-                        edgeCost = std::min(edgeCost, swimRange - cost);
-                    }
-                    // Check if connected node is reachable
-                    if (cost + edgeCost <= swimRange) {
-                        // Add it to the fringe with the new total cost
-                        float newFitness = this->getFitness(model, *edge.source, cost + edgeCost);
-                        neighbors.emplace_back(edge.source, cost + edgeCost, newFitness);
-                    }
-                }
-            }
-        }
-        // Check all channels flowing out of this node
-        // Same as above (except flow directions are reversed)
-        for (Edge &edge : point->edgesOut) {
-            if (!out.count(edge.target) && model.hydroModel.getDepth(*edge.target) >= MOVEMENT_DEPTH_CUTOFF) {
-                float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
-                if (transitSpeed > 0.0f) {
-                    float edgeCost = (edge.length/transitSpeed)*swimSpeed;
-                    if (isDistributary(point->type) && point == this->location){ // || (this->forkLength >= 75)){
-                        edgeCost = std::min(edgeCost, swimRange - cost);
-                    }
-                    if (cost + edgeCost <= swimRange) {
-                        float newFitness = this->getFitness(model, *edge.target, cost + edgeCost);
-                        neighbors.emplace_back(edge.target, cost + edgeCost, newFitness);
-                    }
-                }
-            }
-        }
-        if (neighbors.size() == 0) {
-            out[point] = (out.count(point) ? out[point] : 0.0f) + probMass;
-        } else {
-            float neighborFitnessSum = 0.0f;
-            for (std::tuple<MapNode *, float, float> neighbor : neighbors) {
-                neighborFitnessSum += std::get<2>(neighbor);
-            }
-            for (std::tuple<MapNode *, float, float> neighbor : neighbors) {
-                if (std::get<0>(neighbor) == point) {
-                    out[point] = (out.count(point) ? out[point] : 0.0f) + (std::get<2>(neighbor)/neighborFitnessSum) * probMass;
-                } else {
-                    fringe.emplace_back(
-                        std::get<0>(neighbor),
-                        std::get<1>(neighbor),
-                        std::get<2>(neighbor),
-                        (std::get<2>(neighbor)/neighborFitnessSum) * probMass
-                    );
-                }
-            }
-        }
-    }
-}
+// void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float> &out)
+// {
+//     // This is a list of candidate nodes (and their swim costs) accessible from explored nodes
+//     std::deque<std::tuple<MapNode *, float, float, float>> fringe;
+//     // Add the starting node (this fish's current location)
+//     fringe.emplace_back(this->location,  0.0f, this->getFitness(model, *this->location, 0.0f), 1.0f);
+//     // Calculate swim range & speed once
+//     float swimSpeed = swimSpeedFromForkLength(this->forkLength);
+//     float swimRange = swimSpeed*SECONDS_PER_TIMESTEP;
+//     // Loop until there are no new candidate nodes
+//     while (fringe.size() > 0) {
+//         // Pick a node off the fringe to evaluate
+//         std::tuple<MapNode *, float, float, float> popped = fringe.front();
+//         MapNode *point = std::get<0>(popped);
+//         float cost = std::get<1>(popped);
+//         float fitness = std::get<2>(popped);
+//         float probMass = std::get<3>(popped);
+//         // (remove the selected node)
+//         fringe.pop_front();
+//         // Check all channels flowing into this node
+//         std::vector<std::tuple<MapNode *, float, float>> neighbors;
+//         float elapsedTime = cost / swimSpeed;
+//         float remainingTime = SECONDS_PER_TIMESTEP - elapsedTime;
+//         float stayCost = remainingTime * model.hydroModel.getUnsignedFlowSpeedAt(*point);
+//         neighbors.emplace_back(point, cost+stayCost, fitness);
+//         for (Edge &edge : point->edgesIn) {
+//             if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) >= MOVEMENT_DEPTH_CUTOFF) {
+//                 // Effective movement speed along channel (swim speed adjusted by flow speed)
+//                 float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
+//                 // Check to make sure the fish can even make progress
+//                 if (transitSpeed > 0.0f) {
+//                     // Calculate effective distance swum
+//                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
+//                     if (isDistributary(edge.source->type) && point == this->location){ // }  || (this->forkLength >= 75)) {
+//                         // Artificially discount the cost to make distributary nodes easier to access
+//                         // (since they are widely spaced)
+//                         // change to include discount if fork length > 75mm for exiting
+//                         edgeCost = std::min(edgeCost, swimRange - cost);
+//                     }
+//                     // Check if connected node is reachable
+//                     if (cost + edgeCost <= swimRange) {
+//                         // Add it to the fringe with the new total cost
+//                         float newFitness = this->getFitness(model, *edge.source, cost + edgeCost);
+//                         neighbors.emplace_back(edge.source, cost + edgeCost, newFitness);
+//                     }
+//                 }
+//             }
+//         }
+//         // Check all channels flowing out of this node
+//         // Same as above (except flow directions are reversed)
+//         for (Edge &edge : point->edgesOut) {
+//             if (!out.count(edge.target) && model.hydroModel.getDepth(*edge.target) >= MOVEMENT_DEPTH_CUTOFF) {
+//                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
+//                 if (transitSpeed > 0.0f) {
+//                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
+//                     if (isDistributary(point->type) && point == this->location){ // || (this->forkLength >= 75)){
+//                         edgeCost = std::min(edgeCost, swimRange - cost);
+//                     }
+//                     if (cost + edgeCost <= swimRange) {
+//                         float newFitness = this->getFitness(model, *edge.target, cost + edgeCost);
+//                         neighbors.emplace_back(edge.target, cost + edgeCost, newFitness);
+//                     }
+//                 }
+//             }
+//         }
+//         if (neighbors.size() == 0) {
+//             out[point] = (out.count(point) ? out[point] : 0.0f) + probMass;
+//         } else {
+//             float neighborFitnessSum = 0.0f;
+//             for (std::tuple<MapNode *, float, float> neighbor : neighbors) {
+//                 neighborFitnessSum += std::get<2>(neighbor);
+//             }
+//             for (std::tuple<MapNode *, float, float> neighbor : neighbors) {
+//                 if (std::get<0>(neighbor) == point) {
+//                     out[point] = (out.count(point) ? out[point] : 0.0f) + (std::get<2>(neighbor)/neighborFitnessSum) * probMass;
+//                 } else {
+//                     fringe.emplace_back(
+//                         std::get<0>(neighbor),
+//                         std::get<1>(neighbor),
+//                         std::get<2>(neighbor),
+//                         (std::get<2>(neighbor)/neighborFitnessSum) * probMass
+//                     );
+//                 }
+//             }
+//         }
+//     }
+// }
+// void Fish::getDestinationProbs(Model &model, std::unordered_map<MapNode *, float> &out)
+// {
+//     // This is a list of candidate nodes (and their swim costs) accessible from explored nodes
+//     std::deque<std::tuple<MapNode *, float, float, float>> fringe;
+//     // Add the starting node (this fish's current location)
+//     fringe.emplace_back(this->location,  0.0f, this->getFitness(model, *this->location, 0.0f), 1.0f);
+//     // Calculate swim range & speed once
+//     float swimSpeed = swimSpeedFromForkLength(this->forkLength);
+//     float swimRange = swimSpeed*SECONDS_PER_TIMESTEP;
+//     // Loop until there are no new candidate nodes
+//     while (fringe.size() > 0) {
+//         // Pick a node off the fringe to evaluate
+//         std::tuple<MapNode *, float, float, float> popped = fringe.front();
+//         MapNode *point = std::get<0>(popped);
+//         float cost = std::get<1>(popped);
+//         float fitness = std::get<2>(popped);
+//         float probMass = std::get<3>(popped);
+//         // (remove the selected node)
+//         fringe.pop_front();
+//         // Check all channels flowing into this node
+//         std::vector<std::tuple<MapNode *, float, float>> neighbors;
+//         float elapsedTime = cost / swimSpeed;
+//         float remainingTime = SECONDS_PER_TIMESTEP - elapsedTime;
+//         float stayCost = remainingTime * model.hydroModel.getUnsignedFlowSpeedAt(*point);
+//         neighbors.emplace_back(point, cost+stayCost, fitness);
+//         for (Edge &edge : point->edgesIn) {
+//             if (!out.count(edge.source) && model.hydroModel.getDepth(*edge.source) >= MOVEMENT_DEPTH_CUTOFF) {
+//                 // Effective movement speed along channel (swim speed adjusted by flow speed)
+//                 float transitSpeed = swimSpeed - model.hydroModel.getFlowSpeedAlong(edge);
+//                 // Check to make sure the fish can even make progress
+//                 if (transitSpeed > 0.0f) {
+//                     // Calculate effective distance swum
+//                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
+//                     if (isDistributary(edge.source->type) && point == this->location){ // }  || (this->forkLength >= 75)) {
+//                         // Artificially discount the cost to make distributary nodes easier to access
+//                         // (since they are widely spaced)
+//                         // change to include discount if fork length > 75mm for exiting
+//                         edgeCost = std::min(edgeCost, swimRange - cost);
+//                     }
+//                     // Check if connected node is reachable
+//                     if (cost + edgeCost <= swimRange) {
+//                         // Add it to the fringe with the new total cost
+//                         float newFitness = this->getFitness(model, *edge.source, cost + edgeCost);
+//                         neighbors.emplace_back(edge.source, cost + edgeCost, newFitness);
+//                     }
+//                 }
+//             }
+//         }
+//         // Check all channels flowing out of this node
+//         // Same as above (except flow directions are reversed)
+//         for (Edge &edge : point->edgesOut) {
+//             if (!out.count(edge.target) && model.hydroModel.getDepth(*edge.target) >= MOVEMENT_DEPTH_CUTOFF) {
+//                 float transitSpeed = swimSpeed + model.hydroModel.getFlowSpeedAlong(edge);
+//                 if (transitSpeed > 0.0f) {
+//                     float edgeCost = (edge.length/transitSpeed)*swimSpeed;
+//                     if (isDistributary(point->type) && point == this->location){ // || (this->forkLength >= 75)){
+//                         edgeCost = std::min(edgeCost, swimRange - cost);
+//                     }
+//                     if (cost + edgeCost <= swimRange) {
+//                         float newFitness = this->getFitness(model, *edge.target, cost + edgeCost);
+//                         neighbors.emplace_back(edge.target, cost + edgeCost, newFitness);
+//                     }
+//                 }
+//             }
+//         }
+//         if (neighbors.size() == 0) {
+//             out[point] = (out.count(point) ? out[point] : 0.0f) + probMass;
+//         } else {
+//             float neighborFitnessSum = 0.0f;
+//             for (std::tuple<MapNode *, float, float> neighbor : neighbors) {
+//                 neighborFitnessSum += std::get<2>(neighbor);
+//             }
+//             for (std::tuple<MapNode *, float, float> neighbor : neighbors) {
+//                 if (std::get<0>(neighbor) == point) {
+//                     out[point] = (out.count(point) ? out[point] : 0.0f) + (std::get<2>(neighbor)/neighborFitnessSum) * probMass;
+//                 } else {
+//                     fringe.emplace_back(
+//                         std::get<0>(neighbor),
+//                         std::get<1>(neighbor),
+//                         std::get<2>(neighbor),
+//                         (std::get<2>(neighbor)/neighborFitnessSum) * probMass
+//                     );
+//                 }
+//             }
+//         }
+//     }
+// }
 
 float Fish::getFitness(Model &model, MapNode &loc, float cost) {
     return this->getGrowth(model, loc, cost) / this->getMortality(model, loc);
@@ -404,52 +418,6 @@ bool Fish::move(Model &model) {
     }
     return true;
 }
-
-/* OLD
- * Perform the movement simulation for this fish
- * (calculate reachable nodes, evaluate their fitness ratios, and sample a destination)
- */
- /* 
-bool Fish::move(Model &model) {
-    // Find reachable nodes
-    std::unordered_map<MapNode *, float> reachable;
-    this->getReachableNodes(model, reachable);
-    // Arrays to hold sampling probability masses and associated nodes
-    MapNode **dests = new MapNode*[reachable.size()];
-    float *costs = new float[reachable.size()];
-    float *weights = new float[reachable.size()];
-    // Calculate each node's fitness ratio
-    int i = 0;
-    for (auto it = reachable.begin(); it != reachable.end(); ++it) {
-        dests[i] = it->first;
-        costs[i] = it->second;
-        weights[i] = this->getGrowth(model, *(it->first), it->second)
-            / this->getMortality(model, *(it->first));
-        ++i;
-    }
-    // TODO: fish lacking destinations still?
-    // Sample a destination node from the distribution formed by all reachable nodes' fitness ratios
-    unsigned idx = sample(weights, reachable.size());
-    // Update fish location and last travel distance fields
-    this->location = dests[idx];
-    this->travel = costs[idx];
-    // Clean up arrays
-    delete[] dests;
-    delete[] costs;
-    delete[] weights;
-    if (this->location->type == HabitatType::Nearshore) {
-        // Exit if at nearshore (TODO verify this behavior)
-        this->exit(model);
-        return false;
-    }
-    if (model.hydroModel.getDepth(*this->location) <= 0.0f) {
-        // Die from stranding if depth less than 0 (TODO re-evaluate this condition)
-        this->dieStranding(model);
-        return false;
-    }
-    return true;
-}
-*/
 
 // Mark this fish as having exited the model
 void Fish::exit(Model &model) {

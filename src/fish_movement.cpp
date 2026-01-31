@@ -17,12 +17,24 @@ void FishMovement::addCurrentLocation(std::vector<std::tuple<MapNode *, float, f
 }
 
 void FishMovement::addReachableNeighbors(std::vector<std::tuple<MapNode *, float, float> > &neighbors, MapNode *point,
-                                         float spentCost, MapNode *map_node) const {
+                                         float spentCost, MapNode *map_node) {
     auto reachableNeighbors = getReachableNeighbors(point, spentCost, map_node);
+
+    allReachableNeighborsInTimestep.reserve(
+       allReachableNeighborsInTimestep.size() + reachableNeighbors.size()
+   );
+    neighbors.reserve(neighbors.size() + reachableNeighbors.size());
+
+    allReachableNeighborsInTimestep.insert(
+        allReachableNeighborsInTimestep.end(),
+        reachableNeighbors.begin(),
+        reachableNeighbors.end()
+    );
+
     neighbors.insert(
         neighbors.end(),
-        std::make_move_iterator(reachableNeighbors.begin()),
-        std::make_move_iterator(reachableNeighbors.end())
+        reachableNeighbors.begin(),
+        reachableNeighbors.end()
     );
 }
 
@@ -162,7 +174,8 @@ std::vector<std::tuple<MapNode *, float, float> > FishMovement::getReachableNeig
     return neighbors;
 }
 
-std::pair<MapNode *, float> FishMovement::determineNextLocation(MapNode *originalLocation) const {
+std::pair<MapNode *, float> FishMovement::determineNextLocation(MapNode *originalLocation) {
+    allReachableNeighborsInTimestep.clear();
     MapNode *point = originalLocation;
     float accumulatedCost = 0.0f;
     std::vector<std::tuple<MapNode *, float, float> > neighbors;
